@@ -51,6 +51,16 @@ export function datesBetween(fromExclusive: string, toInclusive: string): string
   return out;
 }
 
+/**
+ * Whole days from `from` to `to`, counting both ends. Pure UTC string
+ * arithmetic, so it is unaffected by DST.
+ */
+export function daysBetweenInclusive(from: string, to: string): number {
+  const a = Date.parse(`${from}T00:00:00Z`);
+  const b = Date.parse(`${to}T00:00:00Z`);
+  return Math.round((b - a) / 86_400_000) + 1;
+}
+
 export function addDays(date: string, days: number): string {
   const next = new Date(Date.parse(`${date}T00:00:00Z`) + days * 24 * 60 * 60 * 1000);
   return next.toISOString().slice(0, 10);

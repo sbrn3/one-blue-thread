@@ -3,6 +3,7 @@ import { todaysTarget } from '../lab/dose';
 import { meta } from '../log/log';
 import type { Log } from '../log/log';
 import type { SqlDb } from '../log/db';
+import { daysBetweenInclusive } from '../log/time';
 import { CANON, nextBook } from '../text/canon';
 import { bundledChapterCount } from '../text';
 import type { TextProvider } from '../text/provider';
@@ -32,12 +33,6 @@ export interface SessionState {
   load(db: SqlDb, log: Log, text: TextProvider, today: string): Promise<void>;
   seal(db: SqlDb, log: Log, text: TextProvider, today: string): Promise<void>;
   pickNextBook(db: SqlDb, bookId: string): void;
-}
-
-function daysBetweenInclusive(from: string, to: string): number {
-  const a = Date.parse(`${from}T00:00:00Z`);
-  const b = Date.parse(`${to}T00:00:00Z`);
-  return Math.round((b - a) / 86_400_000) + 1;
 }
 
 async function loadPortion(

@@ -23,7 +23,7 @@ import {
   MIN_SETT,
   SET_MARK_MIN_GAP,
   SET_MARK_OFFSET,
-} from '../src/ui/cloth';
+} from '../src/ui/loom';
 
 // The bolt is the one place the app draws something dense enough to matter, and
 // none of it can be checked by rendering (the suite is logic-only, per
@@ -204,7 +204,7 @@ describe('determinism (§13.6 — no Math.random)', () => {
   it('does not reference Math.random anywhere in the module', async () => {
     const { readFileSync } = await import('node:fs');
     const { join } = await import('node:path');
-    const src = readFileSync(join(__dirname, '..', 'src', 'ui', 'cloth.ts'), 'utf8')
+    const src = readFileSync(join(__dirname, '..', 'src', 'ui', 'loom.ts'), 'utf8')
       // Strip comments first — the module's own header promises it avoids
       // Math.random, and that sentence would otherwise fail this assertion.
       .replace(/\/\*[\s\S]*?\*\//g, '')
