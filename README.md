@@ -100,7 +100,9 @@ it against a real key before relying on it day to day.
 ### Study resources
 
 Tyndale Open Study Notes and the Tyndale Open Bible Dictionary ship as
-partitioned offline data. While reading, a few exact dictionary matches receive
+partitioned offline data. Reproducible JSON remains under `assets/tyndale`, while
+the app loads checksum-verified gzip modules lazily to keep the APK compact.
+While reading, a few exact dictionary matches receive
 a dotted underline; tapping a verse opens study context and explicit
 single-verse or same-chapter passage remembering. The knot contains full
 title/alias dictionary search.

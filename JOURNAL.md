@@ -14,9 +14,9 @@ changed, why, and anything the next session needs to know.
   offline title/alias dictionary search.
 - Kept lookup/search activity local and out of the event log. Existing memory
   events remain unchanged; identical active ranges are idempotent.
-- Android Metro export succeeded after the final structured-content build. The
-  compressed export delta was about 8.7 MiB (12.4 MiB feature versus the 3.3 MiB
-  baseline), within the 18 MiB release gate.
+- The first v0.3.0 APK exposed a 28.4 MiB increase over v0.2.0, above the 18 MiB
+  gate. The corpus was repacked as lazy gzip modules; Hermes bytecode fell from
+  40.0 MB to 20.0 MB. v0.3.1 is the corrected release candidate.
 
 ## 2026-09-04 — Project docs, workflow skills, reset button planning
 

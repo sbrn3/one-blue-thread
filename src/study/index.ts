@@ -1,5 +1,4 @@
-import indexData from '../../assets/tyndale/dictionary-index.json';
-import { dictionaryAssets, studyAssets } from './assets.generated';
+import { dictionaryAssets, dictionaryIndex, studyAssets } from './assets.generated';
 import { BundledStudyProvider } from './provider';
 import type { DictionaryArticle, DictionaryIndexEntry, StudyResource } from './types';
 
@@ -19,7 +18,7 @@ export function createStudyProvider(): BundledStudyProvider {
   return new BundledStudyProvider({
     studyLoader:(book) => cached(studyCache,book,()=>studyAssets[book]?.() ?? []),
     dictionaryLoader:(letter) => cached(dictionaryCache,letter,()=>dictionaryAssets[letter]?.() ?? []),
-    index:indexData as DictionaryIndexEntry[],
+    index:dictionaryIndex as DictionaryIndexEntry[],
   });
 }
 

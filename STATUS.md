@@ -21,8 +21,8 @@ main worktree is not part of this release.
 - `npm run typecheck` — clean.
 - `npm run check:tyndale` — 17,477 study resources, 6,010 dictionary articles,
   66 canonical book partitions, references, links, hashes, and notices verified.
-- Android production Metro export — clean; compressed export is 12.4 MiB, about
-  8.7 MiB above the recorded 3.3 MiB baseline and below the 18 MiB feature gate.
+- Android production Metro export — clean after runtime corpus packing; compressed
+  export is 10.4 MiB and Hermes bytecode is 20.0 MB, down from 40.0 MB in v0.3.0.
 - Physical-device accessibility and startup/heap profiling remain manual checks;
   no Android device or emulator is available in this environment.
 
