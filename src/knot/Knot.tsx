@@ -20,6 +20,7 @@ import { ChapterStrip, type ChapterEntry } from './ChapterStrip';
 import { CueEditor } from './CueEditor';
 import { DiagnosticsSection } from './DiagnosticsSection';
 import { PartnerSection } from './PartnerSection';
+import { ResetSection } from './ResetSection';
 import { DictionaryLibrary } from '../study/DictionaryLibrary';
 
 interface KnotProps {
@@ -141,6 +142,8 @@ export function Knot({ services }: KnotProps) {
 
               <Text style={styles.sectionLabel}>Support</Text>
               <DiagnosticsSection diagnosticsText={buildDiagnostics(db)} amendments={getAmendmentLog(db)} />
+
+              <ResetSection db={db} log={log} />
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
