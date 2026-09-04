@@ -12,9 +12,19 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
+  /* ── Tokens ──────────────────────────────────────────────────────────
+     "The Loom" — docs/plans/aesthetic-thread-textile/level-up.md
+     Natural-dye palette. --thread keeps its name (tokens.ts mirrors it)
+     but is now indigo, not the retired electric #1F3FFF.
+     Contrast on --paper: ink 15.5:1 · thread 8.9:1 · madder 4.7:1 ·
+     warp 3.15:1 (meaningful graphic — bare warp is how a gap is shown). */
   :root {
-    --paper: #FBFAF7; --ink: #16161A; --thread: #1F3FFF;
-    --ink60: #5E5D66; --ink40: #9C9BA3; --ink15: #E6E5E1; --blue-soft: #EEF0FF;
+    --paper: #F4F1E9; --ink: #1A1A17; --thread: #2E3A8C;
+    --ink60: #5B584F; --ink40: #8F8B7E; --ink15: #E0DACB;
+    --warp: #8F8779; --dye-soft: #E7E9F4;
+    --madder: #B5482F; --walnut: #6B4E37; --weld: #A8761E;
+    --woad: #3E6B5A; --cochineal: #8E2F4A;
+    --rail: 66px;
     --display: 'Schibsted Grotesk', system-ui, sans-serif;
     --scripture: 'Newsreader', Georgia, serif;
     --mono: 'JetBrains Mono', ui-monospace, monospace;
@@ -29,26 +39,34 @@
     display: inline-block; text-decoration: none; cursor: pointer;
     font: 600 15px/1 var(--display); padding: 14px 28px; border-radius: 999px;
     border: 1px solid var(--ink); color: var(--ink); background: transparent;
-    transition: background .18s, color .18s, transform .18s;
+    transition: background .18s, color .18s;
   }
-  .btn:hover { background: var(--ink); color: var(--paper); transform: translateY(-1px); }
+  .btn:hover { background: var(--ink); color: var(--paper); }
   .btn.primary { background: var(--thread); border-color: var(--thread); color: #fff; }
   .btn.primary:hover { background: var(--ink); border-color: var(--ink); }
+  .btn:focus-visible, .grade:focus-visible, .seal-btn:focus-visible { outline: 2px solid var(--madder); outline-offset: 3px; }
   .kicker { font: 600 11px/1 var(--mono); letter-spacing: .2em; text-transform: uppercase; color: var(--thread); }
 
-  /* the needle: one thread sewn through the whole page */
-  .needle-svg { position: absolute; top: 0; left: 0; width: 100%; z-index: 1; pointer-events: none; }
-  .needle-svg .ghost { fill: none; stroke: var(--ink15); stroke-width: 1.5; }
-  .needle-svg .sewn { fill: none; stroke: var(--thread); stroke-width: 2.5; stroke-linecap: round; }
-  .stage { position: relative; z-index: 2; }
+  /* ── the loom rail: the page's warp, woven to your scroll position.
+        The fell line — where bare warp becomes cloth — is the only
+        progress indicator on the page. ───────────────────────────────── */
+  .loom-rail { position: fixed; top: 0; left: 0; bottom: 0; width: var(--rail); z-index: 1; pointer-events: none; }
+  .loom-rail svg { width: 100%; height: 100%; display: block; }
+  .loom-rail .warp-slack { stroke: var(--warp); stroke-width: 2.2; fill: none; opacity: .42; }
+  .loom-rail .warp-taut  { stroke: var(--warp); stroke-width: 2.6; fill: none; opacity: .95; }
+  .loom-rail .weft       { stroke: var(--thread); stroke-width: 3.2; fill: none; opacity: .9; stroke-linecap: round; }
+  .loom-rail .fell       { stroke: var(--thread); stroke-width: 9; fill: none; opacity: .14; stroke-linecap: round; }
+  .stage { position: relative; z-index: 2; padding-left: var(--rail); }
+  @media (max-width: 700px) { :root { --rail: 34px; } }
 
-  .rv { opacity: 0; transform: translateY(26px); transition: opacity .8s cubic-bezier(.2,.6,.2,1), transform .8s cubic-bezier(.2,.6,.2,1); }
-  .rv.in { opacity: 1; transform: none; }
-  .rv.d1 { transition-delay: .12s; } .rv.d2 { transition-delay: .24s; } .rv.d3 { transition-delay: .36s; }
-  @media (prefers-reduced-motion: reduce) { .rv { opacity: 1; transform: none; } }
+  /* motion: a settle under tension, not a fade-and-rise on everything */
+  .rv { opacity: 0; transition: opacity .5s ease; }
+  .rv.in { opacity: 1; }
+  .rv.d1 { transition-delay: .06s; } .rv.d2 { transition-delay: .12s; } .rv.d3 { transition-delay: .12s; }
+  @media (prefers-reduced-motion: reduce) { .rv { opacity: 1; } }
 
-  /* ---- hero (Ink: masked line-rise type) ---- */
-  .hero { min-height: 96vh; display: flex; flex-direction: column; justify-content: center; max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+  /* ---- hero ---- */
+  .hero { min-height: min(90svh, 820px); display: flex; flex-direction: column; justify-content: center; max-width: 1100px; margin: 0 auto; padding: 12vh 40px 8vh; }
   .line-mask { overflow: hidden; }
   .line-mask span { display: block; transform: translateY(110%); animation: rise 1s cubic-bezier(.2,.7,.15,1) forwards; }
   .line-mask:nth-child(2) span { animation-delay: .1s; }
@@ -60,8 +78,8 @@
   .hero .sub { font: 400 17px/1.6 var(--scripture); color: var(--ink60); max-width: 460px; margin-top: 30px; }
   .hero .scroll-cue { font: 400 12px/1 var(--mono); color: var(--ink40); margin-top: 52px; }
 
-  /* ---- thesis panel (Needle: right-anchored, quote card) ---- */
-  .thesis { min-height: 62vh; display: flex; align-items: center; justify-content: flex-end; max-width: 1100px; margin: 0 auto; padding: 6vh 40px; }
+  /* ---- thesis panel ---- */
+  .thesis { min-height: min(58svh, 560px); display: flex; align-items: center; justify-content: flex-end; max-width: 1100px; margin: 0 auto; padding: 6vh 40px; }
   .thesis-box { max-width: 560px; text-align: right; }
   .thesis-box h2 { font: 800 clamp(28px, 4.4vw, 46px)/1.15 var(--display); letter-spacing: -.02em; margin-top: 14px; }
   .thesis-box p { font: 400 17px/1.7 var(--scripture); color: var(--ink60); margin-top: 16px; }
@@ -71,63 +89,68 @@
   .zone-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
   .zone-tag { font: 600 11px/1 var(--mono); letter-spacing: .18em; text-transform: uppercase; color: var(--ink40); }
   .zone-tag b { color: var(--thread); font-weight: 600; }
-  .knot-fixed { position: fixed; top: 46px; right: 24px; z-index: 50; width: 24px; height: 24px; border: 1.5px solid var(--ink40); border-radius: 50%; }
-  .knot-fixed::after { content: ''; position: absolute; inset: 7px; border-radius: 50%; background: var(--ink40); }
+  .knot-fixed { position: fixed; top: 46px; right: 24px; z-index: 50; width: 24px; height: 24px; border: 1.5px solid var(--warp); border-radius: 50%; }
+  .knot-fixed::after { content: ''; position: absolute; inset: 7px; border-radius: 50%; background: var(--warp); }
 
-  .chapter { min-height: 92vh; display: flex; align-items: center; max-width: 780px; margin: 0 auto; padding: 8vh 40px; }
+  .chapter { min-height: min(86svh, 760px); display: flex; align-items: center; max-width: 780px; margin: 0 auto; padding: 8vh 40px; }
   .chapter.center { justify-content: center; text-align: center; flex-direction: column; }
 
   .c-arrival .day { font: 600 12px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--ink40); }
   .c-arrival h2 { font: 800 clamp(38px, 6vw, 68px)/1.05 var(--display); letter-spacing: -.03em; margin: 18px 0 26px; }
   .cue-line { font: italic 400 clamp(19px, 2.8vw, 27px)/1.6 var(--scripture); color: var(--ink60); min-height: 3.2em; }
   .cue-line .blank { color: var(--thread); border-bottom: 2px solid var(--thread); font-style: italic; white-space: pre; }
-  .cue-line .caret { display: inline-block; width: 2px; height: 1em; background: var(--thread); vertical-align: -0.15em; animation: blink 1s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
+  /* finite — a needle tip that settles, never an infinite blink */
+  .cue-line .caret { display: inline-block; width: 2px; height: 1em; background: var(--madder); vertical-align: -0.15em; animation: blink 1s steps(1) 7 forwards; }
+  @keyframes blink { 50% { opacity: 0; } 100% { opacity: 0; } }
   .tapnote { font: 400 12px/1 var(--mono); color: var(--ink40); margin-top: 22px; }
 
   .c-recall .refbig { font: 800 clamp(38px, 6vw, 64px)/1.05 var(--display); letter-spacing: -.025em; margin: 14px 0 24px; }
   .grade-row { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
   .grade { font: 600 14px/1 var(--display); padding: 12px 20px; border-radius: 999px; border: 1px solid var(--ink15); color: var(--ink60); cursor: pointer; background: transparent; transition: border-color .15s, color .15s, background .15s; }
-  .grade:hover { border-color: var(--thread); color: var(--thread); background: var(--blue-soft); }
+  .grade:hover { border-color: var(--thread); color: var(--thread); background: var(--dye-soft); }
   .reveal-box { overflow: hidden; max-height: 0; opacity: 0; transition: max-height .7s ease, opacity .7s ease; }
   .reveal-box.open { max-height: 300px; opacity: 1; }
   .reveal-box blockquote { font: 400 19px/1.7 var(--scripture); border-left: 2px solid var(--ink15); padding-left: 20px; margin-top: 20px; }
 
   .c-scripture .verse { font: 400 clamp(18px, 2.1vw, 22px)/1.8 var(--scripture); margin-bottom: 16px; }
-  .c-scripture .vn { font: 600 10px var(--mono); color: var(--thread); vertical-align: super; margin-right: 6px; }
+  .c-scripture .vn { font: 600 10px var(--mono); color: var(--ink40); vertical-align: super; margin-right: 6px; }
+  /* the weft passing over the line, not a highlighter */
   .c-scripture .verse.sweep {
-    background-image: linear-gradient(var(--blue-soft), var(--blue-soft));
+    background-image: linear-gradient(var(--dye-soft), var(--dye-soft));
     background-repeat: no-repeat; background-size: 0% 100%;
     transition: background-size 1.4s cubic-bezier(.25,.5,.25,1);
-    border-radius: 4px; padding: 2px 6px; margin-left: -6px;
+    border-radius: 3px; padding: 2px 6px; margin-left: -6px;
   }
   .c-scripture .verse.sweep.in-sweep { background-size: 100% 100%; }
 
-  .seal-btn { width: 156px; height: 156px; margin: 32px auto 0; border-radius: 50%; border: 0; background: transparent; cursor: pointer; position: relative; display: block; -webkit-tap-highlight-color: transparent; touch-action: none; }
-  .seal-btn svg { position: absolute; inset: 0; transform: rotate(-90deg); }
-  .seal-btn .track { fill: none; stroke: var(--ink15); stroke-width: 4; }
-  .seal-btn .prog { fill: none; stroke: var(--thread); stroke-width: 4; stroke-linecap: round; }
-  .seal-btn .core { position: absolute; inset: 37px; border-radius: 50%; background: var(--ink); transition: background .25s, transform .25s; }
-  .seal-btn:active .core { transform: scale(.96); }
-  .seal-btn.sealed .core { background: var(--thread); }
+  /* ---- the seal: a shuttle pass. hold, and the weft crosses the warp ---- */
+  .seal-btn { width: min(300px, 78vw); height: 132px; margin: 32px auto 0; border: 0; background: transparent; cursor: pointer; position: relative; display: block; -webkit-tap-highlight-color: transparent; touch-action: none; border-radius: 8px; }
+  .seal-btn svg { width: 100%; height: 100%; display: block; overflow: visible; }
+  .seal-btn .s-warp { stroke: var(--warp); stroke-width: 3; fill: none; }
+  .seal-btn .s-weft { stroke: var(--thread); stroke-width: 3.6; fill: none; stroke-linecap: round; opacity: .9; }
+  .seal-btn .s-live { stroke: var(--thread); stroke-width: 4.4; fill: none; stroke-linecap: round; }
+  .seal-btn.sealed .s-live { stroke: var(--madder); }
   .seal-hint { font: 400 13px/1.6 var(--mono); color: var(--ink40); margin-top: 22px; }
 
-  .c-weave .weave { display: grid; grid-template-columns: repeat(15, 1fr); gap: 7px; margin-top: 30px; max-width: 620px; }
-  .c-weave .weave i { display: block; height: 24px; border-radius: 2px; background: var(--thread); opacity: .85; transform: scaleX(0); transform-origin: left; transition: transform .5s cubic-bezier(.2,.7,.2,1); }
-  .c-weave .weave i.gap { background: transparent; border: 1px dashed var(--ink15); transform: none; }
-  .c-weave.woven .weave i { transform: scaleX(1); }
+  /* ---- the weave: a bolt of cloth, gaps and all ---- */
+  .c-weave .bolt { margin-top: 30px; max-width: 620px; width: 100%; }
+  .c-weave .bolt svg { width: 100%; height: auto; display: block; overflow: visible; }
   .c-weave p.body { font: 400 17px/1.7 var(--scripture); color: var(--ink60); margin-top: 14px; max-width: 560px; }
   .c-weave p.body strong { color: var(--ink); font-weight: 600; }
 
-  /* ---- the lab: how it learns (a meta aside, not a numbered flow zone) ---- */
+  /* ---- the lab ---- */
   .c-lab h2 { font: 800 clamp(30px, 5vw, 52px)/1.12 var(--display); letter-spacing: -.025em; margin: 12px 0 22px; max-width: 13ch; }
   .c-lab p.lead { font: 400 18px/1.7 var(--scripture); color: var(--ink60); max-width: 560px; }
   .c-lab p.lead strong { color: var(--ink); font-weight: 600; }
   .c-lab p.lead em { font-style: italic; color: var(--ink); }
   .c-lab .for-example { font: 600 11px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--ink40); margin: 44px 0 18px; }
   .c-lab .labstrip { display: grid; grid-template-columns: repeat(20, 1fr); gap: 4px; max-width: 620px; }
-  .c-lab .labstrip i { display: block; height: 22px; border-radius: 2px; background: var(--thread); opacity: .85; transform: scaleX(0); transform-origin: left; transition: transform .5s cubic-bezier(.2,.7,.2,1); }
-  .c-lab .labstrip i.off { background: transparent; border: 1px dashed var(--ink15); transform: none; }
+  /* woven picks vs bare warp — the same language as the bolt */
+  .c-lab .labstrip i { display: block; height: 26px; background: var(--thread); opacity: .88; transform: scaleX(0); transform-origin: left; transition: transform .5s cubic-bezier(.2,.7,.2,1); border-radius: 1px; }
+  .c-lab .labstrip i.off {
+    background: repeating-linear-gradient(90deg, var(--warp) 0 2px, transparent 2px 6px);
+    opacity: .5; transform: none;
+  }
   .c-lab.tested .labstrip i { transform: scaleX(1); }
   .c-lab.tested .labstrip i.off { transform: none; }
   .c-lab .strip-labels { display: grid; grid-template-columns: repeat(4, 1fr); max-width: 620px; margin-top: 10px; }
@@ -140,7 +163,8 @@
   @media (prefers-reduced-motion: reduce) { .c-lab .labstrip i { transform: none; } }
   @media (max-width: 640px) { .c-lab .strip-labels span:nth-child(3), .c-lab .strip-labels span:nth-child(4) { display: none; } }
 
-  .locked { opacity: .35; pointer-events: none; transition: opacity .6s; filter: saturate(.4); }
+  /* locked: still on the loom, not yet woven */
+  .locked { opacity: .3; pointer-events: none; transition: opacity .6s; filter: saturate(.25); }
   .locked.unlocked { opacity: 1; pointer-events: auto; filter: none; }
 
   .c-dismiss .closer { font: 800 clamp(30px, 5vw, 48px)/1.15 var(--display); letter-spacing: -.02em; }
@@ -150,16 +174,16 @@
   @media (max-width: 760px) {
     .thesis { justify-content: flex-start; }
     .thesis-box { text-align: left; }
+    .hero, .thesis, .chapter { padding-left: 24px; padding-right: 24px; }
   }
 </style>
 </head>
 <body>
 
 <main>
-  <svg class="needle-svg" id="needleSvg" aria-hidden="true">
-    <path class="ghost" id="needleGhost" d=""></path>
-    <path class="sewn" id="needleSewn" d=""></path>
-  </svg>
+  <div class="loom-rail" id="loomRail" aria-hidden="true">
+    <svg id="railSvg" preserveAspectRatio="none"></svg>
+  </div>
   <div class="knot-fixed" aria-hidden="true"></div>
 
   <div class="stage">
@@ -227,11 +251,7 @@
       <div class="zone-head"><span class="zone-tag"><b>zone 04</b> · the seal</span></div>
       <h2 class="rv" style="font: 800 clamp(30px,5vw,46px)/1.1 var(--display); letter-spacing:-.02em">Press and hold to seal the day.</h2>
       <button class="seal-btn rv d1" id="sealBtn" aria-label="Press and hold to seal">
-        <svg viewBox="0 0 156 156">
-          <circle class="track" cx="78" cy="78" r="74"></circle>
-          <circle class="prog" id="sealProg" cx="78" cy="78" r="74" stroke-dasharray="464.9" stroke-dashoffset="464.9"></circle>
-        </svg>
-        <div class="core"></div>
+        <svg viewBox="0 0 300 132" id="sealSvg" aria-hidden="true"></svg>
       </button>
       <p class="seal-hint rv d2" id="sealHint">hold ~1.2s · release early and the ring unwinds, nothing is logged<br>sealing unlocks the rest of the page ↓</p>
     </section>
@@ -240,10 +260,7 @@
       <div class="zone-head"><span class="zone-tag"><b>zone 05</b> · the weave</span></div>
       <h2 style="font: 800 clamp(30px,5vw,46px)/1.1 var(--display); letter-spacing:-.02em">Your month, woven.</h2>
       <p class="body">Each sealed day pulls a thread through. <strong>Gaps stay gaps</strong> — a mirror, not a threat.</p>
-      <div class="weave" aria-hidden="true">
-        <i style="transition-delay:.00s"></i><i style="transition-delay:.03s"></i><i style="transition-delay:.06s"></i><i class="gap"></i><i style="transition-delay:.09s"></i><i style="transition-delay:.12s"></i><i style="transition-delay:.15s"></i><i style="transition-delay:.18s"></i><i class="gap"></i><i style="transition-delay:.21s"></i><i style="transition-delay:.24s"></i><i style="transition-delay:.27s"></i><i style="transition-delay:.30s"></i><i style="transition-delay:.33s"></i><i class="gap"></i>
-        <i style="transition-delay:.36s"></i><i style="transition-delay:.39s"></i><i class="gap"></i><i style="transition-delay:.42s"></i><i style="transition-delay:.45s"></i><i style="transition-delay:.48s"></i><i style="transition-delay:.51s"></i><i style="transition-delay:.54s"></i><i style="transition-delay:.57s"></i><i class="gap"></i><i style="transition-delay:.60s"></i><i style="transition-delay:.63s"></i><i style="transition-delay:.66s"></i><i style="transition-delay:.69s"></i><i style="transition-delay:.72s"></i>
-      </div>
+      <div class="bolt" aria-hidden="true"><svg id="boltSvg"></svg></div>
     </section>
 
     <!-- THE LAB — a meta aside on how it learns. Not a numbered flow zone;
@@ -287,67 +304,163 @@
 <script>
 (function () {
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const NS = 'http://www.w3.org/2000/svg';
+  const el = (n, a) => { const e = document.createElementNS(NS, n); for (const k in (a||{})) e.setAttribute(k, a[k]); return e; };
 
   // ---- reveal-on-view ----
   const io = new IntersectionObserver(es => es.forEach(e => {
     if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
   }), { threshold: 0.25 });
-  document.querySelectorAll('.rv').forEach(el => io.observe(el));
+  document.querySelectorAll('.rv').forEach(el2 => io.observe(el2));
 
-  // ---- the needle: one path sewn through the entire page ----
-  const svg = document.getElementById('needleSvg');
-  const ghost = document.getElementById('needleGhost');
-  const sewn = document.getElementById('needleSewn');
-  let pathLen = 0, target = 0, shown = -1, rafId = null;
+  /* ------------------------------------------------------------------
+     cloth(): genuine plain weave. Warp is painted, weft painted over it,
+     then the warp segments that ride *over* are repainted on top at
+     alternating crossings. No thread is straight — that is where the
+     fluidity lives. `sealed[]` says which rows carry a weft; a row
+     without one leaves bare warp, and warp far from any weft loses
+     support: thinner, fainter, wider wobble, drifting off its sett.
+  ------------------------------------------------------------------ */
+  function cloth(svg, o) {
+    const cols = o.cols, sealed = o.sealed, rows = sealed.length;
+    const sx = o.sx, sy = o.sy, pad = o.pad == null ? 10 : o.pad;
+    const W = sx * (cols - 1) + pad * 2, H = sy * (rows - 1) + pad * 2;
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    const x0 = pad, y0 = pad;
+    const amp = o.amp == null ? 1.8 : o.amp, wl = sy * 2.05;
+    const warpW = o.warpW || 2.5, weftW = o.weftW || 3.2;
 
-  function buildNeedle() {
-    const stage = document.querySelector('.stage');
-    const W = stage.clientWidth, H = stage.scrollHeight;
-    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
-    svg.style.height = H + 'px';
-    const anchors = stage.querySelectorAll('[data-anchor]');
-    const pts = [];
-    anchors.forEach(sec => {
-      const x = W * parseFloat(sec.dataset.anchor);
-      const y = sec.offsetTop + sec.offsetHeight * 0.5;
-      pts.push([x, y]);
-    });
-    pts.unshift([W * 0.5, -40]);
-    pts.push([W * 0.5, H - 40]);
-    let d = `M ${pts[0][0]} ${pts[0][1]}`;
-    for (let i = 1; i < pts.length; i++) {
-      const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
-      const cy = (y0 + y1) / 2;
-      d += ` C ${x0} ${cy}, ${x1} ${cy}, ${x1} ${y1}`;
+    const dist = new Array(rows).fill(99);
+    for (let j = 0; j < rows; j++) if (sealed[j]) dist[j] = 0;
+    for (let j = 1; j < rows; j++) dist[j] = Math.min(dist[j], dist[j - 1] + 1);
+    for (let j = rows - 2; j >= 0; j--) dist[j] = Math.min(dist[j], dist[j + 1] + 1);
+    const CAP = 4.5; // slack is capped — a lapse reads as open, never as damage
+    const distAt = y => {
+      const f = (y - y0) / sy, a = Math.max(0, Math.min(rows - 1, Math.floor(f))), b = Math.min(rows - 1, a + 1);
+      return dist[a] + (dist[b] - dist[a]) * Math.max(0, Math.min(1, f - a));
+    };
+    const warpX = (i, y) => {
+      const d = Math.min(distAt(y), CAP), slack = d / CAP;
+      return x0 + i * sx + Math.sin(y / wl + i * 0.9) * amp * (1 + slack * 2.2) + Math.sin(i * 2.31 + 1.7) * d * 1.05;
+    };
+    const weftY = (j, x) => y0 + j * sy + Math.sin(x / (sx * 2.05) + j * 0.7) * amp;
+    const warpPath = (i, ya, yb) => {
+      let d = '', f = true, st = Math.min(3.5, sy / 3);
+      for (let y = ya; y <= yb + 0.001; y += st) { d += (f ? 'M' : 'L') + warpX(i, y).toFixed(2) + ' ' + y.toFixed(2) + ' '; f = false; }
+      return d;
+    };
+    const weftPath = j => {
+      let d = '', f = true, st = Math.min(3.5, sx / 3);
+      for (let x = x0 - pad * .6; x <= x0 + sx * (cols - 1) + pad * .6; x += st) { d += (f ? 'M' : 'L') + x.toFixed(2) + ' ' + weftY(j, x).toFixed(2) + ' '; f = false; }
+      return d;
+    };
+
+    const gWarp = el('g', { fill: 'none', 'stroke-linecap': 'round' });
+    for (let i = 0; i < cols; i++) for (let j = 0; j < rows; j++) {
+      const slack = Math.min(dist[j], CAP) / CAP;
+      const ya = j === 0 ? y0 - pad * .5 : y0 + (j - .5) * sy;
+      const yb = j === rows - 1 ? y0 + (rows - 1) * sy + pad * .5 : y0 + (j + .5) * sy;
+      gWarp.appendChild(el('path', { d: warpPath(i, ya, yb), stroke: o.warp,
+        'stroke-width': (warpW * (1 - slack * .2)).toFixed(2), 'stroke-opacity': (.95 - slack * .4).toFixed(2) }));
     }
-    ghost.setAttribute('d', d);
-    sewn.setAttribute('d', d);
-    pathLen = sewn.getTotalLength();
-    sewn.style.strokeDasharray = pathLen;
-    sewn.style.strokeDashoffset = reduced ? 0 : pathLen;
-    shown = -1;
-    onScroll();
+    svg.appendChild(gWarp);
+
+    const gWeft = el('g', { fill: 'none', 'stroke-linecap': 'round' });
+    const gOver = el('g', { fill: 'none', 'stroke-linecap': 'round' });
+    for (let j = 0; j < rows; j++) {
+      if (!sealed[j]) continue;
+      const p = el('path', { d: weftPath(j), stroke: o.dye, 'stroke-width': weftW, 'stroke-opacity': '.92' });
+      p.setAttribute('data-row', j);
+      gWeft.appendChild(p);
+      for (let i = 0; i < cols; i++) {
+        if ((i + j) % 2 !== 0) continue;
+        const yc = y0 + j * sy;
+        gOver.appendChild(el('path', { d: warpPath(i, yc - sy * .42, yc + sy * .42),
+          stroke: o.warp, 'stroke-width': warpW, 'stroke-opacity': '.95' }));
+      }
+    }
+    svg.appendChild(gWeft); svg.appendChild(gOver);
+    return { W: W, H: H, y0: y0, sy: sy, rows: rows };
   }
 
-  function onScroll() {
-    if (reduced) return;
-    const max = document.documentElement.scrollHeight - innerHeight;
-    target = max > 0 ? Math.min(scrollY / max, 1) : 0;
-    if (rafId === null) rafId = requestAnimationFrame(tick);
-  }
-  function tick() {
-    shown = shown < 0 ? target : shown + (target - shown) * 0.08;
-    sewn.style.strokeDashoffset = pathLen * (1 - shown);
-    if (Math.abs(target - shown) > 0.0005) rafId = requestAnimationFrame(tick);
-    else rafId = null;
-  }
-  addEventListener('scroll', onScroll, { passive: true });
-  addEventListener('resize', buildNeedle);
-  buildNeedle();
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(buildNeedle);
-  // seal/weave unlock changes layout height — rebuild after
-  const resizeObs = new ResizeObserver(() => buildNeedle());
-  resizeObs.observe(document.querySelector('.stage'));
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const WARP = css('--warp') || '#8F8779', DYE = css('--thread') || '#2E3A8C';
+
+  /* ---- the loom rail: the page's own warp, woven to the scroll ---- */
+  (function () {
+    const svg = document.getElementById('railSvg');
+    const rail = document.getElementById('loomRail');
+    let geo = null, clipRect = null, fellPath = null, rows = 0, y0 = 0, sy = 0;
+
+    function build() {
+      const w = rail.clientWidth, h = rail.clientHeight;
+      if (!w || !h) return;
+      const cols = w > 50 ? 5 : 3, sy2 = 20, pad = w > 50 ? 14 : 8;
+      const sx = (w - pad * 2) / (cols - 1);
+      rows = Math.max(4, Math.round((h - pad * 2) / sy2));
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+      y0 = pad; sy = sy2;
+      const x0 = pad, amp = 1.6, wl = sy * 2.05;
+      const wx = (i, y, slack) => x0 + i * sx + Math.sin(y / wl + i * .9) * amp * (1 + slack * 1.6);
+      const wpath = (i, slack) => { let d = '', f = true; for (let y = -10; y <= h + 10; y += 5) { d += (f ? 'M' : 'L') + wx(i, y, slack).toFixed(2) + ' ' + y + ' '; f = false; } return d; };
+      const fpath = j => { let d = '', f = true; for (let x = x0 - pad * .6; x <= x0 + sx * (cols - 1) + pad * .6; x += 4) { d += (f ? 'M' : 'L') + x.toFixed(2) + ' ' + (y0 + j * sy + Math.sin(x / (sx * 2.05) + j * .7) * amp).toFixed(2) + ' '; f = false; } return d; };
+
+      const defs = el('defs');
+      const cp = el('clipPath', { id: 'fellClip' });
+      clipRect = el('rect', { x: '0', y: '0', width: String(w), height: '0' });
+      cp.appendChild(clipRect); defs.appendChild(cp); svg.appendChild(defs);
+
+      const slackG = el('g');                                   // bare warp, always visible
+      for (let i = 0; i < cols; i++) slackG.appendChild(el('path', { d: wpath(i, 1), class: 'warp-slack' }));
+      svg.appendChild(slackG);
+
+      const woven = el('g', { 'clip-path': 'url(#fellClip)' });  // cloth, revealed to the fell line
+      const tautG = el('g');
+      for (let i = 0; i < cols; i++) tautG.appendChild(el('path', { d: wpath(i, 0), class: 'warp-taut' }));
+      woven.appendChild(tautG);
+      const weftG = el('g'), overG = el('g');
+      for (let j = 0; j < rows; j++) {
+        weftG.appendChild(el('path', { d: fpath(j), class: 'weft' }));
+        for (let i = 0; i < cols; i++) {
+          if ((i + j) % 2 !== 0) continue;
+          const yc = y0 + j * sy;
+          let d = '', f = true;
+          for (let y = yc - sy * .42; y <= yc + sy * .42; y += 3) { d += (f ? 'M' : 'L') + wx(i, y, 0).toFixed(2) + ' ' + y.toFixed(2) + ' '; f = false; }
+          overG.appendChild(el('path', { d: d, class: 'warp-taut' }));
+        }
+      }
+      woven.appendChild(weftG); woven.appendChild(overG);
+      svg.appendChild(woven);
+
+      fellPath = el('path', { d: fpath(0), class: 'fell' });
+      svg.appendChild(fellPath);
+      geo = { h: h, fpath: fpath };
+      update();
+    }
+
+    let raf = null, shown = 0;
+    function update() {
+      if (!geo) return;
+      const max = document.documentElement.scrollHeight - innerHeight;
+      const t = max > 0 ? Math.min(Math.max(scrollY / max, 0), 1) : 0;
+      const target = reduced ? t : t;
+      shown += (target - shown) * (reduced ? 1 : 0.16);
+      if (Math.abs(target - shown) < 0.0008) shown = target;
+      const j = Math.max(0, Math.min(rows - 1, Math.round(shown * (rows - 1))));
+      const fy = y0 + j * sy;
+      clipRect.setAttribute('height', String(fy + sy * .5));
+      fellPath.setAttribute('d', geo.fpath(j));
+      if (!reduced && shown !== target) raf = requestAnimationFrame(update); else raf = null;
+    }
+    addEventListener('scroll', () => { if (raf === null) raf = requestAnimationFrame(update); }, { passive: true });
+    addEventListener('resize', build);
+    build();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(build);
+    new ResizeObserver(() => { const m = document.documentElement.scrollHeight; if (m !== update._h) { update._h = m; update(); } })
+      .observe(document.querySelector('.stage'));
+  })();
 
   // ---- arrival: typing cue blanks ----
   const blanks = document.querySelectorAll('.blank');
@@ -381,21 +494,41 @@
   }), { threshold: 0.6 });
   document.querySelectorAll('.verse.sweep').forEach(v => sweepIO.observe(v));
 
-  // ---- seal: press-and-hold, unlocks weave + dismissal ----
+  // ---- seal: press-and-hold is a shuttle pass; unlocks weave + dismissal ----
   (function () {
-    const HOLD = 1200, CIRC = 464.9;
+    const HOLD = 1200;
     const btn = document.getElementById('sealBtn');
-    const prog = document.getElementById('sealProg');
+    const svg = document.getElementById('sealSvg');
     const hint = document.getElementById('sealHint');
+    const COLS = 11, ROWS = 5, SX = 26, SY = 20, X0 = 22, Y0 = 30;
+
+    const wx = (i, y) => X0 + i * SX + Math.sin(y / (SY * 2.05) + i * .9) * 1.6;
+    const wy = (j, x) => Y0 + j * SY + Math.sin(x / (SX * 2.05) + j * .7) * 1.6;
+    const wpath = (i, ya, yb) => { let d = '', f = true; for (let y = ya; y <= yb; y += 4) { d += (f ? 'M' : 'L') + wx(i, y).toFixed(2) + ' ' + y.toFixed(2) + ' '; f = false; } return d; };
+    const fpath = j => { let d = '', f = true; for (let x = X0 - 14; x <= X0 + SX * (COLS - 1) + 14; x += 4) { d += (f ? 'M' : 'L') + x.toFixed(2) + ' ' + wy(j, x).toFixed(2) + ' '; f = false; } return d; };
+
+    const gW = el('g'), gF = el('g'), gO = el('g');
+    for (let i = 0; i < COLS; i++) gW.appendChild(el('path', { d: wpath(i, 12, Y0 + SY * ROWS + 8), class: 's-warp' }));
+    for (let j = 0; j < ROWS - 1; j++) {
+      gF.appendChild(el('path', { d: fpath(j), class: 's-weft' }));
+      for (let i = 0; i < COLS; i++) { if ((i + j) % 2 !== 0) continue; const yc = Y0 + j * SY; gO.appendChild(el('path', { d: wpath(i, yc - SY * .42, yc + SY * .42), class: 's-warp' })); }
+    }
+    const live = el('path', { d: fpath(ROWS - 1), class: 's-live' });
+    svg.appendChild(gW); svg.appendChild(gF); svg.appendChild(live); svg.appendChild(gO);
+    const LEN = live.getTotalLength();
+    live.style.strokeDasharray = LEN;
+    live.style.strokeDashoffset = LEN;
+
     let raf = null, start = 0, sealed = false;
     function frame(now) {
       const t = Math.min((now - start) / HOLD, 1);
-      prog.style.strokeDashoffset = CIRC * (1 - t);
+      live.style.strokeDashoffset = LEN * (1 - t);
       if (t >= 1) return seal();
       raf = requestAnimationFrame(frame);
     }
     function seal() {
       sealed = true; raf = null;
+      live.style.strokeDashoffset = 0;
       btn.classList.add('sealed');
       hint.innerHTML = 'sealed · the weave below is now yours ↓';
       ['weaveChapter', 'labChapter', 'dismissChapter'].forEach(id => document.getElementById(id).classList.add('unlocked'));
@@ -403,22 +536,31 @@
     }
     btn.addEventListener('pointerdown', e => {
       if (sealed) return; e.preventDefault();
-      if (reduced) { prog.style.strokeDashoffset = 0; return seal(); }
+      if (reduced) return seal();
       start = performance.now(); raf = requestAnimationFrame(frame);
     });
     ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, () => {
       if (sealed || raf === null) return;
       cancelAnimationFrame(raf); raf = null;
-      prog.style.transition = 'stroke-dashoffset .4s ease';
-      prog.style.strokeDashoffset = CIRC;
-      setTimeout(() => prog.style.transition = '', 420);
+      live.style.transition = 'stroke-dashoffset .4s ease';
+      live.style.strokeDashoffset = LEN;
+      setTimeout(() => live.style.transition = '', 420);
     }));
+    btn.addEventListener('keydown', e => { if (!sealed && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); seal(); } });
   })();
 
-  // ---- weave animates once unlocked + in view ----
-  new IntersectionObserver(es => es.forEach(e => {
-    if (e.isIntersecting && e.target.classList.contains('unlocked')) e.target.classList.add('woven');
-  }), { threshold: 0.4 }).observe(document.getElementById('weaveChapter'));
+  // ---- the weave: a bolt of cloth. synthetic month, gaps left in. ----
+  (function () {
+    const boltSvg = document.getElementById('boltSvg');
+    const sealed = [];
+    for (let i = 0; i < 30; i++) sealed.push(true);
+    [3, 8, 14, 15, 22, 27].forEach(i => sealed[i] = false); // gaps stay gaps
+    const draw = () => cloth(boltSvg, { cols: 21, sealed: sealed, sx: 15, sy: 13, pad: 10, warp: WARP, dye: DYE, warpW: 2.2, weftW: 3 });
+    draw();
+    new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting && e.target.classList.contains('unlocked')) e.target.classList.add('woven');
+    }), { threshold: 0.4 }).observe(document.getElementById('weaveChapter'));
+  })();
 
   // ---- lab strip animates once unlocked + in view ----
   new IntersectionObserver(es => es.forEach(e => {
