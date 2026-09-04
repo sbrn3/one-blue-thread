@@ -27,10 +27,13 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@types/adm-zip": "0.5.7",
     "@types/better-sqlite3": "^7.6.13",
     "@types/react": "~19.2.2",
+    "adm-zip": "0.5.16",
     "babel-preset-expo": "~57.0.2",
     "better-sqlite3": "^12.11.1",
+    "fast-xml-parser": "5.2.5",
     "typescript": "~6.0.3",
     "vitest": "^4.1.10"
   },
@@ -41,7 +44,9 @@
     "web": "expo start --web",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:tyndale": "node scripts/build-tyndale.mjs",
+    "check:tyndale": "node scripts/check-tyndale.mjs"
   },
   "private": true
 }
