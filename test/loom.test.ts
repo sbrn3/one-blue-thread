@@ -7,6 +7,8 @@ import {
   detailLevel,
   geometry,
   nodeCount,
+  pointsToPath,
+  polylineLength,
   nodeEstimate,
   ridesOver,
   rowPlan,
@@ -16,6 +18,7 @@ import {
   warpSett,
   warpSpans,
   weftPath,
+  weftPoints,
   DEFAULT_SLACK_CAP,
   MAX_NODES,
   MAX_SETT,
@@ -261,5 +264,34 @@ describe('detail degrades under the path budget', () => {
   it('keeps an ordinary book at full detail', () => {
     const g = geometry(340, 460, 21, Array.from({ length: 28 }, (_, i) => i % 3 !== 0));
     expect(detailLevel(g, warpSpans(g.dist))).toBe('full');
+  });
+});
+
+describe('polylineLength', () => {
+  const g = geometry(168, 96, 7, Array<boolean>(5).fill(true), { pad: 8 });
+
+  it('is positive and finite for a generated weft', () => {
+    const len = polylineLength(weftPoints(g, 0));
+    expect(len).toBeGreaterThan(0);
+    expect(Number.isFinite(len)).toBe(true);
+  });
+
+  it('is at least the straight-line span, since the weft waves', () => {
+    const pts = weftPoints(g, 0);
+    const span = Math.abs(pts[pts.length - 1][0] - pts[0][0]);
+    expect(polylineLength(pts)).toBeGreaterThanOrEqual(span);
+  });
+
+  it('is zero for a degenerate single point', () => {
+    expect(polylineLength([[0, 0]])).toBe(0);
+  });
+
+  it('matches a hand-computed right triangle', () => {
+    expect(polylineLength([[0, 0], [3, 0], [3, 4]])).toBe(7);
+  });
+
+  it('round-trips through pointsToPath without changing the point count', () => {
+    const pts = weftPoints(g, 1);
+    expect(pointsToPath(pts).split(/(?=[ML])/).length).toBe(pts.length);
   });
 });

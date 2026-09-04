@@ -268,13 +268,34 @@ export function warpPath(g: ClothGeom, i: number, fromRow: number, toRow: number
   return d.trim();
 }
 
-export function weftPath(g: ClothGeom, j: number): string {
+export type Point = readonly [number, number];
+
+export function weftPoints(g: ClothGeom, j: number): Point[] {
   const step = Math.min(3.5, g.sett.sx / 3);
   const x0 = g.pad - g.pad * 0.6;
   const x1 = g.pad + g.sett.sx * (g.sett.drawnCols - 1) + g.pad * 0.6;
-  let d = '';
-  for (let x = x0; x <= x1 + 0.001; x += step) {
-    d += `${d ? 'L' : 'M'}${fixed(x)} ${fixed(weftY(g, j, x))} `;
+  const pts: Point[] = [];
+  for (let x = x0; x <= x1 + 0.001; x += step) pts.push([x, weftY(g, j, x)]);
+  return pts;
+}
+
+export function pointsToPath(pts: Point[]): string {
+  return pts.map(([x, y], i) => `${i ? 'L' : 'M'}${fixed(x)} ${fixed(y)}`).join(' ');
+}
+
+/**
+ * Length of a generated polyline. The seal animates a weft pass with
+ * strokeDasharray, which needs the real length — react-native-svg has no
+ * getTotalLength, and guessing high makes the pass finish before the hold does.
+ */
+export function polylineLength(pts: Point[]): number {
+  let total = 0;
+  for (let i = 1; i < pts.length; i++) {
+    total += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
   }
-  return d.trim();
+  return total;
+}
+
+export function weftPath(g: ClothGeom, j: number): string {
+  return pointsToPath(weftPoints(g, j));
 }

@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -11,14 +11,19 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import Svg, { Circle } from 'react-native-svg';
+import Svg, { G, Path } from 'react-native-svg';
+import { geometry, polylineLength, ridesOver, warpPath, weftPath, weftPoints } from '../ui/loom';
 import { tokens } from '../ui/tokens';
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-const RADIUS = 40;
+// The seal is a shuttle pass: holding draws the weft across the warp, and
+// releasing early pulls it back out. Same gesture, same timings, same shared
+// value — only the mark changes.
+const LOOM_W = 168;
+const LOOM_H = 96;
+const WOVEN_ROWS = 4; // cloth already made, above the pass being worked
 const STROKE = 6;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 const PULSES = 6; // haptic pulses over the hold, evenly spaced
 const UNWIND_MS = 220;
 
@@ -108,8 +113,17 @@ export function SealZone({
 
   const composed = Gesture.Simultaneous(hold, Gesture.Native());
 
-  const ringProps = useAnimatedProps(() => ({
-    strokeDashoffset: CIRCUMFERENCE * (1 - ringProgress.value),
+  // The little loom. The live row sits after the woven ones so the pass lands
+  // against finished cloth. react-native-svg has no getTotalLength, so the dash
+  // length is computed from the generated polyline — guessing high would make
+  // the pass finish before the hold does.
+  const loom = useMemo(() => {
+    const g = geometry(LOOM_W, LOOM_H, 7, Array<boolean>(WOVEN_ROWS + 1).fill(true), { pad: 8 });
+    return { g, liveLength: polylineLength(weftPoints(g, WOVEN_ROWS)) };
+  }, []);
+
+  const weftProps = useAnimatedProps(() => ({
+    strokeDashoffset: loom.liveLength * (1 - ringProgress.value),
   }));
 
   if (sealed) {
@@ -145,28 +159,59 @@ export function SealZone({
     <View style={[styles.zone, !canSeal && styles.disabled]}>
       <GestureDetector gesture={composed}>
         <View style={styles.ringWrap} accessible={false}>
-          <Svg width={(RADIUS + STROKE) * 2} height={(RADIUS + STROKE) * 2}>
-            <Circle
-              cx={RADIUS + STROKE}
-              cy={RADIUS + STROKE}
-              r={RADIUS}
-              stroke={tokens.color.ink15}
-              strokeWidth={STROKE}
-              fill="none"
-            />
-            <AnimatedCircle
-              cx={RADIUS + STROKE}
-              cy={RADIUS + STROKE}
-              r={RADIUS}
+          <Svg width={LOOM_W} height={LOOM_H}>
+            {/* the warp, strung and waiting */}
+            <G>
+              {Array.from({ length: loom.g.sett.drawnCols }, (_, i) => (
+                <Path
+                  key={`w${i}`}
+                  d={warpPath(loom.g, i, 0, WOVEN_ROWS)}
+                  stroke={tokens.color.warp}
+                  strokeWidth={3}
+                  strokeLinecap="round"
+                  fill="none"
+                />
+              ))}
+            </G>
+            {/* cloth already made */}
+            <G>
+              {Array.from({ length: WOVEN_ROWS }, (_, j) => (
+                <Path
+                  key={`f${j}`}
+                  d={weftPath(loom.g, j)}
+                  stroke={tokens.color.thread}
+                  strokeWidth={3.4}
+                  strokeOpacity={0.9}
+                  strokeLinecap="round"
+                  fill="none"
+                />
+              ))}
+            </G>
+            <G>
+              {Array.from({ length: WOVEN_ROWS }, (_, j) =>
+                Array.from({ length: loom.g.sett.drawnCols }, (_, i) => i)
+                  .filter((i) => ridesOver(i, j))
+                  .map((i) => (
+                    <Path
+                      key={`o${i}-${j}`}
+                      d={warpPath(loom.g, i, j, j)}
+                      stroke={tokens.color.warp}
+                      strokeWidth={3}
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                  )),
+              )}
+            </G>
+            {/* the pass you are making right now */}
+            <AnimatedPath
+              d={weftPath(loom.g, WOVEN_ROWS)}
               stroke={tokens.color.thread}
               strokeWidth={STROKE}
               fill="none"
-              strokeDasharray={CIRCUMFERENCE}
-              animatedProps={ringProps}
+              strokeDasharray={loom.liveLength}
+              animatedProps={weftProps}
               strokeLinecap="round"
-              rotation={-90}
-              originX={RADIUS + STROKE}
-              originY={RADIUS + STROKE}
             />
           </Svg>
           <Text style={styles.holdLabel}>Hold to seal</Text>
@@ -187,7 +232,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   holdLabel: {
-    position: 'absolute',
+    // Sits below the loom rather than centred on it: the mark is now a wide
+    // piece of cloth, and a label over the middle of it is unreadable.
+    marginTop: 14,
     fontFamily: tokens.font.display,
     fontWeight: '700',
     fontSize: 13,
