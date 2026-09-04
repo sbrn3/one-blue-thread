@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup — Tyndale Open Resources</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  --paper: #FBFAF7; --ink: #16161A; --thread: #1F3FFF;
+  --ink60: #5E5D66; --ink40: #9C9BA3; --ink15: #E6E5E1; --blue-soft: #EEF0FF;
+  --display: 'Schibsted Grotesk', system-ui, sans-serif;
+  --scripture: 'Newsreader', Georgia, serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--ink15); color: var(--ink); font-family: var(--display); }
+.mk-bar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; justify-content: space-between;
+  padding: .7rem 1.1rem; background: var(--ink); color: var(--paper);
+  font-family: var(--mono); font-size: .8rem;
+}
+.mk-bar strong { font-weight: 600; }
+.mk-bar .dir { opacity: .7; }
+.mk-options { display: flex; flex-wrap: wrap; gap: .35rem; }
+.mk-options a { color: inherit; border: 1px solid currentColor; border-radius: 999px; padding: .3rem .8rem; font-size: .72rem; text-decoration: none; }
+.intro { max-width: 900px; margin: 0 auto; padding: 34px 24px 0; }
+.intro h1 { margin: 0 0 10px; font: 800 34px/1.08 var(--display); letter-spacing: -.025em; }
+.intro p { margin: 0; max-width: 720px; color: var(--ink60); font: 400 16px/1.6 var(--scripture); }
+.mk-stage { display: flex; flex-wrap: wrap; gap: 2rem; padding: 2.5rem 1.5rem 4rem; justify-content: center; align-items: flex-start; }
+.direction { width: 390px; max-width: 100%; }
+.direction-copy { min-height: 116px; padding: 0 8px 18px; }
+.direction-copy h2 { margin: 0 0 7px; font: 800 19px/1.2 var(--display); }
+.direction-copy p { margin: 0; color: var(--ink60); font: 400 13px/1.55 var(--display); }
+.phone { position: relative; width: 390px; max-width: 100%; height: 760px; overflow: hidden; background: var(--paper); border-radius: 34px; box-shadow: 0 20px 60px rgba(0,0,0,.18); }
+.phone-scroll { height: 100%; overflow: hidden; padding: 44px 30px 52px; }
+.opt-label { font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--thread); margin-bottom: 25px; }
+.arrival { margin-bottom: 27px; }
+.arrival .day { font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink40); }
+.arrival h3 { margin: 10px 0 3px; font: 800 27px/1.08 var(--display); letter-spacing: -.02em; }
+.arrival .range { color: var(--ink40); font: 400 11px/1.4 var(--mono); }
+.scripture { font: 400 18px/1.65 var(--scripture); }
+.scripture p { margin: 0 0 15px; }
+.vn { margin-right: 5px; color: var(--ink40); font: 600 10px/1 var(--mono); vertical-align: super; }
+.rule { height: 1px; background: var(--ink15); margin: 26px 0; }
+.zone-label { font: 600 10px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink40); }
+.study-title { margin: 10px 0 5px; font: 800 23px/1.14 var(--display); letter-spacing: -.02em; }
+.study-sub { margin: 0; color: var(--ink60); font: 400 14px/1.5 var(--scripture); }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--ink15); }
+.row-main { min-width: 0; }
+.row-title { font: 700 14px/1.3 var(--display); }
+.row-sub { margin-top: 3px; color: var(--ink40); font: 400 10px/1.4 var(--mono); }
+.arrow { color: var(--thread); font: 600 16px/1 var(--display); }
+.expanded { padding: 16px 0 18px; border-bottom: 1px solid var(--ink15); }
+.expanded h4 { margin: 0 0 8px; font: 700 14px/1.3 var(--display); }
+.expanded p { margin: 0; color: var(--ink60); font: 400 15px/1.62 var(--scripture); }
+.terms { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 17px; }
+.term { border: 1px solid var(--ink15); border-radius: 999px; padding: 8px 11px; color: var(--ink60); font: 600 11px/1 var(--display); }
+.attribution { margin-top: 18px; color: var(--ink40); font: 400 9px/1.55 var(--mono); }
+.seal { display: grid; place-items: center; margin-top: 30px; }
+.seal-ring { display: grid; place-items: center; width: 92px; height: 92px; border: 5px solid var(--ink15); border-radius: 50%; color: var(--ink); font: 700 12px/1.2 var(--display); }
+
+/* Direction B — a deliberate study affordance and bottom sheet. */
+.study-button { display: flex; align-items: center; justify-content: space-between; margin-top: 26px; padding: 14px 16px; border: 1px solid var(--ink15); border-radius: 13px; }
+.study-button strong { font: 700 13px/1.2 var(--display); }
+.study-button span { color: var(--ink40); font: 400 10px/1 var(--mono); }
+.backdrop { position: absolute; inset: 0; background: rgba(22,22,26,.28); }
+.sheet { position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; height: 62%; padding: 12px 25px 28px; border-radius: 22px 22px 0 0; background: var(--paper); }
+.handle { width: 40px; height: 4px; margin: 0 auto 20px; border-radius: 3px; background: var(--ink15); }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; }
+.sheet-head h3 { margin: 0; font: 800 22px/1.2 var(--display); }
+.close { color: var(--ink40); font: 400 11px/1 var(--mono); }
+.tabs { display: flex; gap: 20px; margin: 18px 0 8px; border-bottom: 1px solid var(--ink15); }
+.tab { padding: 0 0 10px; color: var(--ink40); font: 600 11px/1 var(--mono); }
+.tab.active { color: var(--thread); border-bottom: 2px solid var(--thread); }
+.note-ref { margin-top: 18px; color: var(--thread); font: 600 10px/1 var(--mono); }
+.note-copy { margin: 8px 0 0; color: var(--ink60); font: 400 16px/1.62 var(--scripture); }
+.related { margin-top: 20px; }
+.selected-verse { margin-left: -13px !important; padding: 9px 11px 9px 12px; border-left: 2px solid var(--thread); background: var(--blue-soft); border-radius: 0 8px 8px 0; }
+.dict-term { text-decoration-line: underline; text-decoration-style: dotted; text-decoration-color: var(--thread); text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+.term-hint { margin: 5px 0 0; color: var(--ink40); font: 400 9px/1.4 var(--mono); }
+.verse-actions { display: flex; gap: 8px; margin-top: 18px; }
+.verse-action { flex: 1; padding: 11px 9px; border: 1px solid var(--ink15); border-radius: 999px; text-align: center; color: var(--ink60); font: 700 11px/1 var(--display); }
+.verse-action.primary { border-color: var(--thread); color: var(--thread); background: var(--blue-soft); }
+
+/* Direction C — study remains in the knot as a library. */
+.knot-dot { position: absolute; z-index: 2; top: 52px; right: 23px; width: 10px; height: 10px; border-radius: 50%; background: var(--thread); }
+.library-head { margin-bottom: 24px; }
+.library-head h3 { margin: 5px 0 6px; font: 800 27px/1.1 var(--display); }
+.library-head p { margin: 0; color: var(--ink40); font: 400 11px/1.5 var(--mono); }
+.search { margin-bottom: 18px; padding: 13px 15px; border: 1.5px solid var(--ink15); border-radius: 10px; color: var(--ink40); font: 400 13px/1 var(--display); }
+.chapter-card { padding: 17px; border: 1px solid var(--ink15); border-radius: 14px; }
+.chapter-card + .chapter-card { margin-top: 12px; }
+.chapter-card .book { color: var(--thread); font: 600 9px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+.chapter-card h4 { margin: 8px 0 5px; font: 750 17px/1.2 var(--display); }
+.chapter-card p { margin: 0; color: var(--ink60); font: 400 13px/1.5 var(--scripture); }
+.library-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+.pill { padding: 9px 12px; border-radius: 999px; border: 1px solid var(--ink15); color: var(--ink60); font: 600 11px/1 var(--display); }
+.pill.active { border-color: var(--thread); background: var(--blue-soft); color: var(--thread); }
+.state-note { margin-top: 14px; color: var(--ink40); font: 400 10px/1.5 var(--mono); }
+@media (max-width: 430px) {
+  .mk-stage { padding-left: 10px; padding-right: 10px; }
+  .phone { border-radius: 24px; }
+}
+</style>
+</head>
+<body>
+
+<div class="mk-bar">
+  <span><strong>Tyndale Open Resources</strong> <span class="dir">— three integration directions</span></span>
+  <nav class="mk-options" aria-label="Mockup views">
+    <a href="#option-a">A · Afterword</a>
+    <a href="#option-b">B · Verse context</a>
+    <a href="#option-c">C · Knot library</a>
+  </nav>
+</div>
+
+<header class="intro">
+  <h1>Study without losing the thread.</h1>
+  <p>All sample prose below is synthetic. The shipped feature would use the licensed Tyndale Open Study Notes and Open Bible Dictionary, bundled offline and clearly attributed.</p>
+</header>
+
+<main class="mk-stage">
+  <section class="direction" id="option-a">
+    <div class="direction-copy">
+      <h2>A · The afterword <span style="color:var(--ink40)">explored</span></h2>
+      <p>Notes follow the passage in the daily flow. Related dictionary terms are suggested as quiet chips. Nothing interrupts Scripture, and verse taps remain memory marks.</p>
+    </div>
+    <div class="phone">
+      <div class="phone-scroll">
+        <div class="opt-label">Daily flow · study available</div>
+        <header class="arrival">
+          <div class="day">Thursday · Philippians</div>
+          <h3>Chapter 1</h3>
+          <div class="range">today's sitting</div>
+        </header>
+        <div class="scripture">
+          <p><span class="vn">3</span>I thank my God whenever I remember you, bringing you into my prayers with joy.</p>
+          <p><span class="vn">6</span>The one who began this good work among you will carry it forward to completion.</p>
+        </div>
+        <div class="rule"></div>
+        <section>
+          <div class="zone-label">Open study notes</div>
+          <h3 class="study-title">Under this passage</h3>
+          <p class="study-sub">Three notes and two related articles.</p>
+          <div class="expanded">
+            <h4>God completes his work</h4>
+            <p>This sample note explains how Paul’s confidence rests in God’s continuing work, while keeping the commentary visibly separate from the biblical text.</p>
+          </div>
+          <div class="row"><div class="row-main"><div class="row-title">Partnership in the good news</div><div class="row-sub">PHILIPPIANS 1:5</div></div><div class="arrow">+</div></div>
+          <div class="row"><div class="row-main"><div class="row-title">Prayer and spiritual growth</div><div class="row-sub">PHILIPPIANS 1:9–11</div></div><div class="arrow">+</div></div>
+          <div class="terms"><span class="term">Philippi</span><span class="term">Paul</span><span class="term">Prayer</span></div>
+          <p class="attribution">Study material: Tyndale Open Study Notes and Tyndale Open Bible Dictionary · CC BY-SA 4.0</p>
+        </section>
+      </div>
+    </div>
+  </section>
+
+  <section class="direction" id="option-b">
+    <div class="direction-copy">
+      <h2>B · Contextual reading <span style="color:var(--thread)">approved</span></h2>
+      <p>A restrained dotted underline announces an exact dictionary match. Tap that phrase for its entry; tap anywhere else in the verse for study notes, related terms, and explicit single-verse or passage remembering.</p>
+    </div>
+    <div class="phone">
+      <div class="phone-scroll">
+        <div class="opt-label">Daily flow · verse context open</div>
+        <header class="arrival">
+          <div class="day">Thursday · Philippians</div>
+          <h3>Chapter 1</h3>
+          <div class="range">today's sitting</div>
+        </header>
+        <div class="scripture">
+          <p><span class="vn">3</span>I thank my God whenever I remember you, bringing you into my <span class="dict-term">prayers</span> with joy.</p>
+          <p class="selected-verse"><span class="vn">6</span>The one who began this good work among you will carry it forward to completion.</p>
+        </div>
+        <p class="term-hint">DOTTED UNDERLINE · DICTIONARY ENTRY</p>
+        <div class="study-button"><strong>Tap any verse for context</strong><span>STUDY · REMEMBER</span></div>
+        <div class="seal"><div class="seal-ring">Hold to seal</div></div>
+      </div>
+      <div class="backdrop"></div>
+      <section class="sheet">
+        <div class="handle"></div>
+        <div class="sheet-head"><h3>Philippians 1:6</h3><span class="close">Close</span></div>
+        <div class="verse-actions"><div class="verse-action primary">Remember verse</div><div class="verse-action">Copy reference</div></div>
+        <div class="tabs"><div class="tab active">STUDY NOTE</div><div class="tab">DICTIONARY</div></div>
+        <div class="note-ref">TYNDALE OPEN STUDY NOTES</div>
+        <p class="note-copy">A synthetic preview of a Tyndale study note appears here. Longer notes scroll inside the sheet without changing today’s reading position.</p>
+        <div class="related">
+          <div class="zone-label">Related dictionary</div>
+          <div class="terms"><span class="term">Philippi</span><span class="term">Prayer</span></div>
+        </div>
+        <p class="attribution">Tyndale Open Resources · CC BY-SA 4.0</p>
+      </section>
+    </div>
+  </section>
+
+  <section class="direction" id="option-c">
+    <div class="direction-copy">
+      <h2>C · The knot library</h2>
+      <p>Daily reading stays completely unchanged. Notes and dictionary search live in the knot, alongside chapter revisit. Best for purity of flow; weakest for discovery.</p>
+    </div>
+    <div class="phone">
+      <div class="knot-dot" aria-hidden="true"></div>
+      <div class="phone-scroll">
+        <div class="opt-label">The knot · study library</div>
+        <header class="library-head">
+          <h3>Study library</h3>
+          <p>Bundled on this device · available offline</p>
+        </header>
+        <div class="library-tabs"><span class="pill active">This chapter</span><span class="pill">Dictionary</span></div>
+        <div class="search">Search people, places, and ideas…</div>
+        <article class="chapter-card">
+          <div class="book">Philippians 1:3–5</div>
+          <h4>Partnership</h4>
+          <p>A study note connected directly to the chapter currently being revisited.</p>
+        </article>
+        <article class="chapter-card">
+          <div class="book">Dictionary · Place</div>
+          <h4>Philippi</h4>
+          <p>A city of Macedonia and the setting of Paul’s first recorded ministry in Europe.</p>
+        </article>
+        <article class="chapter-card">
+          <div class="book">Dictionary · Theme</div>
+          <h4>Prayer</h4>
+          <p>A longer topical entry can open as a dedicated reading view with cross-references.</p>
+        </article>
+        <p class="state-note">No result: “No dictionary entry matches this search.” Data-load failures are build-time errors; the shipped app has no network loading state.</p>
+        <p class="attribution">Tyndale Open Resources · CC BY-SA 4.0 · changes limited to data formatting</p>
+      </div>
+    </div>
+  </section>
+</main>
+</body>
+</html>
+

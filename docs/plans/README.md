@@ -6,7 +6,7 @@ Created by `/plan`; retained by `/save-plan`.
 
 | Slug | Intent | Status | Next action |
 |------|--------|--------|-------------|
-| _(none yet)_ | | | |
+| tyndale-open-resources | Offline study context, dictionary cues/search, and passage remembering | 🔨 in progress | Complete verification and deploy v0.3.0. |
 
 Status: 📋 planned · 🔨 in progress · ✅ shipped · ❄️ parked.
 Keep this table and `STATUS.md`'s Active Plans table in sync.

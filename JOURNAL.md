@@ -5,6 +5,19 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## 2026-09-04 — Offline Tyndale study resources
+
+- Added the CC BY-SA Tyndale Open Study Notes and Bible Dictionary as a
+  reproducible, checksum-pinned, partitioned offline corpus.
+- Reading now uses contextual verse taps, restrained exact dictionary cues, and
+  explicit single-verse or same-chapter passage remembering; the knot has full
+  offline title/alias dictionary search.
+- Kept lookup/search activity local and out of the event log. Existing memory
+  events remain unchanged; identical active ranges are idempotent.
+- Android Metro export succeeded after the final structured-content build. The
+  compressed export delta was about 8.7 MiB (12.4 MiB feature versus the 3.3 MiB
+  baseline), within the 18 MiB release gate.
+
 ## 2026-09-04 — Project docs, workflow skills, reset button planning
 
 - Added project scaffolding docs: `STATUS.md`, `ROADMAP.md`, this `JOURNAL.md`,

@@ -29,6 +29,7 @@ _(none)_
 
 ## Shipped
 
+- ✅ 2026-09-04 — Tyndale Open study notes, Bible dictionary, and passage-range remembering
 - ✅ 2026-07-21 — W13 adaptive layer (Thompson sampling nudge-hour bandit)
 - ✅ 2026-07-21 — §19 operations, W10 completion, R6 year review
 - ✅ 2026-07-15 — W12 lapse ladder + partner hand-off

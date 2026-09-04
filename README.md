@@ -41,6 +41,7 @@ npm run typecheck  # tsc --noEmit, strict
   /cue       Cue model, cue_strength metric, anchor validation         (W1 ✓ / §05)
   /notify    Rolling 30d window, cancel-on-seal + decision voiding     (W7 ✓)
   /text      TextProvider (WEB/NIV/ESV), sitting splitter              (W2 ✓ / §08)
+  /study     Offline Tyndale notes, dictionary, context + search
   /log       Event log: schema, driver, writer, time                   (W1 ✓)
   /lab       PRNG, phase assignment, ladder, reconcile, experiments,
              analysis (NAP/randomization/MRT/reports)                  (W1 ✓ / W8 ✓ / W9 (engine only) / W10 ✓)
@@ -50,6 +51,7 @@ npm run typecheck  # tsc --noEmit, strict
   /ui        Design tokens                                             (W1 ✓)
 /test        vitest suite incl. §13.6 import-boundary invariants
 /assets/bible  Bundled public-domain translation (W2 ✓)
+/assets/tyndale  CC BY-SA study notes and dictionary (transformed)
 ```
 
 ### Hard rules (enforced by tests, §13.6)
@@ -94,3 +96,22 @@ The ESV integration (`src/text/esv.ts`) was built from published API docs,
 not exercised against a live key — there was none available to test with.
 The parser is unit-tested against the documented response shape; smoke-test
 it against a real key before relying on it day to day.
+
+### Study resources
+
+Tyndale Open Study Notes and the Tyndale Open Bible Dictionary ship as
+partitioned offline data. While reading, a few exact dictionary matches receive
+a dotted underline; tapping a verse opens study context and explicit
+single-verse or same-chapter passage remembering. The knot contains full
+title/alias dictionary search.
+
+Validate committed assets with `npm run check:tyndale`. To rebuild them, download
+the two reviewed archives from <https://tyndaleopenresources.com/> and run:
+
+```sh
+npm run build:tyndale -- --notes path/to/tyndale_open-studynotes.zip --dictionary path/to/TyndaleOpenBibleDictionary.zip
+```
+
+The transformed resource data is CC BY-SA 4.0 and separately attributed in
+`assets/tyndale/LICENSE.md` and `THIRD_PARTY_NOTICES.md`; Thread's application
+code retains its existing licence.
