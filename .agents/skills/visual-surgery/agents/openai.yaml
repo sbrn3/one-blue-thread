@@ -1,0 +1,6 @@
+interface:
+  display_name: "Visual Surgery"
+  short_description: "Uplift a working view without behavior drift"
+  default_prompt: "Use $visual-surgery to improve this working view while preserving its behavior."
+policy:
+  allow_implicit_invocation: true

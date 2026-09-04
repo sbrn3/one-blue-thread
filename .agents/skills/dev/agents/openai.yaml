@@ -1,0 +1,6 @@
+interface:
+  display_name: "Dev Server"
+  short_description: "Start or reuse the local Expo/Metro dev server"
+  default_prompt: "Use $dev to start the app locally and tell me when it is ready."
+policy:
+  allow_implicit_invocation: false

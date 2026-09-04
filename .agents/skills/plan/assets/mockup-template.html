@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup — {{FEATURE}}</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* Thread's one visual register — mirrors docs/index.html and src/ui/tokens.ts.
+   Mockups are HTML for iteration speed; the build is React Native StyleSheet.
+   Keep every direction achievable with RN + react-native-svg + Reanimated. */
+:root {
+  --paper: #FBFAF7; --ink: #16161A; --thread: #1F3FFF;
+  --ink60: #5E5D66; --ink40: #9C9BA3; --ink15: #E6E5E1; --blue-soft: #EEF0FF;
+  --display: 'Schibsted Grotesk', system-ui, sans-serif;
+  --scripture: 'Newsreader', Georgia, serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ink15); color: var(--ink); font-family: var(--display); }
+.mk-bar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; justify-content: space-between;
+  padding: .7rem 1.1rem; background: var(--ink); color: var(--paper);
+  font-family: var(--mono); font-size: .8rem;
+}
+.mk-bar strong { font-weight: 600; }
+.mk-bar .dir { opacity: .7; }
+.mk-options { display: flex; flex-wrap: wrap; gap: .35rem; }
+.mk-options a { color: inherit; border: 1px solid currentColor; border-radius: 999px; padding: .3rem .8rem; font-size: .72rem; text-decoration: none; }
+.mk-stage { display: flex; flex-wrap: wrap; gap: 2rem; padding: 2.5rem 1.5rem; justify-content: center; }
+
+/* A phone frame — Thread is a single-column mobile app. */
+.phone { width: 390px; max-width: 100%; min-height: 720px; background: var(--paper); border-radius: 34px; box-shadow: 0 20px 60px rgba(0,0,0,.18); padding: 44px 26px; }
+.phone h3.opt-label { font-family: var(--mono); font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--thread); margin: 0 0 1.4rem; }
+
+/* FILL: scope genuinely new UI per option (e.g. .option-a-*). Use the tokens above.
+   Reference chrome (buttons, kickers, cue lines) is in docs/index.html — copy declarations from there. */
+.demo-card { border: 1px solid var(--ink15); border-radius: 16px; padding: 1.4rem 1.5rem; }
+.demo-card h2 { font-family: var(--scripture); font-weight: 500; font-size: 1.4rem; margin: 0 0 .4rem; }
+.demo-card p { font-family: var(--scripture); color: var(--ink60); margin: 0; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<div class="mk-bar">
+  <span><strong>{{FEATURE}}</strong> <span class="dir">— {{one-line direction}}</span></span>
+  <nav class="mk-options" aria-label="Mockup views">
+    <a href="#option-a">{{Approved direction or Option A}}</a>
+  </nav>
+</div>
+
+<main class="mk-stage">
+  <!-- If a direction is approved: one phone. If a decision is open: 3+ phones, structurally different. -->
+  <div class="phone" id="option-a">
+    <h3 class="opt-label">{{Approved direction or Option A}}</h3>
+    <!-- FILL: replace with representative content and all required states (loading, empty, error, long content). Synthetic data only. -->
+    <section class="demo-card">
+      <h2>Demo</h2>
+      <p>Replace with the approved direction or the first structural option.</p>
+    </section>
+  </div>
+</main>
+</body>
+</html>

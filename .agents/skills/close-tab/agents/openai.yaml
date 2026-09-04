@@ -1,0 +1,6 @@
+interface:
+  display_name: "Close Tab"
+  short_description: "Create a lightweight focused-task handoff"
+  default_prompt: "Use $close-tab to close this focused task without a full session wrap-up."
+policy:
+  allow_implicit_invocation: false

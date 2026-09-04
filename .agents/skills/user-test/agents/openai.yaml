@@ -1,0 +1,6 @@
+interface:
+  display_name: "User Test"
+  short_description: "Run iterative manual test batches"
+  default_prompt: "Use $user-test to run the selected manual test batch and retain its verification history."
+policy:
+  allow_implicit_invocation: false

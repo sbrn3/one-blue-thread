@@ -1,0 +1,6 @@
+interface:
+  display_name: "Update Wiki"
+  short_description: "Reconcile user guidance with shipped behavior"
+  default_prompt: "Use $update-wiki to update only the user guidance affected by this change."
+policy:
+  allow_implicit_invocation: false

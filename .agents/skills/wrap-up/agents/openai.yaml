@@ -1,0 +1,6 @@
+interface:
+  display_name: "Wrap Up"
+  short_description: "Verify, reconcile docs, and hand off safely"
+  default_prompt: "Use $wrap-up to verify this session and prepare a safe handoff."
+policy:
+  allow_implicit_invocation: false

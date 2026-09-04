@@ -1,0 +1,6 @@
+interface:
+  display_name: "Code Review"
+  short_description: "Review standards and specification together"
+  default_prompt: "Use $code-review to review this diff from its fixed point against standards and the approved plan."
+policy:
+  allow_implicit_invocation: false

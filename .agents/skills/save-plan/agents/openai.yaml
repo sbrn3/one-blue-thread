@@ -1,0 +1,6 @@
+interface:
+  display_name: "Save Plan"
+  short_description: "Reconcile and retain an approved plan"
+  default_prompt: "Use $save-plan to retain this plan and reconcile the project ledgers."
+policy:
+  allow_implicit_invocation: false

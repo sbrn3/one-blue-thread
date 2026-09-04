@@ -1,0 +1,6 @@
+interface:
+  display_name: "Catch Me Up"
+  short_description: "Orient from repo state and plans; fix stale docs, reclassify feature-request bugs onto the roadmap, re-triage the roadmap, batch real bugs"
+  default_prompt: "Use $catch-me-up to summarize where Thread's work stands and recommend the safest next action."
+policy:
+  allow_implicit_invocation: false

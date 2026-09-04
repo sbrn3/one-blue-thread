@@ -1,0 +1,6 @@
+interface:
+  display_name: "Design Audit"
+  short_description: "Audit visual-system drift without changing code"
+  default_prompt: "Use $design-audit to inspect the shipped interface and prioritize verified design drift."
+policy:
+  allow_implicit_invocation: true

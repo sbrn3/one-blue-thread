@@ -1,0 +1,6 @@
+interface:
+  display_name: "Write Tests"
+  short_description: "Add focused behavioral tests at the public seam"
+  default_prompt: "Use $write-tests to add focused tests for this behavior using the repository's existing patterns."
+policy:
+  allow_implicit_invocation: false
