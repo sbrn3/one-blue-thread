@@ -18,6 +18,7 @@ import { ChapterStrip, type ChapterEntry } from './ChapterStrip';
 import { CueEditor } from './CueEditor';
 import { DiagnosticsSection } from './DiagnosticsSection';
 import { PartnerSection } from './PartnerSection';
+import { DictionaryLibrary } from '../study/DictionaryLibrary';
 
 interface KnotProps {
   services: Services;
@@ -30,7 +31,7 @@ interface KnotProps {
  * read, and the cue editor. The only concession to non-linear use.
  */
 export function Knot({ services }: KnotProps) {
-  const { db, log, text, cue, backup, partner } = services;
+  const { db, log, text, study, cue, backup, partner } = services;
   const today = useRef(logicalToday()).current;
 
   const [open, setOpen] = useState(false);
@@ -131,6 +132,9 @@ export function Knot({ services }: KnotProps) {
 
               <Text style={styles.sectionLabel}>Chapters read</Text>
               <ChapterStrip entries={chapterEntries} onSelect={handleSelect} />
+
+              <Text style={styles.sectionLabel}>Study library</Text>
+              <DictionaryLibrary study={study} book={viewing?.entry.book ?? meta.get(db, 'current_book') ?? 'genesis'} />
 
               <Text style={styles.sectionLabel}>The cue</Text>
               <CueEditor cue={cueState} onSave={handleCueSave} />
