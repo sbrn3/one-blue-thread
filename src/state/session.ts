@@ -15,8 +15,12 @@ import { buildDailyPortion, type Sitting } from '../text/sittings';
 // Genesis/canon-order fallbacks below are a defensive backstop for
 // onboarding-bypassed states (tests), not the primary path.
 
+export type SessionStatus = 'loading' | 'ready' | 'error';
+
 export interface SessionState {
-  loading: boolean;
+  status: SessionStatus;
+  /** Bounded, allowlist-free message for the last failed load — cleared on success. */
+  error: string | null;
   book: string;
   chapter: number;
   sittingIndex: number;
@@ -47,8 +51,14 @@ async function loadPortion(
   return buildDailyPortion(text, book, chapter, totalChapters, target);
 }
 
+// Guards overlapping load()/retry calls: a load only commits if it is still
+// the most recently started one when its await resolves, so a slow first
+// attempt can never clobber a faster retry that superseded it.
+let loadGeneration = 0;
+
 export const useSession = create<SessionState>((set, get) => ({
-  loading: true,
+  status: 'loading',
+  error: null,
   book: CANON[0].id,
   chapter: 1,
   sittingIndex: 0,
@@ -61,18 +71,30 @@ export const useSession = create<SessionState>((set, get) => ({
   nextBookNeeded: false,
 
   async load(db, log, text, today) {
-    set({ loading: true });
+    const generation = ++loadGeneration;
+    set({ status: 'loading', error: null });
 
-    let book = meta.get(db, 'current_book');
-    let chapter = Number(meta.get(db, 'current_chapter') ?? '1');
-    let sittingIndex = Number(meta.get(db, 'current_sitting') ?? '0');
-    let bookStarted = meta.get(db, 'book_started_local_date');
+    // §05 onboarding-bypassed backstop (see module comment above) — staged in
+    // memory only; committed to meta/the log below, and only after the
+    // portion actually loads, so a rejected load leaves no book_start behind.
+    const isFirstEver = meta.get(db, 'current_book') === null;
+    const book = isFirstEver ? CANON[0].id : (meta.get(db, 'current_book') as string);
+    const chapter = isFirstEver ? 1 : Number(meta.get(db, 'current_chapter') ?? '1');
+    const sittingIndex = isFirstEver ? 0 : Number(meta.get(db, 'current_sitting') ?? '0');
+    const bookStarted = isFirstEver ? today : (meta.get(db, 'book_started_local_date') ?? today);
 
-    if (!book) {
-      book = CANON[0].id;
-      chapter = 1;
-      sittingIndex = 0;
-      bookStarted = today;
+    let sittings: Sitting[];
+    let chapters: number[];
+    try {
+      ({ sittings, chapters } = await loadPortion(db, text, book, chapter, today));
+    } catch (e) {
+      if (generation !== loadGeneration) return; // superseded by a newer load()/retry
+      set({ status: 'error', error: (e instanceof Error ? e.message : String(e)).slice(0, 300) });
+      return;
+    }
+    if (generation !== loadGeneration) return; // superseded by a newer load()/retry
+
+    if (isFirstEver) {
       meta.set(db, 'current_book', book);
       meta.set(db, 'current_chapter', String(chapter));
       meta.set(db, 'current_sitting', String(sittingIndex));
@@ -80,14 +102,14 @@ export const useSession = create<SessionState>((set, get) => ({
       log.write({ type: 'book_start', book, chapter });
     }
 
-    const { sittings, chapters } = await loadPortion(db, text, book, chapter, today);
     const clampedIndex = Math.min(sittingIndex, sittings.length - 1);
 
     const days = log.daysBetween(today, today);
     const sealedToday = days[0]?.sealed === 1;
 
     set({
-      loading: false,
+      status: 'ready',
+      error: null,
       book,
       chapter,
       sittingIndex: clampedIndex,
