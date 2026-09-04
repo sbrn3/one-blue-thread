@@ -17,7 +17,7 @@ main worktree is not part of this release.
 
 ## Verification
 
-- `npm test` — 316 passing tests across 38 files.
+- `npm test` — 318 passing tests across 38 files.
 - `npm run typecheck` — clean.
 - `npm run check:tyndale` — 17,477 study resources, 6,010 dictionary articles,
   66 canonical book partitions, references, links, hashes, and notices verified.
