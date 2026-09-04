@@ -13,11 +13,13 @@ import { Notifier } from '../notify';
 import { PartnerService } from '../partner';
 import { nativePartnerIo } from '../partner/nativeIo';
 import { createTextProvider, type TextProvider } from '../text';
+import { createStudyProvider, type StudyProvider } from '../study';
 
 export interface Services {
   db: SqlDb;
   log: Log;
   text: TextProvider;
+  study: StudyProvider;
   cue: CueService;
   memory: Memory;
   notifier: Notifier;
@@ -46,10 +48,11 @@ export function createServices(db: SqlDb): Services {
     provider: meta.get(db, 'text_provider') as 'niv' | 'esv' | null,
     apiKey: meta.get(db, 'text_provider_key'),
   });
+  const study = createStudyProvider();
   const cue = new CueService(db, log);
   const memory = new Memory(db, log);
   const notifier = new Notifier(db, ExpoNotifications);
   const backup = new Backup(db, expoCrypto, nativeBackupIo);
   const partner = new PartnerService(db, log, nativePartnerIo);
-  return { db, log, text, cue, memory, notifier, backup, partner };
+  return { db, log, text, study, cue, memory, notifier, backup, partner };
 }
