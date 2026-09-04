@@ -445,12 +445,7 @@ export function Flow({ services }: FlowProps) {
 
   return (
     <View style={styles.container} onLayout={(e) => (layoutHeight.value = e.nativeEvent.layout.height)}>
-      <ThreadRail
-        scrollY={scrollY}
-        contentHeight={contentHeight}
-        layoutHeight={layoutHeight}
-        reducedMotion={reducedMotion}
-      />
+      <ThreadRail scrollY={scrollY} contentHeight={contentHeight} layoutHeight={layoutHeight} />
       <Animated.ScrollView
         style={styles.scroll}
         onScroll={onScroll}
@@ -570,5 +565,5 @@ export function Flow({ services }: FlowProps) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { flex: 1, paddingLeft: 12 },
+  scroll: { flex: 1, paddingLeft: 30 },
 });
