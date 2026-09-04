@@ -26,6 +26,13 @@ main worktree is not part of this release.
 - Physical-device accessibility and startup/heap profiling remain manual checks;
   no Android device or emulator is available in this environment.
 
+## Active plans
+
+| Plan | State | Notes |
+|------|-------|-------|
+| Tyndale Open Resources | 🔨 in release verification | Merge, tag v0.3.0. |
+| Aesthetic rollout — "The Loom" | 🔨 in progress | `docs/plans/aesthetic-thread-textile/plan.html`. 7 PRs: demo restyle, icon, token palette, cloth renderer, weave zone, thread rail, seal. Slice 1 landed. |
+
 ## Next actions
 
 - [ ] Merge, push `main`, tag v0.3.0, and confirm the Android release workflow.
