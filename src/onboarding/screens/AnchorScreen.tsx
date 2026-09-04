@@ -79,7 +79,7 @@ export function AnchorScreen({ anchor: initialAnchor, onNext }: AnchorScreenProp
 
 const styles = StyleSheet.create({
   teach: {
-    backgroundColor: '#EEF0FF',
+    backgroundColor: tokens.color.dyeSoft,
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,

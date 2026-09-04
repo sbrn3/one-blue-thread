@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingVertical: 24,
     gap: 14,
-    backgroundColor: '#EEF0FF',
+    backgroundColor: tokens.color.dyeSoft,
   },
   label: {
     fontFamily: tokens.font.mono,

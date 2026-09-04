@@ -55,7 +55,7 @@ export function BooksScreen({ onNext }: BooksScreenProps) {
 
 const styles = StyleSheet.create({
   queue: {
-    backgroundColor: '#EEF0FF',
+    backgroundColor: tokens.color.dyeSoft,
     borderRadius: 10,
     padding: 14,
     marginTop: 16,

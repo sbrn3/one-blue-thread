@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   chipLabel: { fontFamily: tokens.font.display, fontSize: 12.5, color: tokens.color.ink40 },
   chipLabelSelected: { color: tokens.color.thread },
   sentence: {
-    backgroundColor: '#EEF0FF',
+    backgroundColor: tokens.color.dyeSoft,
     borderRadius: 12,
     padding: 20,
   },

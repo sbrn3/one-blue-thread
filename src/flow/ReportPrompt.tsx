@@ -41,7 +41,7 @@ export function ReportPrompt({ recommendation, reportText, phases, onApply, onKe
 const styles = StyleSheet.create({
   wrap: {
     width: '100%',
-    backgroundColor: '#EEF0FF',
+    backgroundColor: tokens.color.dyeSoft,
     borderRadius: 12,
     padding: 18,
     gap: 12,
