@@ -325,16 +325,23 @@ export function Flow({ services }: FlowProps) {
     setActiveArticleId(articleId);
     setContextVerse(verse);
   }, []);
+  const dismissContext = useCallback((returnVerse:number|null, preserveRange=false) => {
+    setContextVerse(null);
+    setActiveArticleId(null);
+    setRangePreview(null);
+    if(!preserveRange)setRangeAnchor(null);
+    if(returnVerse!==null)setTimeout(()=>scriptureRef.current?.focusVerse(returnVerse),100);
+  },[]);
   const handleRememberVerse = useCallback(() => {
     if (contextVerse === null) return;
     memory.markCandidate({ book:session.book, chapter:session.chapter, verseStart:contextVerse, verseEnd:contextVerse });
     refreshChapterCandidates();
-    setContextVerse(null);
-  }, [contextVerse, memory, refreshChapterCandidates, session.book, session.chapter]);
+    dismissContext(contextVerse);
+  }, [contextVerse, dismissContext, memory, refreshChapterCandidates, session.book, session.chapter]);
   const handleSelectPassage = useCallback(() => {
     if (contextVerse !== null) setRangeAnchor(contextVerse);
-    setContextVerse(null);
-  }, [contextVerse]);
+    dismissContext(contextVerse,true);
+  }, [contextVerse,dismissContext]);
   const handleSelectEndpoint = useCallback((verse: number) => {
     if (rangeAnchor === null) return;
     setRangePreview({ start:Math.min(rangeAnchor, verse), end:Math.max(rangeAnchor, verse) });
@@ -344,10 +351,8 @@ export function Flow({ services }: FlowProps) {
     if (!rangePreview) return;
     memory.markCandidate({ book:session.book, chapter:session.chapter, verseStart:rangePreview.start, verseEnd:rangePreview.end });
     refreshChapterCandidates();
-    setRangeAnchor(null);
-    setRangePreview(null);
-    setContextVerse(null);
-  }, [memory, rangePreview, refreshChapterCandidates, session.book, session.chapter]);
+    dismissContext(contextVerse);
+  }, [contextVerse, dismissContext, memory, rangePreview, refreshChapterCandidates, session.book, session.chapter]);
   const handleRemoveCandidate = useCallback((passage: Passage) => {
     memory.unmarkCandidateById(passage.id);
     refreshChapterCandidates();
@@ -565,19 +570,12 @@ export function Flow({ services }: FlowProps) {
         activeArticle={activeArticleId ? study.article(activeArticleId) : null}
         remembered={contextVerse === null ? [] : chapterCandidates.filter((passage) => contextVerse >= passage.verse_start && contextVerse <= passage.verse_end)}
         preview={rangePreview}
-        onClose={() => {
-          const returnVerse=contextVerse;
-          setContextVerse(null);
-          setActiveArticleId(null);
-          setRangePreview(null);
-          setRangeAnchor(null);
-          if(returnVerse!==null)setTimeout(()=>scriptureRef.current?.focusVerse(returnVerse),100);
-        }}
+        onClose={() => dismissContext(contextVerse)}
         onRememberVerse={handleRememberVerse}
         onSelectPassage={handleSelectPassage}
         onConfirmRange={handleConfirmRange}
         onRemove={handleRemoveCandidate}
-        onOpenArticle={(article) => setActiveArticleId(article.id)}
+        onOpenArticle={setActiveArticleId}
       />
     </View>
   );

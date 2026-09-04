@@ -7,6 +7,20 @@ describe('Tyndale resource transform', () => {
     expect(parseReference('Gen.1.1-2.3')).toEqual([{ book:'genesis', startChapter:1, startVerse:1, endChapter:2, endVerse:3 }]);
   });
 
+  it('rejects malformed reference fragments instead of partially accepting them', () => {
+    expect(()=>parseReference('oops Phil.1.3-11')).toThrow('Unsupported Scripture reference syntax');
+    expect(()=>parseReference('Phil.1.3-11 trailing')).toThrow('Unsupported Scripture reference syntax');
+    expect(parseReference('Phil.1.3-11; Phil.2.1')).toHaveLength(2);
+    expect(()=>parseReference('Phil.1.3-11; broken')).toThrow('Unsupported Scripture reference syntax');
+  });
+
+  it('retains the end of cross-chapter Revelation ranges when shifting verse 12:18', () => {
+    const xml='<items><item name="Range" typename="StudyNote"><title>Range</title><refs>Rev.12.18-13.18</refs><body><p>Range note.</p></body></item><item name="Exact" typename="StudyNote"><title>Exact</title><refs>Rev.12.18</refs><body><p>Exact note.</p></body></item></items>';
+    const [range,exact]=parseStudyXml(xml,'StudyNote');
+    expect(range.lookupRefs).toEqual([{book:'revelation',startChapter:13,startVerse:1,endChapter:13,endVerse:18}]);
+    expect(exact.lookupRefs).toEqual([{book:'revelation',startChapter:13,startVerse:1,endChapter:13,endVerse:1}]);
+  });
+
   it('extracts typed study prose and intentionally marks omitted supplements', () => {
     const xml = '<items><item name="Prayer" typename="ThemeNote"><title>Prayer</title><refs>Phil.1.3-11</refs><body><p>Pray with joy.</p><include_items src="x"/></body></item></items>';
     expect(parseStudyXml(xml, 'ThemeNote')[0]).toMatchObject({ type:'ThemeNote', title:'Prayer', content:[{t:'p',c:['Pray with joy.']},{t:'omit',c:['Supplement omitted from this text-first edition.']}] });

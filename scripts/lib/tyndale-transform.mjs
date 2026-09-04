@@ -26,6 +26,13 @@ export function parseReference(value) {
   const input = String(value ?? '').trim();
   const matches = [...input.matchAll(/([1-3]?[A-Za-z]+)\.(\d+)\.(\d+)(?:-((?:[1-3]?[A-Za-z]+\.)?\d+)(?:\.(\d+))?)?/g)];
   if (!matches.length) throw new Error(`Unparseable Scripture reference: ${input}`);
+  let cursor=0;
+  for(const match of matches){
+    const gap=input.slice(cursor,match.index);
+    if(!/^[\s,;]*$/.test(gap))throw new Error(`Unsupported Scripture reference syntax: ${input}`);
+    cursor=(match.index??0)+match[0].length;
+  }
+  if(!/^[\s,;]*$/.test(input.slice(cursor)))throw new Error(`Unsupported Scripture reference syntax: ${input}`);
   return matches.map((m) => {
     const book = BOOKS[m[1]];
     if (!book) throw new Error(`Unknown Scripture book code ${m[1]} in ${input}`);
@@ -126,7 +133,7 @@ export function applyVersification(resource) {
   let note;
   const lookupRefs=resource.refs.map((ref)=>{
     if(ref.book==='3john'&&ref.endChapter===1&&ref.endVerse>14){note='Tyndale numbers the closing greeting as verse 15; WEB includes it in verse 14.';return {...ref,startVerse:Math.min(ref.startVerse,14),endVerse:14};}
-    if(ref.book==='revelation'&&ref.startChapter===12&&ref.startVerse===18){note='Tyndale numbers this line as Revelation 12:18; WEB includes it at 13:1.';return {...ref,startChapter:13,startVerse:1,endChapter:13,endVerse:1};}
+    if(ref.book==='revelation'&&ref.startChapter===12&&ref.startVerse===18){note='Tyndale numbers this line as Revelation 12:18; WEB includes it at 13:1.';return {...ref,startChapter:13,startVerse:1,endChapter:ref.endChapter===12?13:ref.endChapter,endVerse:ref.endChapter===12?1:ref.endVerse};}
     if(ref.book==='romans'&&ref.endChapter===16&&ref.endVerse>24){note='Tyndale includes the Romans 16:25–27 doxology; this WEB edition ends at verse 24. The note is attached to the chapter ending.';return {...ref,startVerse:ref.startChapter===16?Math.min(ref.startVerse,24):ref.startVerse,endVerse:24};}
     return ref;
   });

@@ -13,25 +13,25 @@ interface Props {
   related: DictionaryArticle[]; activeArticle?: DictionaryArticle | null; remembered: Passage[];
   preview?: { start:number; end:number } | null; onClose:()=>void; onRememberVerse:()=>void;
   onSelectPassage:()=>void; onConfirmRange:()=>void; onRemove:(passage:Passage)=>void;
-  onOpenArticle:(article:DictionaryArticle)=>void;
+  onOpenArticle:(articleId:string)=>void;
 }
 
 const labels:Record<StudyResource['type'],string>={StudyNote:'Study note',ThemeNote:'Theme',Profile:'Profile',BookIntroSummary:'Book summary',BookIntro:'Book introduction'};
 
 export function VerseContextSheet(props:Props) {
   const reducedMotion=useReducedMotion();
-  const sheetRef=useRef<View>(null);
+  const closeRef=useRef<View>(null);
   const {verse,resources,related,remembered,preview,activeArticle}=props;
   const [showBook,setShowBook]=useState(false);
   useEffect(()=>setShowBook(false),[verse?.book,verse?.chapter,verse?.verse]);
-  return <Modal visible={verse!==null} transparent animationType={reducedMotion?'none':'slide'} onShow={()=>{const handle=findNodeHandle(sheetRef.current);if(handle)AccessibilityInfo.setAccessibilityFocus(handle);}} onRequestClose={props.onClose}>
-    <View style={styles.backdrop}><View ref={sheetRef} accessible accessibilityLabel="Study context" style={styles.sheet} accessibilityViewIsModal>
+  return <Modal visible={verse!==null} transparent animationType={reducedMotion?'none':'slide'} onShow={()=>{const handle=findNodeHandle(closeRef.current);if(handle)AccessibilityInfo.setAccessibilityFocus(handle);}} onRequestClose={props.onClose}>
+    <View style={styles.backdrop}><View style={styles.sheet} accessibilityViewIsModal>
       <View style={styles.head}>
         <Text accessibilityRole="header" style={styles.title}>{verse?`${bookName(verse.book)} ${verse.chapter}:${preview?`${preview.start}–${preview.end}`:verse.verse}`:''}</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel="Close study context" style={styles.control} onPress={props.onClose}><Text style={styles.controlText}>Close</Text></Pressable>
+        <Pressable ref={closeRef} accessibilityRole="button" accessibilityLabel="Close study context" style={styles.control} onPress={props.onClose}><Text style={styles.controlText}>Close</Text></Pressable>
       </View>
       <ScrollView contentContainerStyle={styles.content}>
-        {activeArticle ? <View style={styles.resource}><Text style={styles.kicker}>Bible dictionary</Text><Text accessibilityRole="header" style={styles.resourceTitle}>{activeArticle.title}</Text><ResourceText content={activeArticle.content}/></View>
+        {activeArticle ? <View style={styles.resource}><Text style={styles.kicker}>Bible dictionary</Text><Text accessibilityRole="header" style={styles.resourceTitle}>{activeArticle.title}</Text><ResourceText content={activeArticle.content} onOpenArticle={props.onOpenArticle}/></View>
         : preview ? <View style={styles.preview}><Text style={styles.section}>Remember this passage?</Text><Text style={styles.muted}>The range is saved only after confirmation.</Text><Pressable accessibilityRole="button" accessibilityLabel="Remember selected passage" style={styles.primary} onPress={props.onConfirmRange}><Text style={styles.primaryText}>Remember verses {preview.start}–{preview.end}</Text></Pressable></View>
         : <>
           <View style={styles.actions}>
@@ -44,7 +44,7 @@ export function VerseContextSheet(props:Props) {
           <Pressable accessibilityRole="button" accessibilityLabel={showBook?'Hide book introduction':'Show book introduction'} style={styles.secondary} onPress={()=>setShowBook((value)=>!value)}><Text style={styles.secondaryText}>{showBook?'Hide book introduction':'About this book'}</Text></Pressable>
           {showBook?props.bookResources.map((resource)=><View key={resource.id} style={styles.resource}><Text style={styles.kicker}>{labels[resource.type]}</Text><Text accessibilityRole="header" style={styles.resourceTitle}>{resource.title}</Text><ResourceText content={resource.content}/></View>):null}
           <Text style={styles.section}>Dictionary</Text>
-          {related.length?<View style={styles.chips}>{related.map((article)=><Pressable accessibilityRole="button" accessibilityLabel={`Open dictionary article ${article.title}`} key={article.id} style={styles.chip} onPress={()=>props.onOpenArticle(article)}><Text style={styles.chipText}>{article.title}</Text></Pressable>)}</View>:<Text style={styles.muted}>No exact dictionary term is linked to this verse.</Text>}
+          {related.length?<View style={styles.chips}>{related.map((article)=><Pressable accessibilityRole="button" accessibilityLabel={`Open dictionary article ${article.title}`} key={article.id} style={styles.chip} onPress={()=>props.onOpenArticle(article.id)}><Text style={styles.chipText}>{article.title}</Text></Pressable>)}</View>:<Text style={styles.muted}>No exact dictionary term is linked to this verse.</Text>}
         </>}
         <Text style={styles.attribution}>{STUDY_ATTRIBUTION}</Text>
       </ScrollView>
