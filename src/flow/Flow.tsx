@@ -32,6 +32,7 @@ import { WeaveZone } from './WeaveZone';
 import { YearReviewZone } from './YearReviewZone';
 import { DismissalZone } from './DismissalZone';
 import { ThreadRail } from './ThreadRail';
+import { deriveBolt, type Bolt } from './bolt';
 import { VerseContextSheet } from '../study/VerseContextSheet';
 import { visibleTermCues } from '../study/selection';
 
@@ -56,10 +57,7 @@ export function Flow({ services }: FlowProps) {
   const readingStartFired = useSharedValue(false);
   const scrollEndFired = useSharedValue(false);
 
-  const [monthGrid, setMonthGrid] = useState<{ sealedDays: Set<number>; daysInMonth: number }>({
-    sealedDays: new Set(),
-    daysInMonth: 31,
-  });
+  const [bolt, setBolt] = useState<Bolt>({ book: '', sealed: [] });
 
   const today = useRef(logicalToday()).current;
   const readingStartLogged = useRef(false);
@@ -69,20 +67,13 @@ export function Flow({ services }: FlowProps) {
     void session.load(db, log, text, today);
   }, [db, log, text, today]);
 
-  const refreshMonthGrid = useCallback(() => {
-    const [y, m] = today.split('-').map(Number);
-    const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
-    const monthStart = `${today.slice(0, 7)}-01`;
-    const days = log.daysBetween(monthStart, today);
-    setMonthGrid({
-      sealedDays: new Set(days.filter((d) => d.sealed === 1).map((d) => Number(d.local_date.slice(8, 10)))),
-      daysInMonth,
-    });
-  }, [log, today]);
+  const refreshBolt = useCallback(() => {
+    setBolt(deriveBolt(db, log, today));
+  }, [db, log, today]);
 
   useEffect(() => {
-    if (session.sealedToday) refreshMonthGrid();
-  }, [session.sealedToday, refreshMonthGrid]);
+    if (session.sealedToday) refreshBolt();
+  }, [session.sealedToday, refreshBolt]);
 
   // §15 — reports surface once, after a seal, never before or during
   // reading.
@@ -260,9 +251,9 @@ export function Flow({ services }: FlowProps) {
       setHasStartedReading(false);
       setHasReachedEnd(false);
       void notifier.cancelToday(today); // §08 — sealing silences the phone for the rest of the day
-      refreshMonthGrid();
+      refreshBolt();
     });
-  }, [session, db, log, text, today, refreshMonthGrid, readingStartFired, scrollEndFired, notifier]);
+  }, [session, db, log, text, today, refreshBolt, readingStartFired, scrollEndFired, notifier]);
 
   const handleHoldCancel = useCallback(() => {
     log.write({ type: 'hold_cancel', book: session.book, chapter: session.chapter, sitting: session.sittingIndex });
@@ -534,13 +525,9 @@ export function Flow({ services }: FlowProps) {
         {session.sealedToday && (
           <>
             <WeaveZone
-              monthLabel={new Date(`${today}T12:00:00Z`).toLocaleDateString(undefined, {
-                month: 'long',
-                year: 'numeric',
-              })}
-              daysInMonth={monthGrid.daysInMonth}
-              sealedDays={monthGrid.sealedDays}
-              todayDay={Number(today.slice(8, 10))}
+              book={bolt.book}
+              chapterCount={bundledChapterCount(bolt.book)}
+              sealed={bolt.sealed}
               streak={streak}
             />
             <DismissalZone

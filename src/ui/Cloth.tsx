@@ -9,7 +9,7 @@ import {
   warpSpans,
   weftPath,
   type Span,
-} from './cloth';
+} from './loom';
 import { tokens } from './tokens';
 
 interface ClothProps {

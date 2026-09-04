@@ -2,6 +2,8 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { Cue } from '../cue';
 import { WeaveZone } from '../flow/WeaveZone';
+import { deriveBolt } from '../flow/bolt';
+import { bundledChapterCount } from '../text';
 import { ScriptureZone } from '../flow/ScriptureZone';
 import { getAmendmentLog } from '../lab/analysis/amendments';
 import { buildDiagnostics } from '../lab/diagnostics';
@@ -39,19 +41,12 @@ export function Knot({ services }: KnotProps) {
   const [viewing, setViewing] = useState<{ entry: ChapterEntry; verses: Verse[] } | null>(null);
   const [paused, setPaused] = useState(() => meta.get(db, 'paused') === '1');
 
-  const monthGrid = useMemo(() => {
-    if (!open) return { sealedDays: new Set<number>(), daysInMonth: 31 };
-    const [y, m] = today.split('-').map(Number);
-    const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
-    const monthStart = `${today.slice(0, 7)}-01`;
-    const days = log.daysBetween(monthStart, today);
-    return {
-      sealedDays: new Set(
-        days.filter((d) => d.sealed === 1).map((d) => Number(d.local_date.slice(8, 10))),
-      ),
-      daysInMonth,
-    };
-  }, [open, log, today]);
+  // Same derivation the flow uses. The knot reaches the weave independently of
+  // today's seal, so this must be correct on an unsealed day too.
+  const bolt = useMemo(
+    () => (open ? deriveBolt(db, log, today) : { book: '', sealed: [] }),
+    [open, db, log, today],
+  );
 
   const chapterEntries: ChapterEntry[] = useMemo(() => {
     if (!open) return [];
@@ -120,13 +115,9 @@ export function Knot({ services }: KnotProps) {
 
               <Text style={styles.sectionLabel}>The weave</Text>
               <WeaveZone
-                monthLabel={new Date(`${today}T12:00:00Z`).toLocaleDateString(undefined, {
-                  month: 'long',
-                  year: 'numeric',
-                })}
-                daysInMonth={monthGrid.daysInMonth}
-                sealedDays={monthGrid.sealedDays}
-                todayDay={Number(today.slice(8, 10))}
+                book={bolt.book}
+                chapterCount={bundledChapterCount(bolt.book)}
+                sealed={bolt.sealed}
                 streak={getProfile(db, 'streakVisible') === '1' ? computeStreak(db, today) : null}
               />
 
