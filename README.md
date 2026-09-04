@@ -46,7 +46,7 @@ npm run typecheck  # tsc --noEmit, strict
   /lab       PRNG, phase assignment, ladder, reconcile, experiments,
              analysis (NAP/randomization/MRT/reports)                  (W1 ✓ / W8 ✓ / W9 (engine only) / W10 ✓)
   /memory    Leitner scheduler                                         (W1 ✓ / W6a)
-  /partner   Hand-off only. No network, by construction                (W12, not yet built)
+  /partner   Hand-off only. No network, by construction                (W12 ✓)
   /backup    Encrypted export/restore                                  (W11 ✓)
   /ui        Design tokens                                             (W1 ✓)
 /test        vitest suite incl. §13.6 import-boundary invariants
