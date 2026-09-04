@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup B — "The Impression"</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..600&family=Schibsted+Grotesk:wght@400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FAF8F3; --ink:#191917; --ink60:#5d5a53; --ink40:#918d83;
+    --rule:#e7e2d7; --hair:#3B4AA0;
+    --u:28px; /* ledger baseline unit */
+    --display:'Schibsted Grotesk',system-ui,sans-serif;
+    --scripture:'Newsreader',Georgia,serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--paper);color:var(--ink);font-family:var(--scripture)}
+
+  /* strict ruled column, like a bound pocket devotional */
+  .book{max-width:660px;margin:0 auto;padding:0 clamp(28px,7vw,64px);
+    border-left:1px solid var(--rule);border-right:1px solid var(--rule);
+    background-image:repeating-linear-gradient(var(--paper),var(--paper) calc(var(--u) - 1px),var(--rule) calc(var(--u) - 1px),var(--rule) var(--u));
+    background-position:0 6px}
+  /* the kettle-stitch sewn spine */
+  .book{position:relative}
+  .book::before{content:"";position:absolute;top:0;bottom:0;left:-1px;width:2px;
+    background:repeating-linear-gradient(180deg,var(--ink) 0 14px,transparent 14px 26px);opacity:.28}
+
+  .band{padding:calc(var(--u)*2) 0;border-bottom:1px solid var(--rule)}
+  .tag{font:600 10px/1 var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--ink40)}
+  .tag b{color:var(--ink);font-weight:600}
+
+  /* ---------- the debossed thread — a channel pressed into the paper ---------- */
+  .thread-channel{height:6px;border-radius:6px;margin:var(--u) 0;
+    background:var(--paper);
+    box-shadow:inset 0 1.5px 2px rgba(0,0,0,.22), inset 0 -1px 0 rgba(255,255,255,.7);}
+  .thread-channel.sealed{box-shadow:0 1px 1.5px rgba(0,0,0,.18),0 -1px 0 rgba(255,255,255,.8);background:#f1ede3}
+
+  /* ---------- identity ---------- */
+  .wordmark{font:800 40px/1 var(--display);letter-spacing:-.02em}
+  .iconset{display:flex;gap:16px;align-items:flex-end;margin-top:var(--u)}
+  .tile{background:var(--paper);border-radius:22%;display:grid;place-items:center;
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.12),inset 0 -1px 0 rgba(255,255,255,.7),0 1px 0 var(--rule)}
+  .tile.lg{width:112px;height:112px}
+  .tile.sm{width:46px;height:46px;border-radius:24%}
+  .cap{font:400 12px/1.5 var(--mono);color:var(--ink40);margin-top:10px}
+
+  /* ---------- hero ---------- */
+  .hero h1{font:800 clamp(38px,7vw,72px)/1.05 var(--display);letter-spacing:-.03em;margin-top:var(--u)}
+  .hero h1 em{font-family:var(--scripture);font-weight:500;font-style:italic;color:var(--ink)}
+  .hero p{font:400 17px/var(--u) var(--scripture);color:var(--ink60);max-width:42ch;margin-top:var(--u)}
+
+  /* ---------- scripture ---------- */
+  .verse{font:400 19px/var(--u) var(--scripture);max-width:58ch;margin-top:calc(var(--u)*.5)}
+  .vn{font:600 10px var(--mono);color:var(--ink40);vertical-align:super;margin-right:8px}
+  .verse .kept{box-shadow:inset 0 -10px 0 -8px var(--hair)}
+
+  /* ---------- weave: sealed days raise off the page ---------- */
+  .weave{display:grid;grid-template-columns:repeat(15,1fr);gap:6px;margin-top:var(--u);max-width:520px}
+  .weave i{aspect-ratio:1;border-radius:3px;background:var(--paper);
+    box-shadow:inset 0 1.5px 2px rgba(0,0,0,.16)}
+  .weave i.on{box-shadow:0 1.5px 2px rgba(0,0,0,.16),0 -1px 0 rgba(255,255,255,.8);background:#efeadf}
+  .weave i.on::after{content:"";display:block;position:relative;top:38%;height:2px;margin:0 22%;
+    background:var(--ink);opacity:.32;border-radius:2px}
+  .weave i.today{box-shadow:0 1.5px 2px rgba(0,0,0,.2),0 0 0 1.5px var(--hair)}
+  .legend{font:400 14px/var(--u) var(--scripture);color:var(--ink60);margin-top:var(--u);max-width:50ch}
+  .note{font:400 12px/1.6 var(--mono);color:var(--ink40);margin-top:12px}
+  @media (max-width:560px){:root{--u:24px}.weave{grid-template-columns:repeat(10,1fr)}}
+</style>
+</head>
+<body>
+<div class="book">
+
+  <section class="band hero">
+    <p class="tag"><b>direction b</b> · the impression · low-fi mockup</p>
+    <div class="wordmark" style="margin-top:var(--u)">Thread</div>
+    <h1>Not a streak.<br>Not a plan.<br><em>A thread.</em></h1>
+    <div class="thread-channel"></div>
+    <p>A Bible reading app for one person. No account, nothing leaves the device — a small, well-made object you handle every day.</p>
+  </section>
+
+  <section class="band">
+    <p class="tag">the mark — <b>a running stitch, pressed in</b></p>
+    <div class="iconset">
+      <div>
+        <div class="tile lg">
+          <!-- three climbing dashes debossed, one pulled through in ink -->
+          <svg width="66" height="66" viewBox="0 0 66 66">
+            <g stroke-linecap="round" stroke-width="7" fill="none">
+              <path d="M14 50 L26 44" stroke="#191917" opacity=".85"/>
+              <path d="M30 40 L42 34" stroke="#191917" opacity=".35"/>
+              <path d="M46 30 L58 24" stroke="#191917" opacity=".55"/>
+            </g>
+          </svg>
+        </div>
+        <p class="cap">app icon · debossed tile</p>
+      </div>
+      <div>
+        <div class="tile sm">
+          <svg width="26" height="26" viewBox="0 0 66 66"><g stroke-linecap="round" stroke-width="8" fill="none" stroke="#191917">
+            <path d="M14 50 L26 44"/><path d="M30 40 L42 34" opacity=".45"/><path d="M46 30 L58 24" opacity=".7"/></g></svg>
+        </div>
+        <p class="cap">favicon</p>
+      </div>
+      <div>
+        <div class="tile sm" style="background:#191917;box-shadow:none">
+          <svg width="26" height="26" viewBox="0 0 66 66"><g stroke-linecap="round" stroke-width="8" fill="none" stroke="#FAF8F3">
+            <path d="M14 50 L26 44"/><path d="M30 40 L42 34"/><path d="M46 30 L58 24"/></g></svg>
+        </div>
+        <p class="cap">monochrome / adaptive</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="band">
+    <p class="tag"><b>zone 03</b> · scripture</p>
+    <p class="verse"><span class="vn">7</span>A woman of Samaria came to draw water. Jesus said to her, &ldquo;Give me a drink.&rdquo;</p>
+    <p class="verse"><span class="vn">10</span>Jesus answered her, &ldquo;If you knew the gift of God&hellip; <span class="kept">he would have given you living water.</span>&rdquo;</p>
+    <p class="verse"><span class="vn">11</span>The woman said to him, &ldquo;Sir, you have nothing to draw with, and the well is deep.&rdquo;</p>
+    <p class="note">a kept verse is underscored by the thread itself — a hairline of dyed cotton</p>
+  </section>
+
+  <section class="band" style="border-bottom:0">
+    <p class="tag"><b>zone 04</b> · the seal</p>
+    <p class="verse" style="max-width:30ch">Press and hold to seal the day.</p>
+    <div class="thread-channel sealed" style="max-width:180px;margin-left:0"></div>
+    <p class="note">the channel fills and lifts — the thread pulled taut, nothing else moves</p>
+
+    <p class="tag" style="display:block;margin-top:calc(var(--u)*2)"><b>zone 05</b> · the weave</p>
+    <div class="weave" aria-hidden="true">
+      <i class="on"></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i>
+      <i class="on"></i><i class="on"></i><i></i><i class="on"></i><i class="on"></i>
+      <i class="on"></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i>
+      <i class="on"></i><i></i><i class="on"></i><i class="on"></i><i class="on"></i>
+      <i class="on"></i><i class="on"></i><i></i><i class="on"></i><i class="on"></i>
+      <i class="on"></i><i class="on"></i><i class="on"></i><i class="today"></i><i></i>
+    </div>
+    <p class="legend">Each sealed day is raised a hair off the page; a gap stays pressed in.
+      You can feel the month before you read it.</p>
+  </section>
+
+</div>
+</body>
+</html>

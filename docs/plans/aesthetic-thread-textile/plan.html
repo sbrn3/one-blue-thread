@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — Thread aesthetic rollout: The Loom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&display=swap" rel="stylesheet">
+<style>
+/* ── Thread identity — mirrors docs/index.html / src/ui/tokens.ts. Do not swap for generic styles ── */
+:root {
+  --bg:            #FBFAF7;
+  --surface:       #ffffff;
+  --card-bg:       #ffffff;
+  --border:        #E6E5E1;
+  --border-strong: #d8d7d2;
+  --text:          #16161A;
+  --text-2:        #5E5D66;
+  --text-muted:    #9C9BA3;
+  --primary:       #1F3FFF;
+  --primary-dark:  #1732cc;
+  --primary-tint:  #EEF0FF;
+  --success:       #155724;
+  --success-bg:    #d4edda;
+  --warning:       #856404;
+  --warning-bg:    #fff3cd;
+  --danger:        #c0392b;
+  --danger-bg:     #fde8e8;
+  --font-head:     'Newsreader', Georgia, serif;
+  --font-body:     'Schibsted Grotesk', system-ui, -apple-system, sans-serif;
+  --radius:        12px;
+  --shadow:        0 4px 6px rgba(0,0,0,0.08);
+  --shadow-lg:     0 8px 32px rgba(0,0,0,0.16);
+}
+* { box-sizing: border-box; }
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(600px 400px at 0% -5%, rgba(26,58,92,0.06), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2.2rem 1.6rem 4rem;
+}
+h1 { font-family: var(--font-head); font-size: 2rem; font-weight: 400; margin: 0 0 .3rem; letter-spacing: .01em; }
+h2 { font-family: var(--font-head); font-size: 1.25rem; font-weight: 400; color: var(--primary); margin: 1.8rem 0 .8rem; }
+h3 { font-size: .95rem; font-weight: 600; color: var(--text); margin: 1.3rem 0 .4rem; }
+a { color: var(--primary); }
+code { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: .85em; color: var(--primary-dark); background: var(--primary-tint); padding: .1em .4em; border-radius: 5px; }
+.meta { font-size: .82rem; color: var(--text-muted); margin-bottom: 1.6rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.badge { display: inline-block; padding: .25em .7em; border-radius: 999px; font-size: .74rem; font-weight: 600; border: 1px solid var(--border); background: var(--surface); }
+.badge.navy   { color: var(--primary); border-color: var(--primary); background: var(--primary-tint); }
+.badge.green  { color: var(--success); background: var(--success-bg); border-color: #c3e6cb; }
+.badge.yellow { color: var(--warning); background: var(--warning-bg); border-color: #ffeeba; }
+.badge.red    { color: var(--danger);  background: var(--danger-bg);  border-color: #f5c6cb; }
+/* Stat row */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: .8rem; margin-bottom: 2rem; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .9rem 1.1rem; box-shadow: var(--shadow); }
+.stat-value { font-family: var(--font-head); font-size: 1.7rem; color: var(--primary); font-variant-numeric: tabular-nums; }
+.stat-label { font-size: .72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+/* Tabs */
+.tabs { display: flex; gap: .4rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 1.6rem; }
+.tab { padding: .5rem 1rem; border: none; background: none; cursor: pointer; font-family: var(--font-body); font-size: .87rem; color: var(--text-2); border-radius: 8px 8px 0 0; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: var(--text); background: var(--primary-tint); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; background: var(--primary-tint); }
+.panel { display: none; animation: fade .25s ease; }
+.panel.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+/* File blocks */
+.file-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin: .7rem 0; overflow: hidden; box-shadow: var(--shadow); }
+.file-header { padding: .5rem .9rem; background: var(--primary-tint); border-bottom: 1px solid var(--border); font-family: ui-monospace, monospace; font-size: .8rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.file-body { padding: .8rem .9rem; }
+pre { margin: 0; font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: .8rem; overflow-x: auto; white-space: pre-wrap; line-height: 1.55; color: var(--text); }
+.copy-btn { background: var(--primary); color: #ffffff; border: none; border-radius: 6px; padding: .2rem .6rem; font-size: .72rem; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+.copy-btn:hover { background: var(--primary-dark); }
+/* Commits */
+.commit { background: var(--primary-tint); border-left: 3px solid var(--primary); padding: .5rem .8rem; margin: .4rem 0; border-radius: 0 8px 8px 0; font-family: ui-monospace, monospace; font-size: .8rem; display: flex; justify-content: space-between; align-items: center; gap: .8rem; flex-wrap: wrap; }
+/* Model-use tags (Phase 7 only — omit entirely on default-tier items) */
+.tag { display: inline-block; padding: .12em .55em; border-radius: 999px; font-size: .68rem; font-weight: 600; white-space: nowrap; font-family: var(--font-body); }
+.tag.effort   { color: var(--warning); background: var(--warning-bg); border: 1px solid #ffeeba; }
+.tag.subagent { color: var(--primary); background: var(--primary-tint); border: 1px solid var(--primary); }
+/* Checklist */
+.checklist { list-style: none; padding: 0; margin: .5rem 0; }
+.checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; font-size: .9rem; border-bottom: 1px solid var(--border); }
+.checklist li:last-child { border-bottom: none; }
+.checklist input { margin-top: .3rem; flex-shrink: 0; accent-color: var(--primary); width: 16px; height: 16px; }
+.checklist input:checked + span { color: var(--text-muted); text-decoration: line-through; }
+/* Notes / callouts */
+.note { background: var(--warning-bg); border: 1px solid #ffeeba; border-radius: var(--radius); padding: .7rem 1rem; font-size: .86rem; margin: .8rem 0; color: var(--text); }
+.mockup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: .9rem; margin: 1rem 0; }
+.mockup-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); }
+.mockup-card.chosen { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary), var(--shadow-lg); }
+.mockup-card h3 { margin-top: 0; }
+.requirements { font-size: .92rem; line-height: 2; padding-left: 1.3rem; }
+.evidence-table { width: 100%; border-collapse: collapse; margin: .8rem 0 1.2rem; font-size: .84rem; }
+.evidence-table th, .evidence-table td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: left; vertical-align: top; }
+.evidence-table th { background: var(--primary-tint); color: var(--primary); }
+/* Tickets tab (Phase 8, sliced plans only) */
+.ticket-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin: .7rem 0; padding: .9rem 1.1rem; box-shadow: var(--shadow); }
+.ticket-card.ready { border-color: var(--success-bg); box-shadow: 0 0 0 1px #c3e6cb, var(--shadow); }
+.ticket-head { display: flex; justify-content: space-between; align-items: center; gap: .8rem; flex-wrap: wrap; margin-bottom: .3rem; }
+.ticket-title { font-weight: 600; font-size: .92rem; }
+.ticket-meta { font-size: .78rem; color: var(--text-muted); margin: .2rem 0 .5rem; }
+.ticket-ac { font-size: .85rem; margin: .3rem 0 .5rem; }
+.ticket-status { font-size: .78rem; padding: .2em .6em; border-radius: 999px; border: 1px solid var(--border); font-family: var(--font-body); background: var(--surface); color: var(--text-2); }
+.ticket-status.ready-badge { color: var(--success); background: var(--success-bg); border-color: #c3e6cb; }
+</style>
+</head>
+<body>
+
+<h1>Thread aesthetic rollout — “The Loom”</h1>
+<div class="meta">
+  2026-09-04
+  <span class="badge navy">25 files</span>
+  <span class="badge navy">9 commits</span>
+  <span class="badge yellow">~3–4 sessions</span>
+  <span class="badge green">Smart Review ✓ 15 fixed</span>
+
+  <span class="badge yellow">5 high-effort · 1 subagent</span>
+
+  <span class="badge navy">7 slices · 1 ready</span>
+
+  <span class="badge navy">Direction approved</span>
+</div>
+
+<div class="stat-row">
+  <div class="stat"><div class="stat-value">25</div><div class="stat-label">Files</div></div>
+  <div class="stat"><div class="stat-value">9</div><div class="stat-label">Commits</div></div>
+  <div class="stat"><div class="stat-value">1</div><div class="stat-label">Test files</div></div>
+  <div class="stat"><div class="stat-value">~3–4</div><div class="stat-label">Sessions</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="intent" onclick="show('intent')">Intent</button>
+  <button class="tab" data-tab="requirements" onclick="show('requirements')">Requirements</button>
+
+  <button class="tab" data-tab="aesthetics" onclick="show('aesthetics')">Aesthetics</button>
+  <button class="tab" data-tab="implementation" onclick="show('implementation')">Implementation</button>
+  <button class="tab" data-tab="commits" onclick="show('commits')">Commits</button>
+  <button class="tab" data-tab="review" onclick="show('review')">Smart Review</button>
+
+  <button class="tab" data-tab="tickets" onclick="show('tickets')">Tickets</button>
+  <button class="tab" data-tab="verify" onclick="show('verify')">Verification</button>
+</div>
+
+<div id="intent" class="panel active">
+  <h2>Problem &amp; Intent</h2>
+
+  <h3>Status, owner &amp; next action</h3>
+  <p><strong>Draft — pending approval.</strong> Triggered by the user's aesthetic grill session (2026-09-04), which produced and locked the direction in
+  <code>docs/plans/aesthetic-thread-textile/level-up.md</code>. <strong>Next action:</strong> approve this plan, then execute Slice&nbsp;1 — which is
+  <em>urgent housekeeping</em>: the already-completed demo restyle is sitting uncommitted on the wrong branch (<code>feat/account-reset</code>) and must be moved
+  before anything else touches the tree.</p>
+
+  <h3>Outcome and constraints</h3>
+  <p><strong>Underlying need:</strong> Thread is a singular, private, offline devotional object, but it is dressed in the default minimal-SaaS uniform. Its entire
+  vocabulary — thread, weave, knot, seal, cue — is textile, and none of that is in the visual language. The app icon is a blue chevron carrying a gradient and a
+  drop shadow (both forbidden by <code>src/ui/tokens.ts</code>'s own comment) with construction guides still baked into the PNG.</p>
+  <p><strong>Desired outcome:</strong> one coherent identity — "The Loom" — across the icon, the public demo, and the three in-app surfaces where the thread is
+  visible.</p>
+  <p><strong>Hard constraints, verified against <code>AGENTS.md</code> §13.6:</strong></p>
+  <ul class="requirements">
+    <li>This plan writes <strong>no events</strong>, adds <strong>no migration</strong>, and touches <strong>no PRNG / <code>trial_seed</code></strong> path. It is presentational plus one additional <code>meta</code> read (<code>book_started_local_date</code>, already written by <code>src/state/session.ts</code>).</li>
+    <li><strong>No <code>Math.random()</code>.</strong> Thread waviness and per-book dye assignment are deterministic functions of position and canon index — enforced by a new unit test.</li>
+    <li><strong>No new runtime dependency and no new typeface.</strong> <code>react-native-svg</code> 15.15.4 and <code>react-native-reanimated</code> 4.5.0 are already in <code>package.json</code>. Icon rasterisation uses headless Edge/Chrome (both verified present) — a build-time invocation, not a dependency.</li>
+    <li><strong>Import boundaries hold.</strong> <code>test/boundaries.test.ts</code> forbids <code>/src/lab → /src/ui</code>; new files live in <code>/src/ui</code> and are imported only by <code>/src/flow</code>, which already does so.</li>
+    <li><strong>Privacy:</strong> synthetic data only in every mockup and screenshot. No real reading history, cue text, or partner contact.</li>
+    <li><strong>Reduced motion</strong> must be honoured by every new animation (Reanimated <code>useReducedMotion()</code>, already the pattern in <code>SealZone.tsx</code> and <code>ThreadRail.tsx</code>).</li>
+  </ul>
+
+  <h3>Scope and non-goals</h3>
+  <p><strong>In scope:</strong> (1) rescue + land the completed demo restyle; (2) the app icon and its five PNG outputs (<code>splash-icon.png</code> dropped — orphaned, <code>app.json</code> has no splash config); (3) the <code>tokens.ts</code> palette migration
+  including the eight hardcoded <code>#EEF0FF</code> sites; (4) a shared cloth renderer with a tested pure-geometry core; (5) <code>WeaveZone</code> → the current
+  book as a bolt of cloth; (6) <code>ThreadRail</code> → a loom rail with a fell line; (7) <code>SealZone</code> → a shuttle pass.</p>
+  <p><strong>Non-goals, deliberately excluded:</strong> the onboarding screens (they inherit the palette through the tokens but get no compositional restyle). <strong>The knot sheet is a partial exception forced by Smart Review:</strong> <code>src/knot/Knot.tsx:4</code> imports <code>WeaveZone</code> and <code>:122–131</code> passes it month props, so Slice&nbsp;5 <em>must</em> update that call site or the build breaks. Its own layout is still out of scope — only the <code>WeaveZone</code> usage changes. Also excluded: the shelf of finished book-bolts (a genuinely new surface — belongs in its own plan); any copy change; restyling
+  <code>ScriptureZone</code>, <code>RecallZone</code>, <code>ProbeZone</code>, <code>LapseZone</code>, <code>SrbaiZone</code>, <code>YearReviewZone</code>,
+  <code>DismissalZone</code>, <code>PhaseChart</code>, <code>ReportPrompt</code>; and anything on the two other active branches.</p>
+
+  <h3>Dependencies and unresolved gates</h3>
+  <ul class="requirements">
+    <li><strong>RESOLVED (user, this session):</strong> the weave zone shows <strong>the current book as a bolt</strong>, replacing the calendar month.</li>
+    <li><strong>RESOLVED (user, this session):</strong> <strong>one PR per slice</strong> — seven PRs, merged in order.</li>
+    <li><strong>RESOLVED (inspection):</strong> icon rasterisation needs no new dependency. <code>msedge.exe</code> and <code>chrome.exe</code> are both present; ImageMagick is absent (<code>/c/Windows/system32/convert</code> is the filesystem tool, not ImageMagick) and Python is not installed.</li>
+    <li><strong>RESOLVED (inspection):</strong> warp width needs no new data. <code>bundledChapterCount(book)</code> already exists in <code>src/text/index.ts:23</code>, reading the bundled WEB JSON offline.</li>
+    <li><strong>OPEN — needs a device eyeball, not a decision:</strong> the warp-sett rule for extreme books. Chapter counts run <strong>Psalms 150</strong> down to <strong>Jude / 2 John / 3 John = 1</strong>. A proposed rule is specified in Slice&nbsp;4 (<code>warpSett()</code>); it is defensible on paper but must be looked at on a real phone before Slice&nbsp;5 is called done.</li>
+    <li><strong>OPEN — carried from level-up:</strong> the warp colour moved from <code>#C9C0AC</code> (1.6:1, fails) to <code>#8F8779</code> (3.15:1, passes). This makes the cloth read more graphic and less delicate than the approved mockups. Confirm it still looks right before Slice&nbsp;3 merges.</li>
+    <li><strong>OPEN — a performance gate, added by Smart Review:</strong> bolt <em>length</em> was unbounded in the first draft. Psalms at 150 days × 50 drawn warps is roughly <strong>11,400 <code>react-native-svg</code> Path nodes</strong> and a 1,650px-tall cloth. <code>rowScale()</code> and a <code>MAX_NODES</code> budget are specified in Slice&nbsp;4, but the frame rate must be measured on a dev build before Slice&nbsp;5 is called done — the ROADMAP's own "may need Skia for long books" warning stands until then.</li>
+    <li><strong>OPEN — must be proven before Slice&nbsp;2 is accepted:</strong> headless Chromium renders on an <em>opaque</em> background unless <code>--default-background-color=00000000</code> is passed, and <code>android-icon-foreground.png</code> must be transparent. Produce one 512×512 PNG and check its colour type is 6 (RGBA) before writing the build script; fall back to <code>npx --yes sharp-cli</code> or a manual export if it is not.</li>
+    <li><strong>ADJACENT WORK — do not disturb:</strong> <code>feat/tyndale-open-resources</code> is a second session's worktree at <code>../thread-tyndale-open-resources</code>. <code>feat/account-reset</code> holds uncommitted reset work in the primary checkout. Slice&nbsp;1 must move only the aesthetic files and leave both alone.</li>
+  </ul>
+
+  <p class="note"><strong>Staleness notice — <code>main</code> advanced during planning.</strong> This plan's evidence was measured at <code>baddf2f</code>. The Tyndale session has since merged 7 commits to <code>main</code> (now <code>79955c2</code>), changing <code>src/flow/Flow.tsx</code> (+123 lines), <code>src/flow/ScriptureZone.tsx</code> (+166) and <code>src/knot/Knot.tsx</code> (+6), and raising the test baseline from 301 to <strong>318 across 38 files</strong>. <code>docs/index.html</code> was <em>not</em> touched, so slice 1 is unaffected. <strong>Every line reference in slices 5 and 6 (<code>Flow.tsx:57–83</code>, <code>:454</code>, <code>:489</code>; <code>Knot.tsx:4</code>, <code>:42–54</code>, <code>:122–131</code>) must be re-verified against current <code>main</code> before those slices are built</strong> — the symbols still exist, but the offsets do not.</p>
+  <h3>Evidence and decisions</h3>
+  <p><strong>Approved direction:</strong> <a href="level-up.md">level-up.md</a> — "The Loom", locked after two rejected directions (The Sampler, The Impression) and a
+  corrected target. Companion artifacts retained in this folder: <code>mockup-a-sampler.html</code> and <code>mockup-b-impression.html</code> (rejected, kept as the
+  record of the pivot), <code>mockup-c-loom.html</code> (approved — interlacing, fell line, shuttle), <code>mockup-d-gaps.html</code> (approved — gap physics,
+  capped slack).</p>
+  <p><strong>Measured blast radius</strong> (<code>grep</code> over <code>src/</code>): 31 files import <code>src/ui/tokens.ts</code>.
+  Token usage — <code>color.ink</code> 73 · <code>color.ink40</code> 56 · <code>color.ink15</code> 40 · <code>color.thread</code> 31 · <code>color.paper</code> 18 ·
+  <code>color.ink60</code> 10. Fonts — <code>display</code> 61 · <code>mono</code> 43 · <code>scripture</code> 19.</p>
+  <p><strong>Two findings that shape the plan:</strong> <code>#EEF0FF</code> — the soft tint of the old electric blue — is <strong>hardcoded in eight places</strong>
+  (<code>ReportPrompt.tsx:44</code>, <code>YearReviewZone.tsx:63</code>, <code>AnchorValidation.tsx:68</code>, <code>AnchorScreen.tsx:82</code>,
+  <code>BooksScreen.tsx:58</code>, <code>DoneScreen.tsx:80</code>, <code>NetScreen.tsx:74</code>, <code>TranslationScreen.tsx:72</code>) and turns muddy the moment
+  <code>thread</code> becomes indigo. Separately <code>#B4483C</code> appears twice in <code>AnchorValidation.tsx</code> — a de-facto madder already in the codebase,
+  two hex digits off the level-up's <code>#B5482F</code>.</p>
+  <p><strong>Design tokens (target state), all contrast-checked against paper <code>#F4F1E9</code>:</strong>
+  <code>ink #1A1A17</code> 15.5:1 · <code>thread #2E3A8C</code> 8.9:1 · <code>madder #B5482F</code> 4.7:1 · <code>weld #A8761E</code> 3.5:1 (non-text) ·
+  <code>warp #8F8779</code> 3.15:1. Dyes: indigo, madder, walnut <code>#6B4E37</code>, weld, woad <code>#3E6B5A</code>, cochineal <code>#8E2F4A</code>.</p>
+
+  <h3>Documentation effects</h3>
+  <p><code>ROADMAP.md</code> — the "weave zone becomes cloth" entry moves from <em>Under consideration</em> to <em>Planned / in progress</em>. Its text already says book-as-bolt correctly; what must be preserved is its <strong>"may need Skia for long books"</strong> caveat, which an earlier draft of this plan dropped and Smart Review restored as a hard performance gate. <code>STATUS.md</code> and <code>docs/plans/README.md</code> — updated together once this plan
+  is approved (per <code>/save-plan</code>). <code>JOURNAL.md</code> — one entry when the rollout lands. <code>AGENTS.md</code> — its "Design" section names
+  <code>docs/index.html</code> as the canonical palette reference; that file is already updated, so the statement stays true, but the
+  <code>--thread</code> value it points at has changed and the section should note the dye set.</p>
+</div>
+
+<div id="requirements" class="panel">
+  <h2>Requirements (confirmed)</h2>
+  <h3>User stories</h3>
+  <ol class="requirements">
+    <li>As the reader, I want the app icon on my home screen to look deliberate and hand-made, so that opening Thread feels like picking up a made object rather than launching a utility.</li>
+    <li>As the reader, I want the icon to be legible at 32px in a crowded app drawer, so that I can find it without reading the label.</li>
+    <li>As the reader on Android, I want the icon to work as a monochrome/themed icon, so that it matches my system theme without turning into a blob.</li>
+    <li>As the reader, I want the app's colours to feel like dyed cloth rather than software chrome, so that the reading surface feels calm and physical.</li>
+    <li>As the reader, I want no screen to show a muddy or clashing blue tint after the palette changes, so that the app never looks half-migrated.</li>
+    <li>As the reader opening the app, I want the left rail to read as warp threads being woven as I scroll, so that my progress through today's reading is shown as an advancing edge rather than a progress bar.</li>
+    <li>As the reader at the top of an unread chapter, I want the rail to show bare, slack warp below the fell line, so that what is ahead of me is visibly not yet done.</li>
+    <li>As the reader pressing and holding to seal, I want the weft to visibly pass across the warp, so that sealing feels like completing a physical action.</li>
+    <li>As the reader who releases the hold early, I want the weft to retract and nothing to be recorded, so that an accidental touch never logs a day.</li>
+    <li>As the reader who has sealed, I want the completed pass to lock into the cloth, so that the gesture has a visible, permanent result.</li>
+    <li>As a keyboard or switch-control user, I want the seal control to be operable without a press-and-hold gesture, so that I can seal a day at all.</li>
+    <li>As the reader who has sealed today, I want the weave zone to show the book I am currently reading as a bolt of woven cloth, so that I see my progress through <em>this book</em> rather than an arbitrary calendar month.</li>
+    <li>As the reader, I want the bolt's width to be the book's chapter count, so that a long book is visibly a wider piece of cloth than a short one.</li>
+    <li>As the reader, I want the bolt's length to be the days elapsed since I started the book, so that the cloth records real time and not just my successes.</li>
+    <li>As the reader who missed a day, I want that day to leave an open row of bare warp in the cloth, so that the gap is visible and honest.</li>
+    <li>As the reader who missed several days, I want the warp across the gap to go slack and drift, so that a lapse reads as open cloth rather than as a scored failure.</li>
+    <li>As the reader returning after a lapse, I want the cloth to carry a permanent set mark where I picked up again, so that the record is truthful without being punitive.</li>
+    <li>As the reader of a very long book (Psalms, 150 chapters), I want the bolt to stay legible on a phone screen, so that the weave zone is never an unreadable smear.</li>
+    <li>As the reader of a one-chapter book (Jude), I want the bolt to still read as cloth and not as a single line, so that short books are not visually degenerate.</li>
+    <li>As the reader, I want each book to carry its own natural dye, so that successive books are visually distinct from one another.</li>
+    <li>As the reader, I want the same book to always take the same dye, so that the colour is a stable property of the book and not a random per-session choice.</li>
+    <li>As the reader with reduced motion enabled, I want the cloth to render at its finished state with no weaving animation, so that the app respects my OS setting.</li>
+    <li>As the reader using a large OS font scale, I want the weave zone's labels to reflow without clipping the cloth, so that the screen stays usable.</li>
+    <li>As the lab (a silent actor), I want the E3 streak-visibility experiment to keep working unchanged through the weave zone's rewrite, so that a concluded experiment still governs whether a count appears.</li>
+    <li>As a future maintainer, I want the cloth geometry to be pure, deterministic and unit-tested, so that the rendering can be reasoned about without a device.</li>
+    <li>As a reviewer, I want each surface to arrive as its own PR, so that a regression can be traced and reverted per surface.</li>
+  </ol>
+
+  <h3>Out of Scope</h3>
+  <ul class="requirements">
+    <li><strong>The shelf of finished book-bolts.</strong> The strongest idea from the level-up, but it is a genuinely new surface with its own navigation and storage questions. It needs its own plan, not a corner of this one.</li>
+    <li><strong>Onboarding and knot compositional restyle.</strong> They inherit the palette automatically through <code>tokens.ts</code>; changing their layout would triple the review surface for no additional identity gain.</li>
+    <li><strong>Every other flow zone.</strong> Scripture, Recall, Probe, Lapse, Srbai, YearReview, Dismissal, PhaseChart and ReportPrompt keep their current composition.</li>
+    <li><strong>All copy.</strong> Including <code>SealZone</code>'s hint text, which will describe the gesture slightly inaccurately after Slice&nbsp;7 (it says "ring"). Flagged for a follow-up so a copy change is not smuggled into a restyle.</li>
+    <li><strong>The demo page's structure and copy.</strong> Already restyled; Slice&nbsp;1 only relocates that finished work to the right branch.</li>
+    <li><strong>Anything on <code>feat/account-reset</code> or <code>feat/tyndale-open-resources</code>.</strong></li>
+  </ul>
+
+  <h3>Testing Decisions</h3>
+  <ul class="requirements">
+    <li><strong>The seam that gets tested is <code>src/ui/cloth.ts</code></strong> — pure geometry, no React, no <code>react-native-svg</code> import. This is the only genuinely testable part of the change and it carries all the real logic: support/slack distances, plain-weave alternation, the warp-sett rule, and path determinism.</li>
+    <li><strong>Also tested: <code>src/ui/dye.ts</code></strong> — that every one of the 66 canon books maps to a dye, that the mapping is stable across calls, and that it uses no PRNG.</li>
+    <li><strong>Prior art to follow:</strong> <code>test/boundaries.test.ts</code> for the file-walking/import-assertion pattern; the existing pure-logic suites in <code>test/</code> (Vitest, <code>node</code> environment, <code>better-sqlite3</code> standing in for <code>expo-sqlite</code>) for structure and naming. One file per area — so <code>test/cloth.test.ts</code>.</li>
+    <li><strong>Deliberately not unit-tested:</strong> anything requiring component rendering. <code>AGENTS.md</code> is explicit — the suite is pure logic and simulation only, with no Testing Library and no component rendering. <code>WeaveZone</code>, <code>ThreadRail</code> and <code>SealZone</code> are therefore verified by typecheck plus a dev-build glance, not by Vitest.</li>
+    <li><strong>Also not tested:</strong> exact SVG path strings (brittle and meaningless); the visual appearance of slack; the PNG pixel output of the icon.</li>
+    <li><strong>Must stay green:</strong> <code>test/boundaries.test.ts</code> — the new <code>/src/ui</code> modules must not be reachable from <code>/src/lab</code>.</li>
+    <li><strong>Manual, on a dev build:</strong> the two OPEN gates above — the Psalms/Jude sett extremes, and whether <code>#8F8779</code> warp reads correctly on a real screen.</li>
+  </ul>
+</div>
+
+<div id="aesthetics" class="panel">
+  <h2>Aesthetics</h2>
+  <h3>Current-surface extraction</h3>
+  <p class="ticket-meta">Measured from the three in-app surfaces this plan restyles — <code>WeaveZone.tsx</code>, <code>ThreadRail.tsx</code>, <code>SealZone.tsx</code> — plus <code>src/ui/tokens.ts</code>. Not a repo-wide audit.</p>
+  <table class="evidence-table">
+    <thead><tr><th>Layer</th><th>Current measured values/patterns</th><th>Source</th><th>Keep/change and why</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Tokens</td>
+        <td>6 colours (<code>paper #FBFAF7</code>, <code>ink #16161A</code>, <code>thread #1F3FFF</code>, <code>ink60 #5E5D66</code>, <code>ink40 #9C9BA3</code>, <code>ink15 #E6E5E1</code>), 3 fonts, <code>seal.holdMs 1200</code>, <code>seal.maxDriftPx 20</code>. Header comment: "One accent colour, two voices, no gradients, no shadows beyond a hairline."</td>
+        <td><code>src/ui/tokens.ts:1–21</code></td>
+        <td><strong>Change.</strong> Retire electric <code>#1F3FFF</code> → indigo <code>#2E3A8C</code>; warm the paper to <code>#F4F1E9</code>; add <code>warp</code>, <code>dyeSoft</code>, and a 6-dye set. Keep the "no gradients, no shadows" rule — the cloth needs none.</td>
+      </tr>
+      <tr>
+        <td>Typography</td>
+        <td><code>display</code> Schibsted Grotesk (61 uses), <code>scripture</code> Newsreader (19), <code>mono</code> JetBrains Mono (43). WeaveZone month label: mono 12px, <code>letterSpacing 1.5</code>, uppercase, <code>ink40</code>.</td>
+        <td><code>tokens.ts:12–16</code>; <code>WeaveZone.tsx</code> styles</td>
+        <td><strong>Keep entirely.</strong> The hierarchy is healthy and the production gate forbids a new typeface for aesthetics. The cloth now carries the personality a display face was being asked to carry.</td>
+      </tr>
+      <tr>
+        <td>Spacing and layout</td>
+        <td>WeaveZone: <code>paddingHorizontal 32</code>, <code>paddingVertical 40</code>, <code>gap 20</code>; grid is <code>flexWrap</code> row, <code>CELL 14</code>, <code>GAP 6</code>. ThreadRail: fixed <code>width: 3</code>, absolute left, <code>zIndex 100</code>. Flow scroll has <code>paddingLeft: 12</code>.</td>
+        <td><code>WeaveZone.tsx</code>; <code>ThreadRail.tsx</code>; <code>Flow.tsx:489</code></td>
+        <td><strong>Change WeaveZone</strong> — a wrapped flex grid of fixed cells cannot express a bolt; it becomes a single SVG sized to available width. <strong>Widen ThreadRail</strong> from 3px to ~26px to hold 3 warp threads; <code>Flow.tsx</code>'s <code>paddingLeft</code> must move in step.</td>
+      </tr>
+      <tr>
+        <td>Color and semantics</td>
+        <td><code>color.thread</code> carries six distinct meanings: rail fill, seal ring, sealed cell, streak text, selected option border, verse marker. <code>#EEF0FF</code> hardcoded in 8 files; <code>#B4483C</code> in 2; <code>#fff</code> in 2.</td>
+        <td>grep over <code>src/</code>; <code>AnchorValidation.tsx:104,119</code></td>
+        <td><strong>Change.</strong> One colour, one meaning: <code>thread</code> = the dyed weft (progress, cloth, sealed). <code>madder</code> = a mark <em>you</em> made (focus, destructive confirm, the kept verse). Promote the 8 hardcoded tints to a <code>dyeSoft</code> token and the 2 reds to <code>madder</code>.</td>
+      </tr>
+      <tr>
+        <td>Components and states</td>
+        <td>WeaveZone cells: <code>cellSealed</code> / <code>cellGap</code> / <code>cellToday</code> (1.5px ink border). SealZone: <code>Svg</code> + <code>Circle</code> + <code>AnimatedCircle</code>, <code>strokeDashoffset</code> driven, <code>RADIUS</code>/<code>STROKE</code>/<code>CIRCUMFERENCE</code> constants. Empty state: a book with 0 sealed days renders an all-<code>ink15</code> grid.</td>
+        <td><code>WeaveZone.tsx</code>; <code>SealZone.tsx:14,111,148–171</code></td>
+        <td><strong>Change both.</strong> Cells → woven rows; ring → a shuttle pass across warp. The <code>strokeDashoffset</code> mechanism is reused verbatim for the weft, so the gesture logic and its reduced-motion handling are untouched.</td>
+      </tr>
+      <tr>
+        <td>Atmosphere and depth</td>
+        <td>Entirely flat. No shadow, no gradient, no texture anywhere in <code>src/</code>. <code>locked</code>-style dimming exists only on the demo page, not in-app.</td>
+        <td><code>tokens.ts</code> header comment; grep for <code>shadow</code> in <code>src/</code> — none</td>
+        <td><strong>Keep flat.</strong> Depth in the cloth comes from genuine over/under occlusion and per-row opacity, not from shadows. This preserves the existing rule rather than breaking it.</td>
+      </tr>
+      <tr>
+        <td>Motion and interaction</td>
+        <td>ThreadRail: <code>useAnimatedStyle</code> on <code>height %</code>, worklet-driven, honours <code>reducedMotion</code> by jumping to 1. SealZone: <code>useAnimatedProps</code> on <code>strokeDashoffset</code>, 1200ms hold, 20px drift cancel. Both already correct on reduced motion.</td>
+        <td><code>ThreadRail.tsx:19–24</code>; <code>SealZone.tsx:111–112</code>; <code>Flow.tsx:232–248</code></td>
+        <td><strong>Keep the mechanism, change the mark.</strong> Same worklets, same shared values, same reduced-motion branches — only what is drawn changes. This is what keeps the three UI slices low-risk.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Intent</h3>
+  <p>The reading surface should feel like <strong>a working loom, mid-project</strong> — warm, taut, slightly irregular, unmistakably being made by hand and not yet
+  finished. This is an <strong>extension</strong> of the existing single visual register (one accent, flat, hairline), not a new pattern: the same restraint, with the
+  accent re-cast as dyed thread and the one decorative element in the app re-cast as cloth.</p>
+
+  <h3>Hygiene</h3>
+  <p>Every value comes from <code>src/ui/tokens.ts</code> after Slice&nbsp;3. New tokens: <code>color.warp #8F8779</code>, <code>color.dyeSoft #E7E9F4</code>,
+  <code>color.madder #B5482F</code>, and <code>dye[]</code> = indigo <code>#2E3A8C</code> · madder <code>#B5482F</code> · walnut <code>#6B4E37</code> ·
+  weld <code>#A8761E</code> · woad <code>#3E6B5A</code> · cochineal <code>#8E2F4A</code>. Changed: <code>paper → #F4F1E9</code>, <code>ink → #1A1A17</code>,
+  <code>thread → #2E3A8C</code>, <code>ink60 → #5B584F</code>, <code>ink40 → #8F8B7E</code>, <code>ink15 → #E0DACB</code>. Thread has one visual register and no theme
+  switcher, so there is no cross-theme matrix to satisfy.</p>
+
+  <h3>Details</h3>
+  <p><strong>Pressed/active:</strong> the seal's weft advances under the finger and retracts on early release (existing behaviour, new mark).
+  <strong>Loading:</strong> none — the weave zone reads from SQLite synchronously, as today.
+  <strong>Empty:</strong> day 1 of a new book is a fully-dressed loom with bare warp and no weft — a deliberate, meaningful empty state rather than a blank box.
+  <strong>Entry/exit:</strong> the weave zone mounts after a seal in the flow <em>and</em> is reachable any time from the knot, independent of today's seal (<code>Flow.tsx:40–43</code>, <code>Knot.tsx:122</code>) — the un-sealed knot path must render correctly.
+  <strong>Error:</strong> a book with an unknown chapter count (<code>bundledChapterCount</code> returns 0) falls back to the <code>MIN_COLS</code> ribbon rather than dividing by zero.
+  <strong>Focus:</strong> <code>SealZone.tsx:123–142</code> already exposes an accessible <code>Pressable</code> when <code>sealMode === 'tap' || screenReaderEnabled || reducedMotion</code>. The real gap is that the fallback is gated on a screen reader being <em>detected</em>, so a keyboard/switch user without one still gets only the gesture — that is what Slice&nbsp;7 closes.
+  <strong>Font scale:</strong> labels sit above the cloth in a normal flow, so a large scale pushes the cloth down rather than clipping it.
+  <strong>Reduced motion:</strong> cloth renders finished; no shuttle, no settle.</p>
+
+  <h3>Mockups</h3>
+  <div class="mockup-grid">
+    <div class="mockup-card chosen">
+      <h3>The Loom — approved</h3>
+      <p>Locked in <code>level-up.md</code> after two rejected directions. Interlacing by occlusion, the fell line as the only progress indicator, and cloth whose texture is the texture of the practice.</p>
+      <a href="mockup-c-loom.html">Open the loom mockup ↗</a><br>
+      <a href="mockup-d-gaps.html">Open the gap-physics mockup ↗</a>
+    </div>
+    <div class="mockup-card">
+      <h3>The Sampler — rejected</h3>
+      <p>Cross-stitch on a visible even-weave grid. Rejected: a grid of discrete cells is the opposite of cloth; nothing moved through anything.</p>
+      <a href="mockup-a-sampler.html">Open rejected option ↗</a>
+    </div>
+    <div class="mockup-card">
+      <h3>The Impression — rejected</h3>
+      <p>The thread debossed into paper, near-monochrome. Rejected: removing the thread entirely does not read as sewing.</p>
+      <a href="mockup-b-impression.html">Open rejected option ↗</a>
+    </div>
+  </div>
+  <p class="note">Chosen direction: <strong>The Loom</strong>. Signature move — <strong>the fell line</strong>, the edge where bare warp becomes cloth. It is the only
+  progress indicator in the product: no bar, no percentage, no ring. Two mockup-to-build deltas are already known and must not be silently dropped: the warp colour
+  darkens from <code>#C9C0AC</code> to <code>#8F8779</code> for contrast, and slack is capped at 4.5 rows so a lapse reads as <em>open</em> rather than as damage.</p>
+</div>
+
+<div id="implementation" class="panel">
+  <h2>Implementation</h2>
+  <p class="note"><strong>Slice 1 is not a code change — it is a rescue.</strong> The demo restyle, the <code>level-up.md</code> artifacts and a <code>ROADMAP.md</code> edit are currently sitting <em>uncommitted</em> in the primary checkout on <code>feat/account-reset</code>, mixed in with unrelated reset work. They must be moved to a clean branch <strong>before any other slice starts</strong>, and the account-reset tree left exactly as it was.</p>
+
+  <div class="file-block">
+    <div class="file-header">
+      <span>Slice 1 — rescue the demo restyle (shell, run from the primary checkout)</span>
+      <span><span class="tag effort">🟡 high-effort — a blanket checkout here destroys another branch's uncommitted work</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span>
+    </div>
+    <div class="file-body"><pre># A sibling worktree, per AGENTS.md — this rollout is 7 PRs. main == baddf2f,
+# the same base as both existing worktrees, so this loses nothing.
+git worktree add ../thread-aesthetic-loom -b feat/loom-demo main
+
+# Move the aesthetic files. Everything else on feat/account-reset stays put.
+cp docs/index.html                        ../thread-aesthetic-loom/docs/index.html
+cp -r docs/plans/aesthetic-thread-textile ../thread-aesthetic-loom/docs/plans/
+cp ROADMAP.md                             ../thread-aesthetic-loom/ROADMAP.md
+
+# !! DO NOT run `git checkout -- ROADMAP.md`.
+# Smart Review [HIGH]: `git diff ROADMAP.md` is 26 insertions / 10 deletions in a
+# SINGLE hunk. Only the insertions are this session's weave-zone entry; the
+# deletions are a PRIOR session rewriting the account-reset entry from
+# "📋 Account reset button" to "🔨 ... (built on feat/account-reset)". A blanket
+# checkout discards that, violating AGENTS.md "preserve unrelated pre-existing
+# changes". Instead: hand-remove ONLY the weave-zone block from this tree's
+# ROADMAP.md, and remove ONLY the account-reset rewrite from the worktree's copy.
+git diff ROADMAP.md    # read it first; edit by hand; re-diff to confirm
+
+git checkout -- docs/index.html          # this one IS safe — solely this session's
+rm -rf docs/plans/aesthetic-thread-textile
+
+# Verify. Expected remaining changes in the primary checkout (corrected against
+# the real `git status`, which the first draft of this plan got wrong):
+#   M  JOURNAL.md README.md ROADMAP.md STATUS.md docs/plans/README.md
+#   M  src/backup/index.ts src/knot/Knot.tsx
+#   ?? src/knot/ResetSection.tsx  src/reset/  test/reset.test.ts
+#   ?? docs/plans/tyndale-open-resources/   <- the OTHER session's. Leave alone.
+#   ?? docs/what-thread-asks-you.html       <- unrelated. Leave alone.
+#   and NO docs/index.html, NO docs/plans/aesthetic-thread-textile/
+git status --short</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header">
+      <span>PR 1 also lands the plan-index entries (Smart Review [MED] — otherwise they strand on the wrong branch)</span>
+      <span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span>
+    </div>
+    <div class="file-body"><pre>In ../thread-aesthetic-loom, as part of PR 1:
+
+docs/plans/README.md — add the row (it currently only has tyndale-open-resources):
+| `aesthetic-thread-textile` | Icon, palette and the weave zone become woven cloth ("The Loom") | 🔨 in progress | 7 PRs off `feat/loom-*`; slice 1 = this PR |
+
+ROADMAP.md — move the weave-cloth entry from "Under consideration" to "Planned",
+and KEEP the perf caveat the first draft of this plan silently dropped:
+  "Renders via react-native-svg + Reanimated. Warp is drawn per-row-span so
+   opacity can track support — costs more than the current View grid; MAY NEED
+   SKIA FOR LONG BOOKS." (see the MAX_ROWS gate in Slice 4.)
+
+STATUS.md — Active Plans row. Note: STATUS.md is also modified on
+feat/account-reset; add this row in the WORKTREE copy only, and let the
+account-reset tree keep its own edits.</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header">
+      <span>scripts/build-icons.mjs + proof-of-concept — NEW (Slice 2)</span>
+      <span><span class="tag effort">🟡 high-effort — transparency is unproven; prove it before accepting the slice</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span>
+    </div>
+    <div class="file-body"><pre># Smart Review [MED]: headless Chromium renders on an OPAQUE background unless
+# --default-background-color=00000000 is passed with --headless=new. The Android
+# foreground layer MUST be transparent. Run this BEFORE writing the script; if
+# the output is not transparent, fall back to `npx --yes sharp-cli` or a manual
+# export rather than shipping an opaque foreground.
+
+"/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" \
+  --headless=new --disable-gpu \
+  --default-background-color=00000000 \
+  --screenshot=/tmp/icon-test.png --window-size=512,512 \
+  "file:///.../assets/icon-source.html#foreground"
+
+node -e "const b=require('fs').readFileSync('/tmp/icon-test.png');
+         console.log('colorType', b[25]);   // 6 = RGBA. 2 = RGB -> NOT transparent."
+
+# Outputs, matching the EXISTING asset dimensions exactly (verified):
+#   assets/icon.png 1024 · assets/favicon.png 48
+#   assets/android-icon-foreground.png 512 (TRANSPARENT)
+#   assets/android-icon-background.png 512 (flat --paper)
+#   assets/android-icon-monochrome.png 432 (single-colour silhouette)
+#
+# assets/splash-icon.png: Smart Review [LOW] — app.json has no splash config and
+# no expo-splash-screen plugin, so this file is orphaned. DROP it from the
+# deliverables rather than regenerating an unused asset.
+#
+# Monochrome is the one to check by eye: warp and weft become one colour, so the
+# interlace must still read. If it collapses, drop to warp + a single weft pass.</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header">
+      <span>src/ui/tokens.ts — MODIFY (Slice 3, replaces lines 1–21)</span>
+      <span><span class="tag effort">🟡 high-effort — re-assigns the meaning of an accent used at 31 sites</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span>
+    </div>
+    <div class="file-body"><pre>// Design tokens — "The Loom" (docs/plans/aesthetic-thread-textile/level-up.md).
+// One dyed weft at a time, two voices, no gradients, no shadows beyond a
+// hairline. Contrast on `paper`: ink 15.5:1 · thread 8.9:1 · madder 4.7:1 ·
+// warp 3.15:1 (bare warp is how a missed day is shown, so it must clear 3:1).
+export const tokens = {
+  color: {
+    paper: '#F4F1E9',   // linen ground
+    ink: '#1A1A17',
+    thread: '#2E3A8C',  // the dyed weft — progress, cloth, sealed state
+    warp: '#8F8779',    // undyed warp — bare warp is a gap
+    madder: '#B5482F',  // a mark YOU made: focus, destructive confirm, kept verse
+    dyeSoft: '#E7E9F4', // was the hardcoded #EEF0FF at 8 sites
+    ink60: '#5B584F',
+    ink40: '#8F8B7E',
+    ink15: '#E0DACB',
+  },
+  // One dye per book, assigned by canon index — see src/ui/dye.ts.
+  dye: ['#2E3A8C', '#B5482F', '#6B4E37', '#A8761E', '#3E6B5A', '#8E2F4A'],
+  font: {
+    display: 'Schibsted Grotesk',
+    scripture: 'Newsreader',
+    mono: 'JetBrains Mono',
+  },
+  seal: { holdMs: 1200, maxDriftPx: 20 },
+} as const;</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header">
+      <span>Slice 3 sweep — replace the hardcoded colours at 10 sites</span>
+      <span><span class="tag subagent">🔵 subagent — Explore agent: read all 31 token consumers, report any that hardcode a colour or rely on the old blue's lightness</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span>
+    </div>
+    <div class="file-body"><pre># '#EEF0FF' -> tokens.color.dyeSoft  (8 files)
+src/flow/ReportPrompt.tsx:44          src/onboarding/screens/AnchorScreen.tsx:82
+src/flow/YearReviewZone.tsx:63        src/onboarding/screens/BooksScreen.tsx:58
+src/onboarding/AnchorValidation.tsx:68 src/onboarding/screens/DoneScreen.tsx:80
+src/onboarding/screens/NetScreen.tsx:74
+src/onboarding/screens/TranslationScreen.tsx:72
+
+# '#B4483C' -> tokens.color.madder  (2 sites, one file)
+src/onboarding/AnchorValidation.tsx:104   ynBtnNo borderColor + backgroundColor
+src/onboarding/AnchorValidation.tsx:119   verdictFail color
+
+# '#fff' at AnchorValidation.tsx:101,111 stays — it is text ON madder (4.6:1).
+# Do not invent a token for it.
+
+# Gate: after the sweep this must return nothing but tokens.ts itself.
+grep -rn "#[0-9A-Fa-f]\{6\}" src/ | grep -v "ui/tokens.ts"</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header">
+      <span>src/ui/cloth.ts — NEW (Slice 4)</span>
+      <span><span class="tag effort">🟡 high-effort — the sett AND row-budget rules are design decisions with no existing pattern</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span>
+    </div>
+    <div class="file-body"><pre>// Pure cloth geometry. No React, no react-native-svg, no Math.random() —
+// every value is a deterministic function of position (test/cloth.test.ts).
+
+export interface ClothSpec {
+  warpCount: number;   // chapters in the book (the TRUTH)
+  drawnCols: number;   // warp threads actually painted (<= warpCount)
+  drawEvery: number;   // paint every k-th warp thread
+  sealed: boolean[];   // one per calendar day; true = a weft pass that day
+  sx: number; sy: number; pad: number;
+  amp?: number;        // waviness; default 1.8
+  slackCap?: number;   // rows; default 4.5 — a lapse reads OPEN, never as damage
+}
+// Smart Review [LOW]: warpCount vs drawnCols were both called `cols` in the
+// first draft — an off-by-drawEvery bug waiting to happen. They are now distinct.
+
+export const MIN_SETT = 4.5, MAX_SETT = 16, MIN_COLS = 3;
+export const MAX_NODES = 4000;   // react-native-svg Path budget for one bolt
+
+/** Chapter counts run 150 (Psalms) to 1 (Jude, 2/3 John). */
+export function warpSett(availableWidth: number, chapterCount: number):
+  { warpCount: number; drawnCols: number; drawEvery: number; sx: number } { /* ... */ }
+
+/**
+ * Smart Review [HIGH]: rows were unbounded in the first draft. Psalms at 150
+ * days x 50 drawn warps is ~11,400 Path nodes and a 1,650px-tall cloth — the
+ * ROADMAP's own "may need Skia for long books" warning. Cap the painted rows
+ * the same way the warp is capped, and derive sy from the height budget.
+ */
+export function rowScale(availableHeight: number, dayCount: number):
+  { rows: number; drawEveryRow: number; sy: number } { /* ... */ }
+
+/** Rows from each day to the nearest woven day. 0 = has a weft. */
+export function supportDistances(sealed: boolean[], slackCap = 4.5): number[] {
+  const n = sealed.length;
+  // Smart Review [MED]: seed with slackCap, NOT Infinity. An all-unsealed book
+  // would otherwise leak Infinity into path coordinates and produce "NaN" in
+  // the `d` attribute. Clamping here is what makes the named test pass.
+  const d = new Array<number>(n).fill(slackCap);
+  for (let j = 0; j < n; j++) if (sealed[j]) d[j] = 0;
+  for (let j = 1; j < n; j++) d[j] = Math.min(d[j], d[j - 1] + 1);
+  for (let j = n - 2; j >= 0; j--) d[j] = Math.min(d[j], d[j + 1] + 1);
+  return d;
+}
+
+/**
+ * The SET MARK. Smart Review [HIGH]: this is locked in level-up.md and is user
+ * story #17, but NO mockup implements it — mockup-d-gaps.html only draws slack,
+ * drift and opacity. It must be specified here or story #17 must be dropped.
+ * Rule: the first woven row after a gap of >= SET_MARK_MIN_GAP rows, and every
+ * row after it, carries a permanent +SET_MARK_OFFSET y-shift. The weft never
+ * beats up flush against the pre-gap cloth again — the line stays for good.
+ */
+export const SET_MARK_MIN_GAP = 2, SET_MARK_OFFSET = 2.5;
+export function setMarkOffsets(sealed: boolean[]): number[] { /* cumulative */ }
+
+/** Plain weave: the warp rides over at alternating crossings. */
+export const ridesOver = (i: number, j: number): boolean => (i + j) % 2 === 0;
+
+/** Smart Review [MED]: clothSize does not exist in the mockups — give the formula. */
+export const clothSize = (s: ClothSpec, rows: number) => ({
+  w: s.sx * (s.drawnCols - 1) + s.pad * 2,
+  h: s.sy * (rows - 1) + s.pad * 2,
+});
+
+// warpX / weftY / warpPath / weftPath follow mockup-d-gaps.html's buildCloth(),
+// with slack clamped by slackCap and y offset by setMarkOffsets().</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header">
+      <span>src/ui/dye.ts — NEW · src/ui/Cloth.tsx — NEW (Slice 4)</span>
+      <span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span>
+    </div>
+    <div class="file-body"><pre>// src/ui/dye.ts — one natural dye per book by canonical index. Deterministic
+// and stable forever, no PRNG (§13.6).
+import { CANON } from '../text/canon';
+import { tokens } from './tokens';
+export function dyeFor(bookId: string): string {
+  const i = CANON.findIndex((b) => b.id === bookId);
+  return tokens.dye[(i < 0 ? 0 : i) % tokens.dye.length];
+}
+
+// src/ui/Cloth.tsx — presentational only. Paints warp, then weft over it, then
+// the warp segments that ride over: real interlacing by occlusion.
+import Svg, { G, Path } from 'react-native-svg';
+interface ClothProps {
+  width: number; maxHeight: number;   // maxHeight feeds rowScale()
+  chapterCount: number;
+  sealed: boolean[];
+  dye: string;
+}</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header">
+      <span>src/flow/WeaveZone.tsx — MODIFY (Slice 5, rewrite of render + props)</span>
+      <span><span class="tag effort">🟡 high-effort — the zone's meaning changes from "this month" to "this book"; TWO callers</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span>
+    </div>
+    <div class="file-body"><pre>// The E3 streak experiment is untouched — `streak` keeps its exact semantics
+// and is still only ever passed once E3 has concluded and been Applied.
+interface WeaveZoneProps {
+  book: string;           // book id, for the label and the dye
+  chapterCount: number;   // bundledChapterCount(book)
+  sealed: boolean[];      // index 0 = the day the book was started
+  reducedMotion: boolean; // Smart Review [MED]: story #22 is unsatisfiable without this.
+                          // Matches the existing prop-drilling pattern (Flow.tsx:47,386,445).
+  streak?: number | null;
+}
+
+// Header label: "July 2026" -> "John · 21 chapters · day 9".
+// onLayout gives available width -> warpSett(); available height -> rowScale().
+// Empty state (day 1, nothing sealed) is a dressed loom: bare warp, no weft.</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header">
+      <span>src/knot/Knot.tsx — MODIFY (Slice 5) — Smart Review [HIGH]: the missed second caller</span>
+      <span><span class="tag effort">🟡 high-effort — the first draft called the knot a non-goal while it is a WeaveZone caller</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span>
+    </div>
+    <div class="file-body"><pre>// Knot.tsx:4  imports WeaveZone
+// Knot.tsx:42-54  has its OWN duplicate monthGrid useMemo
+// Knot.tsx:122-131 passes monthLabel/daysInMonth/sealedDays/todayDay/streak
+//
+// Slice 5 MUST update this file or the build breaks. The knot has `db` and
+// `log` but NOT useSession, so `session.daysInBook` is unavailable here.
+//
+// 1. Delete the monthGrid useMemo (42-54).
+// 2. Derive the bolt the same way Flow does, from meta + log only:
+      const bookStart = meta.get(db, 'book_started_local_date') ?? logicalToday();
+      const book      = meta.get(db, 'current_book') ?? '';
+      const rows      = daysBetweenInclusive(bookStart, logicalToday());
+      const sealedSet = new Set(
+        log.daysBetween(bookStart, logicalToday())
+           .filter((d) => d.sealed === 1).map((d) => d.local_date));
+      const sealed = Array.from({length: rows}, (_, i) => sealedSet.has(addDays(bookStart, i)));
+// 3. Pass book / chapterCount={bundledChapterCount(book)} / sealed /
+//    reducedMotion={useReducedMotion()} / streak (unchanged).
+//
+// NOTE this also fixes the plan's false claim that "the weave zone only mounts
+// after a seal" — Flow.tsx:40-43 says it is reachable any time via the knot,
+// independent of today's seal. The un-sealed knot path must render correctly.</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header">
+      <span>src/flow/Flow.tsx — MODIFY (Slice 5; replaces monthGrid at ~57–83, the call at ~454)</span>
+      <span><span class="tag effort">🟡 high-effort — session.daysInBook is STALE on a book-finish day</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span>
+    </div>
+    <div class="file-body"><pre>import { addDays, daysBetweenInclusive } from '../log/time';
+
+const [bolt, setBolt] = useState&lt;boolean[]&gt;([]);
+
+// Smart Review [HIGH]: do NOT use session.daysInBook here. session.seal()
+// (src/state/session.ts:156-171) writes book_started_local_date = today on a
+// book-finish day, but its set() updates only sealedToday / justFinishedBook /
+// nextBookNeeded — NOT daysInBook and NOT book. Mixing a fresh bookStart with a
+// stale daysInBook renders a bolt of the OLD book's length, labelled with the
+// OLD book, with only row 0 sealed. Derive rows from bookStart itself.
+const refreshBolt = useCallback(() => {
+  const bookStart = meta.get(db, 'book_started_local_date') ?? today;
+  const rows = Math.max(1, daysBetweenInclusive(bookStart, today));
+  const sealedDates = new Set(
+    log.daysBetween(bookStart, today)
+       .filter((d) => d.sealed === 1)
+       .map((d) => d.local_date),
+  );
+  const next: boolean[] = [];
+  for (let i = 0; i &lt; rows; i++) next.push(sealedDates.has(addDays(bookStart, i)));
+  setBolt(next);
+}, [db, log, today]);
+
+// `days` is a DERIVED, SPARSE table — a day with no activity has no row at all
+// (verified: deriveDayRow is only called for dates in SELECT DISTINCT local_date
+// FROM events, log.ts:76-90). This Set-of-dates lookup is correct anyway:
+// absent rows and sealed=0 rows both fall through to false, which IS the gap.
+
+useEffect(() => { if (session.sealedToday) refreshBolt(); }, [session.sealedToday, refreshBolt]);
+// handleSeal() calls refreshBolt() in place of refreshMonthGrid().
+
+&lt;WeaveZone
+  book={session.book}
+  chapterCount={bundledChapterCount(session.book)}
+  sealed={bolt}
+  reducedMotion={reducedMotion}
+  streak={streak}
+/&gt;</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header">
+      <span>src/flow/ThreadRail.tsx — MODIFY (Slice 6) · src/flow/SealZone.tsx — MODIFY (Slice 7)</span>
+      <span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span>
+    </div>
+    <div class="file-body"><pre>ThreadRail (Slice 6)
+  Width 3 -> ~26 so three warp threads fit. The useAnimatedStyle worklet is
+  reused; the animated height drives a clip so cloth is revealed to the fell line.
+  Flow.tsx:489 `scroll: { paddingLeft: 12 }` widens to match.
+
+  Smart Review [LOW] — one behaviour change is REQUIRED, not optional:
+  ThreadRail.tsx:21 is `const progress = reducedMotion ? 1 : ...`. Snapping to 1
+  means a reduced-motion reader at the top of an unread chapter sees fully woven
+  cloth and no fell line — exactly what user story #7 forbids. Change to snap to
+  the CURRENT scroll position instantly (render the state, skip the animation),
+  per level-up.md's "cloth renders at its current state instantly".
+
+SealZone (Slice 7)
+  Svg + Circle + AnimatedCircle -> Svg + Path + AnimatedPath. The
+  strokeDashoffset mechanism, ringProgress shared value, holdMs, maxDriftPx
+  drift-cancel and reduced-motion branch are ALL reused verbatim; only the
+  dashed path changes from a circle to a weft pass across the warp.
+
+  Smart Review [MED] — the first draft's a11y claim was wrong. SealZone.tsx:123-142
+  ALREADY renders a Pressable with accessibilityRole="button" and
+  accessibilityLabel="Seal today's reading" when
+  `sealMode === 'tap' || screenReaderEnabled || reducedMotion`. Story #11 is
+  mostly met. What is actually missing: that fallback is gated on a screen reader
+  being DETECTED, so a keyboard/switch user without one still gets only the
+  press-and-hold gesture. Scope Slice 7's a11y work to that gap only.
+
+  NOT changed: the hint copy, which will still say "ring" — see Out of Scope.</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header">
+      <span>test/cloth.test.ts — NEW (Slice 4)</span>
+      <span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span>
+    </div>
+    <div class="file-body"><pre>// Pure-logic pattern of the existing suites (Vitest, node env).
+describe('warpSett', () => {
+  it('widens a 1-chapter book to a MIN_COLS ribbon');            // Jude
+  it('keeps sett >= MIN_SETT for Psalms (150) at 320px');        // drawEvery > 1
+  it('never exceeds MAX_SETT for a short book on a tablet');
+  it('treats an unknown chapter count (0) as MIN_COLS, no divide-by-zero');
+  it('keeps warpCount truthful while drawnCols shrinks');
+});
+describe('rowScale', () => {
+  it('keeps drawnCols * rows under MAX_NODES for Psalms at 150 days');
+  it('does not subsample rows for a short book');
+});
+describe('supportDistances', () => {
+  it('is all zeroes when every day is sealed');
+  it('rises then falls symmetrically across a gap');
+  it('handles a leading and a trailing gap');
+  it('returns only finite values for an all-unsealed book');   // the Infinity trap
+});
+describe('setMarkOffsets', () => {
+  it('is all zero when there is no gap >= SET_MARK_MIN_GAP');
+  it('offsets every row at and after the first weft following a lapse');
+  it('is cumulative across two separate lapses');
+});
+describe('plain weave', () => { it('alternates ridesOver across both axes'); });
+describe('determinism (§13.6 — no Math.random)', () => {
+  it('produces byte-identical paths for the same spec across calls');
+});
+describe('dyeFor', () => {
+  it('assigns a dye to all 66 canon books');
+  it('is stable across calls and falls back for an unknown id');
+});</pre></div>
+  </div>
+</div>
+
+<div id="commits" class="panel">
+  <h2>Commits</h2>
+  <p class="ticket-meta">Seven PRs, merged in order. Each slice branches off <code>main</code> in the sibling worktree once its blockers have merged. <em>This per-PR shipping is user story #26 — a plan-level criterion rather than any one slice's.</em></p>
+
+  <div class="commit"><span><strong>PR 1</strong> · <code>feat/loom-demo</code> — style(docs): restyle the demo page to "The Loom" · <code>docs/index.html</code></span><span class="tag effort">🟡 hand-split ROADMAP.md; no blanket checkout</span></div>
+  <div class="commit"><span><strong>PR 1</strong> · docs: record the aesthetic direction, plan and index rows · <code>docs/plans/aesthetic-thread-textile/*</code>, <code>docs/plans/README.md</code>, <code>ROADMAP.md</code>, <code>STATUS.md</code></span></div>
+  <div class="commit"><span><strong>PR 2</strong> · <code>feat/loom-icon</code> — feat(assets): new app icon — a weft caught mid-pass · <code>assets/icon-source.html</code>, <code>scripts/build-icons.mjs</code>, 5 PNGs, <code>app.json</code></span><span class="tag effort">🟡 prove transparent output first</span></div>
+  <div class="commit"><span><strong>PR 3</strong> · <code>feat/loom-tokens</code> — refactor(ui): natural-dye palette; retire the electric accent · <code>src/ui/tokens.ts</code></span><span class="tag effort">🟡 re-assigns an accent used at 31 sites</span></div>
+  <div class="commit"><span><strong>PR 3</strong> · fix(ui): replace 10 hardcoded colours with tokens · 8 <code>#EEF0FF</code> sites + 2 <code>#B4483C</code> sites</span><span class="tag subagent">🔵 subagent — sweep all 31 token consumers</span></div>
+  <div class="commit"><span><strong>PR 4</strong> · <code>feat/loom-cloth</code> — feat(ui): cloth geometry, set mark, dye assignment and renderer · <code>src/ui/cloth.ts</code>, <code>src/ui/dye.ts</code>, <code>src/ui/Cloth.tsx</code>, <code>test/cloth.test.ts</code></span><span class="tag effort">🟡 sett + row-budget + set-mark rules</span></div>
+  <div class="commit"><span><strong>PR 5</strong> · <code>feat/loom-weave</code> — feat(flow): the weave zone becomes the current book as a bolt · <code>src/flow/WeaveZone.tsx</code>, <code>src/flow/Flow.tsx</code>, <code>src/knot/Knot.tsx</code></span><span class="tag effort">🟡 two callers; stale-session trap</span></div>
+  <div class="commit"><span><strong>PR 6</strong> · <code>feat/loom-rail</code> — feat(flow): the thread rail becomes a loom with a fell line · <code>src/flow/ThreadRail.tsx</code>, <code>src/flow/Flow.tsx</code></span></div>
+  <div class="commit"><span><strong>PR 7</strong> · <code>feat/loom-seal</code> — feat(flow): sealing is a shuttle pass; close the non-screen-reader a11y gap · <code>src/flow/SealZone.tsx</code></span></div>
+
+  <h3>Branching &amp; rollback</h3>
+  <p><strong>Worktree:</strong> <code>../thread-aesthetic-loom</code>, created off <code>main</code> (<code>baddf2f</code> — verified to be the same base as both
+  existing worktrees, so nothing is lost). This is the <strong>third</strong> active worktree; <code>feat/account-reset</code> (primary checkout, uncommitted) and
+  <code>feat/tyndale-open-resources</code> (a second session) must not be touched.</p>
+  <p><strong>Per-slice flow:</strong> <code>git checkout main &amp;&amp; git pull &amp;&amp; git checkout -b feat/loom-&lt;slice&gt;</code> → build → <code>npm test &amp;&amp; npm run typecheck</code> →
+  <code>gh pr create</code>. <code>gh</code> 2.93.0 is present; <code>origin</code> is <code>https://github.com/sbrn3/thread.git</code>.</p>
+  <p><strong>Rollback and its couplings</strong> — the slices are ordered so each is revertible, but two couplings are real and were tightened after review:</p>
+  <ul class="requirements">
+    <li>Reverting <strong>PR 3</strong> (tokens) after 5–7 land leaves the cloth surfaces referencing <code>color.warp</code> / <code>color.dyeSoft</code>, which would no longer exist. <strong>Revert 5–7 first</strong>, or land a token-only hotfix.</li>
+    <li>Reverting <strong>PR 4</strong> (cloth) after 5–7 land breaks all three surfaces for the same reason. Ticket 4's "nothing else imports it yet" holds only until PR 5 merges.</li>
+    <li><strong>PR 5 and PR 6 both edit <code>Flow.tsx</code></strong> (5 removes <code>monthGrid</code> at :57–83 and rewrites the call at :454; 6 widens <code>paddingLeft</code> at :489). Ticket 6 is therefore blocked by 5, not only by 4 — otherwise they branch off <code>main</code> concurrently and conflict.</li>
+  </ul>
+</div>
+
+<div id="review" class="panel">
+  <h2>Smart Review</h2>
+  <p class="ticket-meta">Phase 7 — an independent read-only agent reviewed the draft against the real source. <strong>5 HIGH, 10 MEDIUM, 7 LOW.</strong> All HIGH and MEDIUM findings are integrated above; the fixes are annotated inline in the file blocks. Three HIGH findings were independently re-verified before integrating.</p>
+
+  <h3>HIGH — all fixed</h3>
+  <ul class="requirements">
+    <li><strong>A second <code>WeaveZone</code> caller was missed.</strong> <code>src/knot/Knot.tsx:4</code> imports it and <code>:122–131</code> passes month props from its own duplicate <code>monthGrid</code> memo at <code>:42–54</code>. The draft declared the knot a non-goal while it was a caller — Slice 5 would have broken the build. <em>Fixed:</em> <code>Knot.tsx</code> added to Slice 5 with its own derivation path (it has no <code>useSession</code>). <span class="tag effort">re-verified</span></li>
+    <li><strong><code>session.daysInBook</code> is stale on a book-finish day.</strong> <code>session.seal()</code> writes <code>book_started_local_date = today</code> (<code>session.ts:165</code>) but its <code>set()</code> at <code>:167–171</code> updates only <code>sealedToday</code>/<code>justFinishedBook</code>/<code>nextBookNeeded</code>. The draft's recipe would have rendered a bolt of the old book's length labelled with the old book. <em>Fixed:</em> rows now derive from <code>bookStart</code> via <code>daysBetweenInclusive</code>. <span class="tag effort">re-verified</span></li>
+    <li><strong>Slice 1's <code>git checkout -- ROADMAP.md</code> destroyed unrelated work.</strong> The diff is 26 insertions / 10 deletions in one hunk; the deletions are a prior session's account-reset rewrite, not this session's. <em>Fixed:</em> hand-split the hunk; blanket checkout explicitly forbidden. <span class="tag effort">re-verified</span></li>
+    <li><strong>The set mark had no implementation.</strong> It is locked in <code>level-up.md</code> and is story #17, but no mockup produces it — <code>mockup-d-gaps.html</code> only draws slack, drift and opacity. The draft said the geometry followed the mockup "verbatim". <em>Fixed:</em> <code>setMarkOffsets()</code> specified in <code>cloth.ts</code> with its own tests.</li>
+    <li><strong>Bolt length was unbounded.</strong> Warp was capped, rows were not. Psalms at 150 days ≈ 11,400 SVG Path nodes and a 1,650px-tall cloth — and the draft silently deleted the ROADMAP's own "may need Skia for long books" warning. <em>Fixed:</em> <code>rowScale()</code> + <code>MAX_NODES</code> budget, a test, a restored ROADMAP caveat, and a new performance gate.</li>
+  </ul>
+
+  <h3>MEDIUM — all fixed</h3>
+  <ul class="requirements">
+    <li>"The weave zone only mounts after a seal" was false — <code>Flow.tsx:40–43</code> says it is reachable any time via the knot. <em>Corrected, and the un-sealed knot path is now specified.</em></li>
+    <li><code>WeaveZoneProps</code> had no <code>reducedMotion</code>, making story #22 unsatisfiable. <em>Added, matching the existing prop-drilling pattern.</em></li>
+    <li>The a11y claim was wrong — <code>SealZone.tsx:123–142</code> already has an accessible fallback. <em>Slice 7 rescoped to the real gap: the fallback is gated on a screen reader being detected.</em></li>
+    <li>The test baseline was measured on the wrong branch. <em>301 on <code>main</code>, not 306 — the 5 extra are <code>feat/account-reset</code>'s untracked <code>test/reset.test.ts</code>.</em></li>
+    <li>Slice 1's expected <code>git status</code> omitted two untracked items. <em>Corrected, with both marked "leave alone".</em></li>
+    <li>PR 5 and PR 6 both edit <code>Flow.tsx</code> but ticket 6 was not blocked by 5. <em>Blocking edge added; ticket 4's rollback caveat tightened too.</em></li>
+    <li>The <code>docs/plans/README.md</code> and <code>STATUS.md</code> entries would have stranded on <code>feat/account-reset</code>. <em>Moved into PR 1.</em></li>
+    <li>Icon rasterisation was asserted, not demonstrated — headless Chromium renders opaque without <code>--default-background-color=00000000</code>, and the Android foreground must be transparent. <em>Exact command plus a colour-type check added as a gate before Slice 2 is accepted, with a named fallback.</em></li>
+    <li><code>clothSize</code> does not exist in the mockups, and <code>supportDistances</code> seeded with <code>Infinity</code> would leak <code>NaN</code> into path coordinates — contradicting its own named test. <em>Formula given; seeded with <code>slackCap</code> instead.</em></li>
+  </ul>
+
+  <h3>LOW — taken</h3>
+  <p>Story #26 reattached to the Commits section as a plan-level criterion · the "ROADMAP implies the month" justification dropped as false · <strong>ThreadRail's reduced-motion branch snaps to <code>1</code>, which would show fully woven cloth and no fell line — a real story-#7 violation, now a required change in Slice 6</strong> · <code>cols</code> split into <code>warpCount</code>/<code>drawnCols</code> · <code>splash-icon.png</code> dropped from deliverables (orphaned — <code>app.json</code> has no splash config) · <code>color.thread</code> count corrected 33 → 31.</p>
+
+  <h3>Verified correct by the review</h3>
+  <p>The sparse-<code>days</code>-table risk I flagged as critical: <code>deriveDayRow</code> is only invoked for dates in <code>SELECT DISTINCT local_date FROM events</code> (<code>log.ts:76–90</code>), so <strong>a day with no activity has no row at all</strong>. The Set-of-dates approach survives it — absent rows and <code>sealed = 0</code> rows both fall through to <code>false</code>, which is the correct gap. <code>addDays</code> is pure UTC string arithmetic, so no DST drift. Every other cited line number and symbol was checked and is real.</p>
+</div>
+
+<div id="tickets" class="panel">
+  <h2>Tickets</h2>
+  <p class="ticket-meta">The <strong>frontier</strong> (ready to start now) is computed live from each card's <code>data-blocked-by</code> against every other card's <code>data-status</code>. One PR per slice.</p>
+
+  <div class="ticket-card" data-slice="1" data-blocked-by="" data-status="not-started">
+    <div class="ticket-head">
+      <span class="ticket-title">1. Rescue the demo restyle onto its own branch</span>
+      <span><span class="tag effort">🟡 high-effort</span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
+    </div>
+    <div class="ticket-meta">Blocked by: None — can start immediately, and <strong>must</strong>, because finished work is stranded on the wrong branch.</div>
+    <div class="ticket-meta">Delivers: the completed demo page, all planning artifacts, and the plan-index/STATUS rows land on <code>feat/loom-demo</code> and merge to <code>main</code>; <code>feat/account-reset</code> keeps every one of its own changes, <code>ROADMAP.md</code> included.</div>
+    <div class="ticket-ac">Acceptance criteria: housekeeping — no user story. Done when <code>git diff ROADMAP.md</code> in the primary checkout shows <em>only</em> the account-reset rewrite, <code>git status</code> shows no aesthetic files, and PR 1 is merged.</div>
+    <div class="ticket-meta">Rollback: revert PR 1; the demo returns to its pre-restyle state on <code>main</code>.</div>
+  </div>
+
+  <div class="ticket-card" data-slice="2" data-blocked-by="1" data-status="not-started">
+    <div class="ticket-head">
+      <span class="ticket-title">2. The app icon</span>
+      <span><span class="tag effort">🟡 high-effort</span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
+    </div>
+    <div class="ticket-meta">Blocked by: 1.</div>
+    <div class="ticket-meta">Delivers: an icon that reads as a weft caught mid-pass at every size and as a monochrome themed icon; gradient, drop shadow and baked-in construction guides gone.</div>
+    <div class="ticket-ac">Acceptance criteria: satisfies user stories #1, #2, #3. <strong>Gate:</strong> a transparent 512×512 foreground PNG must be produced and its PNG colour-type verified as 6 (RGBA) before this slice is accepted.</div>
+    <div class="ticket-meta">Rollback: revert PR 2; the previous PNGs and <code>app.json</code> values return.</div>
+  </div>
+
+  <div class="ticket-card" data-slice="3" data-blocked-by="1" data-status="not-started">
+    <div class="ticket-head">
+      <span class="ticket-title">3. Token / palette migration</span>
+      <span><span class="tag subagent">🔵 subagent</span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
+    </div>
+    <div class="ticket-meta">Blocked by: 1.</div>
+    <div class="ticket-meta">Delivers: every screen renders in the natural-dye palette with no hardcoded colour outside <code>tokens.ts</code>, and no surface looks half-migrated.</div>
+    <div class="ticket-ac">Acceptance criteria: satisfies user stories #4, #5.</div>
+    <div class="ticket-meta">Rollback: revert PR 3 — safe only while 4–7 are unmerged.</div>
+  </div>
+
+  <div class="ticket-card" data-slice="4" data-blocked-by="3" data-status="not-started">
+    <div class="ticket-head">
+      <span class="ticket-title">4. Cloth renderer + tested geometry core</span>
+      <span><span class="tag effort">🟡 high-effort</span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
+    </div>
+    <div class="ticket-meta">Blocked by: 3 (needs <code>color.warp</code>, <code>tokens.dye</code>).</div>
+    <div class="ticket-meta">Delivers: a reusable <code>&lt;Cloth&gt;</code> plus a pure, deterministic, unit-tested geometry module handling the Psalms→Jude sett range, the row budget, the gap physics and the set mark. Nothing user-visible yet.</div>
+    <div class="ticket-ac">Acceptance criteria: satisfies user stories #18, #19, #20, #21, #25 — and provides the mechanism for #17.</div>
+    <div class="ticket-meta">Rollback: revert PR 4 — safe only while 5–7 are unmerged.</div>
+  </div>
+
+  <div class="ticket-card" data-slice="5" data-blocked-by="4" data-status="not-started">
+    <div class="ticket-head">
+      <span class="ticket-title">5. WeaveZone → the current book as a bolt (both callers)</span>
+      <span><span class="tag effort">🟡 high-effort</span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
+    </div>
+    <div class="ticket-meta">Blocked by: 4.</div>
+    <div class="ticket-meta">Delivers: the reader sees the book they are reading as a bolt of cloth — width = chapters, length = days since they started it, missed days left open, the return marked permanently. Correct from <em>both</em> <code>Flow</code> and the <code>Knot</code>.</div>
+    <div class="ticket-ac">Acceptance criteria: satisfies user stories #12, #13, #14, #15, #16, #17, #22, #23, #24.</div>
+    <div class="ticket-meta">Rollback: revert PR 5; the calendar-month grid returns in both callers.</div>
+  </div>
+
+  <div class="ticket-card" data-slice="6" data-blocked-by="5" data-status="not-started">
+    <div class="ticket-head">
+      <span class="ticket-title">6. ThreadRail → loom rail with a fell line</span>
+      <span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
+    </div>
+    <div class="ticket-meta">Blocked by: 5 — <strong>not merely 4</strong>. Both slices edit <code>Flow.tsx</code>; branching them off <code>main</code> concurrently would conflict.</div>
+    <div class="ticket-meta">Delivers: scroll progress is an advancing woven edge with slack warp ahead of it, instead of a 3px filling bar — including for reduced-motion readers, who currently see a full bar.</div>
+    <div class="ticket-ac">Acceptance criteria: satisfies user stories #6, #7, #22.</div>
+    <div class="ticket-meta">Rollback: revert PR 6; the 3px rail returns.</div>
+  </div>
+
+  <div class="ticket-card" data-slice="7" data-blocked-by="4" data-status="not-started">
+    <div class="ticket-head">
+      <span class="ticket-title">7. SealZone → a shuttle pass</span>
+      <span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
+    </div>
+    <div class="ticket-meta">Blocked by: 4. (Touches only <code>SealZone.tsx</code>, so it does not collide with 5 or 6.)</div>
+    <div class="ticket-meta">Delivers: press-and-hold visibly passes the weft across the warp and locks it in; releasing early retracts it and logs nothing; the non-screen-reader a11y gap is closed.</div>
+    <div class="ticket-ac">Acceptance criteria: satisfies user stories #8, #9, #10, #11, #22.</div>
+    <div class="ticket-meta">Rollback: revert PR 7; the ring returns. Gesture logic is unchanged either way.</div>
+  </div>
+</div>
+
+<div id="verify" class="panel">
+  <h2>Verification</h2>
+  <p class="ticket-meta">Whole-feature rollup — run once, after every ticket is done. Not a per-slice gate.</p>
+  <h3>Automated (the real gate)</h3>
+  <ul class="checklist">
+    <li><input type="checkbox"><span><code>npx vitest run test/cloth.test.ts</code> → geometry, row-budget, set-mark and dye suites pass</span></li>
+    <li><input type="checkbox"><span><code>npx vitest run test/boundaries.test.ts</code> → green; nothing in <code>/src/lab</code> reaches the new <code>/src/ui</code> modules</span></li>
+    <li><input type="checkbox"><span><code>npm test</code> → <strong>318 baseline on <code>main</code></strong> (not 306 — that count includes <code>feat/account-reset</code>'s untracked <code>test/reset.test.ts</code>) plus the new cloth tests</span></li>
+    <li><input type="checkbox"><span><code>npm run typecheck</code> → clean. <strong>Both</strong> <code>WeaveZone</code> callers must compile: <code>Flow.tsx</code> and <code>knot/Knot.tsx</code></span></li>
+    <li><input type="checkbox"><span><code>grep -rn "#[0-9A-Fa-f]\{6\}" src/ | grep -v tokens.ts</code> → returns nothing</span></li>
+    <li><input type="checkbox"><span>CI green on each PR, including the <code>thread.apk</code> build</span></li>
+  </ul>
+  <h3>Visual — fuller matrix (new component + layout system + a rewritten flow zone)</h3>
+  <ul class="checklist">
+    <li><input type="checkbox"><span>Built screens match <code>mockup-c-loom.html</code> / <code>mockup-d-gaps.html</code>, allowing for the known deltas (darker warp, capped slack, the set mark which no mockup shows)</span></li>
+    <li><input type="checkbox"><span><strong>Psalms (150 ch)</strong> narrow phone → legible, <em>and</em> the zone scrolls at 60fps with the node count under <code>MAX_NODES</code></span></li>
+    <li><input type="checkbox"><span><strong>Jude (1 ch)</strong> → a 3-thread ribbon, not a single line</span></li>
+    <li><input type="checkbox"><span>A book with a real multi-day gap → bare warp visible, slack reads as <em>open</em> not as damage, and the set mark is visible at the return</span></li>
+    <li><input type="checkbox"><span>Day 1 of a new book → a dressed loom with no weft, not an empty box</span></li>
+    <li><input type="checkbox"><span><strong>The day a book is finished</strong> → the bolt shows the NEW book at length 1, not the old book's length (the stale-session trap)</span></li>
+    <li><input type="checkbox"><span>Weave zone opened from the <strong>knot</strong>, on a day <em>not</em> yet sealed → renders correctly</span></li>
+    <li><input type="checkbox"><span>Narrow phone and tablet; small and large OS font scale; safe-area insets</span></li>
+    <li><input type="checkbox"><span>Reduced motion ON → cloth renders finished; <strong>the rail shows the current scroll position with a visible fell line, not a full bar</strong></span></li>
+    <li><input type="checkbox"><span>Seal touch target ≥ 44pt; a keyboard/switch user with no screen reader can seal a day</span></li>
+    <li><input type="checkbox"><span>Onboarding + knot inherit the palette with no muddy tint left anywhere</span></li>
+    <li><input type="checkbox"><span>Icon on a real home screen at default and themed/monochrome; interlace still reads</span></li>
+  </ul>
+  <h3>Owner spot-check</h3>
+  <ul class="checklist">
+    <li><input type="checkbox"><span>Seal a day for real → the weft locks in and the bolt gains a row</span></li>
+    <li><input type="checkbox"><span>Confirm the warp <code>#8F8779</code> reads correctly on a real screen (open gate)</span></li>
+  </ul>
+  <h3>Plan audit</h3>
+  <ul class="checklist">
+    <li><input type="checkbox"><span>Independent agent verified the final diff against this plan; HIGH and MEDIUM gaps fixed</span></li>
+  </ul>
+</div>
+
+<script>
+function show(id){
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+}
+function copyCode(btn){
+  const pre = btn.closest('.file-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    const old = btn.textContent; btn.textContent = 'Copied ✓';
+    setTimeout(() => btn.textContent = old, 1200);
+  });
+}
+// Persist checklist state per plan file
+const KEY = 'plan-checks-' + location.pathname;
+document.querySelectorAll('.checklist input[type=checkbox]').forEach((cb, i) => {
+  cb.checked = localStorage.getItem(KEY + i) === '1';
+  cb.addEventListener('change', () => localStorage.setItem(KEY + i, cb.checked ? '1' : '0'));
+});
+// Tickets (Phase 8): source data-status is authoritative; recompute the frontier from blocking edges.
+// Update plan.html itself whenever project status changes. No localStorage is used for ticket state.
+function setStatus(sel){
+  const card = sel.closest('.ticket-card');
+  card.dataset.status = sel.value;
+  computeFrontier();
+}
+function computeFrontier(){
+  const cards = document.querySelectorAll('.ticket-card');
+  const statusBySlice = {};
+  cards.forEach(c => statusBySlice[c.dataset.slice] = c.dataset.status);
+  cards.forEach(c => {
+    const blockers = (c.dataset.blockedBy || '').split(',').map(s => s.trim()).filter(Boolean);
+    const unblocked = blockers.every(b => statusBySlice[b] === 'done');
+    c.classList.toggle('ready', unblocked && c.dataset.status !== 'done');
+  });
+}
+document.querySelectorAll('.ticket-card').forEach(c => {
+  const sel = c.querySelector('.ticket-status');
+  if (sel) sel.value = c.dataset.status;
+});
+computeFrontier();
+</script>
+</body>
+</html>
