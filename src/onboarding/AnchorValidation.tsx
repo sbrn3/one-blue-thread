@@ -65,7 +65,7 @@ export function AnchorValidation({ onResult }: AnchorValidationProps) {
 
 const styles = StyleSheet.create({
   wrap: {
-    backgroundColor: '#EEF0FF',
+    backgroundColor: tokens.color.dyeSoft,
     borderRadius: 12,
     padding: 16,
     gap: 8,
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   ynBtnYes: { borderColor: tokens.color.thread, backgroundColor: tokens.color.thread },
-  ynBtnNo: { borderColor: '#B4483C', backgroundColor: '#B4483C' },
+  ynBtnNo: { borderColor: tokens.color.madder, backgroundColor: tokens.color.madder },
   ynLabel: {
     fontFamily: tokens.font.display,
     fontWeight: '700',
@@ -116,5 +116,5 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   verdictPass: { color: tokens.color.thread, fontWeight: '500' },
-  verdictFail: { color: '#B4483C' },
+  verdictFail: { color: tokens.color.madder },
 });

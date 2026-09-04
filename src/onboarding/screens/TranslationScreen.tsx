@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
   },
-  optionSelected: { borderColor: tokens.color.thread, backgroundColor: '#EEF0FF' },
+  optionSelected: { borderColor: tokens.color.thread, backgroundColor: tokens.color.dyeSoft },
   optionTitle: { fontFamily: tokens.font.display, fontWeight: '700', fontSize: 14, color: tokens.color.ink },
   optionSub: { fontFamily: tokens.font.display, fontSize: 11.5, color: tokens.color.ink40, marginTop: 2 },
   keyBlock: { marginTop: 18 },

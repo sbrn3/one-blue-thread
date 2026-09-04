@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sentence: {
-    backgroundColor: '#EEF0FF',
+    backgroundColor: tokens.color.dyeSoft,
     borderRadius: 12,
     padding: 20,
     marginBottom: 12,
