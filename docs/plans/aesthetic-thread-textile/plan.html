@@ -121,7 +121,7 @@ pre { margin: 0; font-family: ui-monospace, "Cascadia Code", Menlo, monospace; f
 
   <span class="badge yellow">5 high-effort · 1 subagent</span>
 
-  <span class="badge navy">7 slices · 1 ready</span>
+  <span class="badge green">7 slices · all shipped</span>
 
   <span class="badge navy">Direction approved</span>
 </div>
@@ -150,7 +150,7 @@ pre { margin: 0; font-family: ui-monospace, "Cascadia Code", Menlo, monospace; f
   <h2>Problem &amp; Intent</h2>
 
   <h3>Status, owner &amp; next action</h3>
-  <p><strong>Draft — pending approval.</strong> Triggered by the user's aesthetic grill session (2026-09-04), which produced and locked the direction in
+  <p><strong>✅ Shipped 2026-09-05.</strong> All seven slices merged to <code>main</code> (PRs #1–#7). Triggered by the user's aesthetic grill session (2026-09-04), which produced and locked the direction in
   <code>docs/plans/aesthetic-thread-textile/level-up.md</code>. <strong>Next action:</strong> approve this plan, then execute Slice&nbsp;1 — which is
   <em>urgent housekeeping</em>: the already-completed demo restyle is sitting uncommitted on the wrong branch (<code>feat/account-reset</code>) and must be moved
   before anything else touches the tree.</p>
@@ -852,7 +852,7 @@ describe('dyeFor', () => {
   <h2>Tickets</h2>
   <p class="ticket-meta">The <strong>frontier</strong> (ready to start now) is computed live from each card's <code>data-blocked-by</code> against every other card's <code>data-status</code>. One PR per slice.</p>
 
-  <div class="ticket-card" data-slice="1" data-blocked-by="" data-status="not-started">
+  <div class="ticket-card" data-slice="1" data-blocked-by="" data-status="done">
     <div class="ticket-head">
       <span class="ticket-title">1. Rescue the demo restyle onto its own branch</span>
       <span><span class="tag effort">🟡 high-effort</span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
@@ -863,7 +863,7 @@ describe('dyeFor', () => {
     <div class="ticket-meta">Rollback: revert PR 1; the demo returns to its pre-restyle state on <code>main</code>.</div>
   </div>
 
-  <div class="ticket-card" data-slice="2" data-blocked-by="1" data-status="not-started">
+  <div class="ticket-card" data-slice="2" data-blocked-by="1" data-status="done">
     <div class="ticket-head">
       <span class="ticket-title">2. The app icon</span>
       <span><span class="tag effort">🟡 high-effort</span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
@@ -874,7 +874,7 @@ describe('dyeFor', () => {
     <div class="ticket-meta">Rollback: revert PR 2; the previous PNGs and <code>app.json</code> values return.</div>
   </div>
 
-  <div class="ticket-card" data-slice="3" data-blocked-by="1" data-status="not-started">
+  <div class="ticket-card" data-slice="3" data-blocked-by="1" data-status="done">
     <div class="ticket-head">
       <span class="ticket-title">3. Token / palette migration</span>
       <span><span class="tag subagent">🔵 subagent</span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
@@ -885,7 +885,7 @@ describe('dyeFor', () => {
     <div class="ticket-meta">Rollback: revert PR 3 — safe only while 4–7 are unmerged.</div>
   </div>
 
-  <div class="ticket-card" data-slice="4" data-blocked-by="3" data-status="not-started">
+  <div class="ticket-card" data-slice="4" data-blocked-by="3" data-status="done">
     <div class="ticket-head">
       <span class="ticket-title">4. Cloth renderer + tested geometry core</span>
       <span><span class="tag effort">🟡 high-effort</span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
@@ -896,7 +896,7 @@ describe('dyeFor', () => {
     <div class="ticket-meta">Rollback: revert PR 4 — safe only while 5–7 are unmerged.</div>
   </div>
 
-  <div class="ticket-card" data-slice="5" data-blocked-by="4" data-status="not-started">
+  <div class="ticket-card" data-slice="5" data-blocked-by="4" data-status="done">
     <div class="ticket-head">
       <span class="ticket-title">5. WeaveZone → the current book as a bolt (both callers)</span>
       <span><span class="tag effort">🟡 high-effort</span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
@@ -907,7 +907,7 @@ describe('dyeFor', () => {
     <div class="ticket-meta">Rollback: revert PR 5; the calendar-month grid returns in both callers.</div>
   </div>
 
-  <div class="ticket-card" data-slice="6" data-blocked-by="5" data-status="not-started">
+  <div class="ticket-card" data-slice="6" data-blocked-by="5" data-status="done">
     <div class="ticket-head">
       <span class="ticket-title">6. ThreadRail → loom rail with a fell line</span>
       <span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
@@ -918,7 +918,7 @@ describe('dyeFor', () => {
     <div class="ticket-meta">Rollback: revert PR 6; the 3px rail returns.</div>
   </div>
 
-  <div class="ticket-card" data-slice="7" data-blocked-by="4" data-status="not-started">
+  <div class="ticket-card" data-slice="7" data-blocked-by="4" data-status="done">
     <div class="ticket-head">
       <span class="ticket-title">7. SealZone → a shuttle pass</span>
       <span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>

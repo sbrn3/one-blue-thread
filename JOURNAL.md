@@ -5,6 +5,38 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## 2026-09-05 — "The Loom" aesthetic rollout
+
+Shipped the whole aesthetic pass as 7 PRs. Plan and design record in
+`docs/plans/aesthetic-thread-textile/`.
+
+- **The direction took three attempts.** The first two ("The Sampler", a
+  cross-stitch grid; "The Impression", a debossed channel) were both rejected —
+  guarding against twee had turned craft into *structure*, structure became
+  **grids**, and a grid of discrete cells is the opposite of cloth. The fix was
+  a corrected target: a loom, not a sampler. Threads under tension, not a lattice.
+- **The idea worth keeping:** one book = one bolt. Warp threads are the book's
+  chapters, rows are calendar days, a weft pass is a day read. A missed day
+  leaves bare warp you can see through, and the first pass after a lapse leaves
+  a permanent set mark. The texture of the cloth is the texture of the practice.
+- **Smart Review earned its place.** It found 5 HIGH defects in the plan,
+  including a second `WeaveZone` caller (`src/knot/Knot.tsx`) that a naive prop
+  change would have broken, and a stale-session trap that would have rendered
+  the wrong book's bolt on a book-finish day. Both are now covered by tests.
+- **Two pre-existing bugs fixed in passing:** `ink40` was 2.64:1 against paper,
+  well under the 4.5:1 floor for the secondary text it is used for; and
+  `ThreadRail` forced progress to 1 under reduced motion, showing those readers
+  fully woven cloth and no fell line.
+- **Left open, deliberately:** a keyboard/switch user without a screen reader
+  still gets only the press-and-hold seal. Closing it means restructuring
+  §05/§13.4 code and wants its own change.
+- **Needs a device:** Psalms (150 chapters) and Jude (1) at real widths, and
+  whether the darker warp `#8F8779` reads correctly on a real screen.
+
+Suite 318 → 365. Icons rebuild with `node scripts/build-icons.mjs`.
+
+---
+
 ## 2026-09-04 — Offline Tyndale study resources
 
 - Added the CC BY-SA Tyndale Open Study Notes and Bible Dictionary as a

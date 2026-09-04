@@ -19,23 +19,6 @@ who hasn't really begun. Full notes in `memory/deferred-account-reset.md`.
 - Open question: do the on-device API key and translation choice survive?
 - Likely `src/knot/DiagnosticsSection.tsx`, double-confirm.
 
-### 🔨 The weave zone becomes cloth ("The Loom")
-Plan: `docs/plans/aesthetic-thread-textile/plan.html`. The locked aesthetic
-direction implies a product change, not a restyle: **one book of the Bible = one
-bolt of woven cloth**. Warp thread count = the book's chapter count; length =
-calendar days since the book was started; a weft pass = a day you read. A missed
-day leaves bare warp you can see through; the first pass after a lapse leaves a
-permanent **set mark**.
-- **Replaces** today's 15-column grid of sealed/dashed squares in
-  `WeaveZone.tsx` — the zone's meaning changes from "this month" to "this book".
-  Note `src/knot/Knot.tsx` is a second caller of that component.
-- Chapter counts come from `bundledChapterCount()`; no new data source needed.
-- Renders via `react-native-svg` + Reanimated (both already in the stack). Warp
-  is drawn per-row-span so opacity can track support — costs more than the
-  current `View` grid; **may need Skia for long books** (Psalms is 150 chapters).
-- Shipping as 7 PRs off `feat/loom-*` in `../thread-aesthetic-loom`.
-- Deferred to its own plan: the shelf of finished book-bolts.
-
 ## Under consideration
 
 _(nothing yet — add ideas here before they graduate to Planned)_
@@ -45,6 +28,13 @@ _(nothing yet — add ideas here before they graduate to Planned)_
 _(none)_
 
 ## Shipped
+
+- ✅ 2026-09-05 — **"The Loom" aesthetic rollout** (PRs #1–#7): the demo page, a
+  new app icon, the natural-dye palette, a tested cloth-geometry module, and the
+  weave zone, thread rail and seal rebuilt as woven cloth. The weave zone now
+  shows the current book as a bolt — warp = chapters, rows = calendar days, a
+  missed day leaves bare warp — replacing the calendar-month grid.
+  Plan: `docs/plans/aesthetic-thread-textile/plan.html`.
 
 - ✅ 2026-09-04 — Tyndale Open study notes, Bible dictionary, and passage-range remembering
 - ✅ 2026-07-21 — W13 adaptive layer (Thompson sampling nudge-hour bandit)
