@@ -5,6 +5,26 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## 2026-09-05 — Doc correction: Tyndale was already shipped
+
+- Asked to rebase `feat/tyndale-open-resources` onto `main` (the assumption
+  being it predated the loom PRs and would conflict with them). `git rebase
+  main` came back with zero commits to replay — checked the reflog first (no
+  data lost, original tip `7c5ce98` still reachable) before concluding why:
+  the branch tip was already an ancestor of `main`. The 8 Tyndale commits sit
+  directly in `main`'s line, fast-forwarded in *before* any loom PR (`#1`
+  onward) — confirmed by `src/study/`, `assets/tyndale/`, and tags `v0.3.0`/
+  `v0.3.1` all present on `main`, 365 tests passing.
+- The branch's own `STATUS.md`/`JOURNAL.md` were never updated post-merge and
+  still read "in release verification, pending merge" — that's what caused
+  the wrong read the previous session. Corrected `STATUS.md` and
+  `docs/plans/README.md` here on `main` to reflect both releases as shipped.
+- Retired the now-fully-merged `feat/tyndale-open-resources` branch and its
+  worktree (`../thread-tyndale-open-resources`).
+- Left open: `feat/account-reset` is a similar situation in miniature — built
+  on an older `main`, not yet merged. Worth a rebase check before merging,
+  not assumed clean.
+
 ## 2026-09-05 — "The Loom" aesthetic rollout
 
 Shipped the whole aesthetic pass as 7 PRs. Plan and design record in
