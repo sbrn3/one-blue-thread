@@ -7,7 +7,7 @@ Created by `/plan`; retained by `/save-plan`.
 | Slug | Intent | Status | Next action |
 |------|--------|--------|-------------|
 | tyndale-open-resources | Offline study context, dictionary cues/search, and passage remembering | 🔨 in progress | Complete verification and deploy v0.3.0. |
-| aesthetic-thread-textile | Icon, palette, and the weave zone become woven cloth ("The Loom") | 🔨 in progress | 7 PRs off `feat/loom-*`; slice 1 (this PR) lands the demo restyle + the plan. |
+| aesthetic-thread-textile | Icon, palette, and the weave zone become woven cloth ("The Loom") | ✅ shipped | Merged as PRs #1–#7. Open: device checks for Psalms/Jude widths and the warp colour. |
 
 Status: 📋 planned · 🔨 in progress · ✅ shipped · ❄️ parked.
 Keep this table and `STATUS.md`'s Active Plans table in sync.

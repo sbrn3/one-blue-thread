@@ -31,7 +31,7 @@ main worktree is not part of this release.
 | Plan | State | Notes |
 |------|-------|-------|
 | Tyndale Open Resources | 🔨 in release verification | Merge, tag v0.3.0. |
-| Aesthetic rollout — "The Loom" | 🔨 in progress | `docs/plans/aesthetic-thread-textile/plan.html`. 7 PRs: demo restyle, icon, token palette, cloth renderer, weave zone, thread rail, seal. Slice 1 landed. |
+| Aesthetic rollout — "The Loom" | ✅ shipped | All 7 PRs merged. Two device checks still open. |
 
 ## Next actions
 
