@@ -38,6 +38,10 @@ export const tokens = {
     scripture: 'Newsreader', // the text's voice — a different register
     mono: 'JetBrains Mono', // data, timestamps, reports
   },
+  // Erasing everything is a hold too, but a longer one: the seal is a daily
+  // gesture, and muscle memory from it must not carry into an irreversible
+  // action. See docs/CONTEXT.md, 'the unravel'.
+  reset: { holdMs: 2500 },
   seal: {
     holdMs: 1200, // ~1.2s hold — E1 arm B replaces this with a tap
     maxDriftPx: 20, // below this the hold cancels constantly (§05 risk)

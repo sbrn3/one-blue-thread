@@ -9,7 +9,10 @@ import { decryptPayload, encryptPayload, type CryptoLike, type EncryptedBackup }
 import { buildDump, restoreDump, type BackupDump } from './dump';
 import type { BackupIO } from './io';
 
-const PASSPHRASE_KEY = 'thread_backup_passphrase';
+// Exported so a full account reset (src/reset) can clear the keychain entry
+// directly, without going through disableEncryption() — which would write a
+// `backup_encrypted` row back into the just-wiped db.
+export const PASSPHRASE_KEY = 'thread_backup_passphrase';
 const META_ENCRYPTED = 'backup_encrypted';
 const META_LAST_EXPORT = 'backup_last_export';
 

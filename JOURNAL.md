@@ -5,6 +5,60 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## 2026-09-05 — Account reset shipped as "the unravel"
+
+Design settled by `/grill` (see the decision entry below), then implemented
+directly at the user's request rather than going through `/plan`.
+
+- The reset itself was already written but had never been committed — it sat as
+  untracked files on `feat/account-reset`, 25 commits behind `main`. Rebuilt on
+  current `main` as `feat/reset-unravel`.
+- `performReset()` gained an `onWiped` callback. Without it the UI cannot tell a
+  failure *before* the wipe (nothing lost, return to the sheet) from one *after*
+  it (data already gone, the app must not carry on). The old `catch` did the
+  wrong thing in the second case.
+- `src/ui/Unravel.tsx` animates the current book's bolt coming apart: the warp
+  stays strung and the weft withdraws, newest pass first, each on its own
+  staggered window so it runs on the UI thread with no re-layout.
+- Fallback for screen reader / reduced motion is the two-tap confirm, not a
+  single tap — the accessible path keeps the same deliberation as the default.
+
+Suite 365 → 374.
+
+## Decision 2026-09-05 — Erasing the account is an unravel, not a danger zone
+
+**Decision:** The account reset is a press-and-hold of about 2.5s that visibly
+unravels the bolt of the book being read, re-weaving if released early. The
+section is headed "Starting over", not "Danger zone". It offers no backup export
+on the way out. Where a hold is unavailable (screen reader active, or reduced
+motion), it falls back to the existing two-tap confirm rather than to a single
+tap. If the post-wipe reload fails, the app blocks with a "close and reopen"
+message instead of returning to the sheet.
+
+**Why:** The app's commit gesture is a hold that weaves; making its destruction
+the literal inverse costs almost nothing to build (the loom geometry already
+exists) and is far harder to fire through by reflex than a second tap. A longer
+hold than the seal's 1200ms prevents muscle memory carrying over from a daily
+gesture into an irreversible one. "Danger zone" is borrowed from GitHub settings
+and is out of register for an app that deliberately avoids alarm language
+everywhere else — gaps stay gaps, a mirror not a threat. Offering an export on
+the way out was rejected as friction aimed at the one person who has explicitly
+asked for everything to be gone; backup already lives in the same sheet.
+
+**Consequences:** The unravel animates the current book's bolt, which already
+renders — so this needs no new derivation and stays inside the existing path
+budget. Showing *everything* ever woven was considered and dropped: it would
+have required a per-book sealed history that does not exist and a multi-bolt
+render that hits the same limit already forcing Psalms to degrade, for a screen
+most people see once. The near-empty case is shown honestly rather than
+special-cased, so a reader with four days of history watches four rows come
+apart; that is the correct signal, but it means the moment has little visual
+weight for exactly the person most likely to use it. The two-tap fallback leaves
+the accessible path with a different guard from the default one — equal in
+deliberation, but not identical in kind.
+
+**Branch:** feat/reset-unravel
+
 ## 2026-09-05 — Doc correction: Tyndale was already shipped
 
 - Asked to rebase `feat/tyndale-open-resources` onto `main` (the assumption

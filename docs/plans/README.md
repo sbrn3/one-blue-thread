@@ -8,6 +8,7 @@ Created by `/plan`; retained by `/save-plan`.
 |------|--------|--------|-------------|
 | tyndale-open-resources | Offline study context, dictionary cues/search, and passage remembering | ✅ shipped | Merged to `main`, tagged v0.3.0 then v0.3.1 (corpus-size fix). |
 | aesthetic-thread-textile | Icon, palette, and the weave zone become woven cloth ("The Loom") | ✅ shipped | Merged as PRs #1–#7. Open: device checks for Psalms/Jude widths and the warp colour. |
+| account-reset | Erase everything and return to first run, as an unravel of the current bolt | ✅ shipped | Implemented directly from the grill; no plan.html. Decision is in `JOURNAL.md`. |
 
 Status: 📋 planned · 🔨 in progress · ✅ shipped · ❄️ parked.
 Keep this table and `STATUS.md`'s Active Plans table in sync.
