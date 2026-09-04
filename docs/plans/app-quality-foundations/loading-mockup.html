@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thread — active-weft loading state</title>
+<style>
+:root{--paper:#F4F1E9;--ink:#1A1A17;--thread:#2E3A8C;--warp:#8F8779;--muted:#5B584F;--edge:#E0DACB}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--edge);color:var(--ink);font-family:system-ui,sans-serif}.stage{display:grid;grid-template-columns:minmax(0,390px) minmax(260px,440px);align-items:center;gap:44px;padding:32px}.phone{width:390px;max-width:100%;height:720px;position:relative;overflow:hidden;border-radius:34px;background:var(--paper);box-shadow:0 20px 60px rgba(26,26,23,.18);outline:1px solid var(--warp);outline-offset:5px}.phone svg{position:absolute;inset:0;width:100%;height:100%}.copy h1{font-family:Georgia,serif;font-size:34px;line-height:1.05;font-weight:500;margin:12px 0}.copy p{font:16px/1.6 Georgia,serif;color:var(--muted)}.tag{font:10px/1 ui-monospace,monospace;text-transform:uppercase;letter-spacing:.08em;border:1px solid var(--warp);border-radius:999px;padding:7px 9px}.center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;padding:0 0 48px}.status{opacity:0;color:var(--muted);font-size:15px;background:rgba(244,241,233,.92);padding:9px 13px;border-radius:8px}.legend{margin-top:12px;color:var(--warp);font:10px/1.4 ui-monospace,monospace;background:rgba(244,241,233,.92);padding:5px 8px;border-radius:6px}#weft path{stroke-dasharray:1;stroke-dashoffset:1}#taut path,#over path{opacity:0}#slack path{opacity:.34}@media(max-width:820px){.stage{grid-template-columns:1fr;justify-items:center}.copy{max-width:390px}}
+</style>
+</head>
+<body>
+<main class="stage">
+  <div class="phone" aria-label="Active-weft loading-state mockup">
+    <svg id="loom" viewBox="0 0 390 720" role="presentation" aria-hidden="true">
+      <g id="slack" fill="none" stroke="var(--warp)" stroke-width="2" stroke-linecap="round"></g>
+      <g id="taut" fill="none" stroke="var(--warp)" stroke-width="2.5" stroke-linecap="round"></g>
+      <g id="weft" fill="none" stroke="var(--thread)" stroke-width="3.2" stroke-linecap="round" opacity=".92"></g>
+      <g id="over" fill="none" stroke="var(--warp)" stroke-width="2.5" stroke-linecap="round"></g>
+      <path id="fell" fill="none" stroke="var(--thread)" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+    </svg>
+    <div class="center"><div class="status" role="status">Preparing today’s reading…</div><div class="legend">Slack warp · fell line · cloth</div></div>
+  </div>
+  <section class="copy"><span class="tag">Loading direction · refinement</span><h1>The weft does the weaving.</h1><p>The field begins as faint, wavy, unsupported warp across its whole height. An indigo weft is visibly drawn across the first row, then enters from the opposite side for the next. Only once a pass finishes does that row’s warp snap taut, its over-crossings appear, and the fell line step down to it.</p><p>Every reveal is scheduled from the same <code>rowDone(j)</code> the weft draw ends on, so tension is caused by weaving rather than by a mask sliding on its own clock. The paths use the app’s deterministic sine-wave geometry and alternating over/under crossings. On success the remaining passes complete quickly and the cloth dissolves into the reading; reduced motion presents the finished cloth immediately.</p></section>
+</main>
+<script>
+const NS='http://www.w3.org/2000/svg';
+const cols=11,rows=21,x0=64,pitchX=26,pitchY=26,yTop=96,fieldTop=44,fieldBottom=700;
+const START_MS=400,ROW_MS=600,WEFT_MS=520,TENSION_MS=240,FELL_MS=180;
+const rowY=j=>yTop+j*pitchY;
+const weftStart=j=>START_MS+j*ROW_MS;
+const rowDone=j=>weftStart(j)+WEFT_MS;
+const TOTAL=rowDone(rows-1)+TENSION_MS;
+const bandTop=j=>j===0?fieldTop:rowY(j)-pitchY/2;
+const bandBottom=j=>rowY(j)+pitchY/2;
+
+function el(tag,attrs){const node=document.createElementNS(NS,tag);for(const[k,v]of Object.entries(attrs))node.setAttribute(k,String(v));return node}
+function warpX(i,y,taut){const amp=taut?2.1:7.2,drift=taut?0:3.7;return x0+i*pitchX+Math.sin(y/(pitchY*2.05)+i*.9)*amp+Math.sin(i*2.31+1.7)*drift}
+function warpPath(i,taut,ya,yb){let d='';for(let y=ya;y<=yb;y+=3.5)d+=`${d?'L':'M'}${warpX(i,y,taut).toFixed(2)} ${y.toFixed(2)} `;return d+`L${warpX(i,yb,taut).toFixed(2)} ${yb.toFixed(2)}`}
+function weftY(j,x){return rowY(j)+Math.sin(x/(pitchX*2.05)+j*.7)*2.1}
+function weftPath(j,reverse){const pts=[];for(let x=x0-10;x<=x0+(cols-1)*pitchX+10;x+=3.5)pts.push([x,weftY(j,x)]);if(reverse)pts.reverse();return pts.map(([x,y],k)=>`${k?'L':'M'}${x.toFixed(2)} ${y.toFixed(2)}`).join(' ')}
+
+const slack=document.getElementById('slack'),taut=document.getElementById('taut'),weft=document.getElementById('weft'),over=document.getElementById('over');
+const band={slack:[],taut:[],weft:[],over:[]};
+
+for(let i=0;i<cols;i++)slack.append(el('path',{d:warpPath(i,false,bandBottom(rows-1),fieldBottom)}));
+
+for(let j=0;j<rows;j++){
+  const ya=bandTop(j),yb=bandBottom(j);
+  band.slack[j]=[];band.taut[j]=[];band.over[j]=[];
+  for(let i=0;i<cols;i++){
+    const s=el('path',{d:warpPath(i,false,ya,yb)});slack.append(s);band.slack[j].push(s);
+    const t=el('path',{d:warpPath(i,true,ya,yb)});taut.append(t);band.taut[j].push(t);
+  }
+  const w=el('path',{d:weftPath(j,j%2===1),pathLength:'1'});weft.append(w);band.weft[j]=w;
+  for(let i=0;i<cols;i++)if((i+j)%2===0){const o=el('path',{d:warpPath(i,true,rowY(j)-6,rowY(j)+7)});over.append(o);band.over[j].push(o)}
+}
+
+const fellBase=bandTop(0)+pitchY/2;
+let fd='';for(let x=x0-12;x<=x0+(cols-1)*pitchX+12;x+=3.5)fd+=`${fd?'L':'M'}${x.toFixed(2)} ${(fellBase+Math.sin(x/(pitchX*2.05))*2.1).toFixed(2)} `;
+const fell=document.getElementById('fell');fell.setAttribute('d',fd);
+const fellStep=j=>(bandBottom(j)-fellBase);
+const status=document.querySelector('.status');
+
+if(matchMedia('(prefers-reduced-motion: reduce)').matches){
+  for(let j=0;j<rows;j++){
+    band.weft[j].style.strokeDashoffset='0';
+    band.slack[j].forEach(n=>n.style.opacity='0');
+    band.taut[j].forEach(n=>n.style.opacity='.95');
+    band.over[j].forEach(n=>n.style.opacity='.95');
+  }
+  fell.style.transform=`translateY(${fellStep(rows-1)}px)`;
+  status.style.opacity='1';
+}else{
+  const play=(nodes,frames,delay,duration,easing='cubic-bezier(.4,0,.2,1)')=>
+    [].concat(nodes).forEach(n=>n.animate(frames,{delay,duration,easing,fill:'forwards'}));
+
+  status.animate([{opacity:0},{opacity:1}],{delay:START_MS,duration:240,fill:'forwards'});
+
+  for(let j=0;j<rows;j++){
+    play(band.weft[j],[{strokeDashoffset:1},{strokeDashoffset:0}],weftStart(j),WEFT_MS,'linear');
+    play(band.slack[j],[{opacity:.34},{opacity:0}],rowDone(j),TENSION_MS);
+    play(band.taut[j],[{opacity:0},{opacity:.95}],rowDone(j),TENSION_MS);
+    play(band.over[j],[{opacity:0},{opacity:.95}],rowDone(j),TENSION_MS);
+  }
+
+  const kf=[{transform:'translateY(0px)',offset:0,easing:'steps(1,end)'}];
+  for(let j=0;j<rows;j++){
+    kf.push({transform:`translateY(${j?fellStep(j-1):0}px)`,offset:rowDone(j)/TOTAL,easing:'cubic-bezier(.22,.8,.3,1)'});
+    kf.push({transform:`translateY(${fellStep(j)}px)`,offset:(rowDone(j)+FELL_MS)/TOTAL,easing:'steps(1,end)'});
+  }
+  kf.push({transform:`translateY(${fellStep(rows-1)}px)`,offset:1});
+  fell.animate(kf,{duration:TOTAL,fill:'forwards'});
+}
+</script>
+</body>
+</html>

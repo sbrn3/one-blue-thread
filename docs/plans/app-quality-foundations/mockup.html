@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup — App quality foundations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper:#F4F1E9; --ink:#1A1A17; --thread:#2E3A8C; --warp:#8F8779;
+  --madder:#B5482F; --dye-soft:#E7E9F4; --ink60:#5B584F;
+  --ink40:#726D5C; --ink15:#E0DACB;
+  --display:'Schibsted Grotesk',system-ui,sans-serif;
+  --scripture:'Newsreader',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ink15);color:var(--ink);font-family:var(--display)}
+.mk-bar{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;justify-content:space-between;padding:.75rem 1.1rem;background:var(--ink);color:var(--paper);font:12px/1.4 var(--mono)}
+.mk-bar strong{font-weight:600}.mk-bar .dir{opacity:.72}.mk-options{display:flex;gap:.35rem;flex-wrap:wrap}.mk-options a{color:inherit;border:1px solid currentColor;border-radius:999px;padding:.35rem .8rem;text-decoration:none}
+.intro{max-width:980px;margin:0 auto;padding:2rem 1.5rem 0}.intro h1{font:900 34px/1.05 var(--display);letter-spacing:-.03em;margin:0}.intro p{font:17px/1.65 var(--scripture);color:var(--ink60);max-width:720px}.scope{display:flex;gap:.5rem;flex-wrap:wrap}.tag{font:10px/1 var(--mono);letter-spacing:.05em;text-transform:uppercase;border:1px solid var(--warp);border-radius:999px;padding:.45rem .65rem;color:var(--ink60);background:var(--paper)}
+.mk-stage{display:flex;flex-wrap:wrap;gap:2rem;padding:2.5rem 1.5rem;justify-content:center;align-items:flex-start}.option{max-width:390px}.option-note{font:13px/1.55 var(--display);color:var(--ink60);padding:.8rem .25rem 0}.option-note strong{color:var(--ink)}
+.phone{width:390px;max-width:100%;height:780px;background:var(--paper);border-radius:34px;box-shadow:0 20px 60px rgba(26,26,23,.18);overflow:hidden;position:relative;padding-top:26px}.safe{height:18px}.sheet-head{height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;border-bottom:1px solid var(--ink15)}.sheet-head h2{font:900 21px/1 var(--display);margin:0}.close{min-width:48px;min-height:48px;border:0;background:none;color:var(--thread);font:700 14px var(--display)}
+.content{height:678px;overflow:auto;padding:18px 22px 36px}.kicker{font:600 10px/1.3 var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--ink40);margin:18px 0 8px}.summary{font:13px/1.4 var(--display);color:var(--ink60)}
+.row,.card,.accordion{width:100%;border:1px solid var(--ink15);background:transparent;border-radius:12px;padding:14px;margin:8px 0;text-align:left;color:var(--ink)}.row{min-height:50px;display:flex;align-items:center;justify-content:space-between;gap:12px}.row-title{font:750 15px/1.2 var(--display)}.row-sub{display:block;margin-top:4px;font:12px/1.4 var(--display);color:var(--ink60)}.chev{font:14px var(--mono);color:var(--thread)}
+.status{font:10px/1.2 var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--thread)}.status.warn{color:var(--madder)}.primary{min-height:48px;border:0;border-radius:12px;background:var(--ink);color:var(--paper);font:750 14px var(--display);padding:0 18px}.secondary{min-height:48px;border:1px solid var(--ink15);border-radius:12px;background:transparent;color:var(--ink);font:700 14px var(--display);padding:0 16px}.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+.bolt{height:76px;margin:12px 2px 4px;background:repeating-linear-gradient(90deg,transparent 0 5px,var(--warp) 5px 7px),repeating-linear-gradient(0deg,transparent 0 8px,var(--thread) 8px 11px);opacity:.72;border-radius:4px}.cue{font:italic 18px/1.6 var(--scripture);background:var(--dye-soft);border-radius:12px;padding:16px}.cue b{color:var(--thread);font-weight:500;text-decoration:underline}.error{border-left:3px solid var(--madder);padding:12px 14px;background:rgba(181,72,47,.07);font:13px/1.45 var(--display);color:var(--ink60);margin:10px 0;border-radius:0 10px 10px 0}.error strong{color:var(--madder)}
+.accordion{padding:0;overflow:hidden}.accordion summary{list-style:none;min-height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;cursor:pointer}.accordion summary::-webkit-details-marker{display:none}.accordion .inside{border-top:1px solid var(--ink15);padding:14px}.accordion .meta{font:11px/1.4 var(--mono);color:var(--ink40)}
+.index-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.index-card{min-height:112px;border:1px solid var(--ink15);border-radius:14px;padding:14px;background:transparent;text-align:left}.index-card.wide{grid-column:1/-1;min-height:86px}.index-card h3{font:800 15px/1.2 var(--display);margin:0 0 7px}.index-card p{font:12px/1.45 var(--display);color:var(--ink60);margin:0}.index-card .status{display:block;margin-top:10px}
+.tabs{position:sticky;top:-18px;z-index:2;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--paper);padding:7px 0 12px;border-bottom:1px solid var(--ink15)}.tab{min-height:44px;border:0;background:none;font:700 12px var(--display);color:var(--ink40)}.tab.active{color:var(--thread);background:var(--dye-soft);border-radius:10px}.section-title{font:900 24px/1.1 var(--display);letter-spacing:-.02em;margin:20px 0 4px}.lead{font:15px/1.55 var(--scripture);color:var(--ink60);margin:0 0 16px}
+.shared{max-width:980px;margin:0 auto 3rem;padding:0 1.5rem}.shared h2{font:900 26px/1.1 var(--display);letter-spacing:-.02em}.shared-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}.shared-card{background:var(--paper);border:1px solid var(--warp);border-radius:14px;padding:16px}.shared-card h3{font:800 15px var(--display);margin:0 0 7px}.shared-card p{font:13px/1.5 var(--display);color:var(--ink60);margin:0}.recommended{outline:3px solid var(--thread);outline-offset:5px}
+@media(max-width:520px){.mk-stage{padding-inline:.65rem}.phone{border-radius:22px}.intro{padding-inline:1rem}.shared{padding-inline:1rem}}
+</style>
+</head>
+<body>
+<div class="mk-bar">
+  <span><strong>App quality foundations</strong> <span class="dir">— choose the knot structure</span></span>
+  <nav class="mk-options" aria-label="Mockup views"><a href="loading-mockup.html">Loading</a><a href="#option-a">A · Quiet accordion</a><a href="#option-b">B · Index + detail</a><a href="#option-c">C · Three rooms</a></nav>
+</div>
+
+<header class="intro">
+  <h1>Same ritual. Fewer hidden edges.</h1>
+  <p>All three directions keep Thread’s linen ground, two typographic voices, single knot control, and restraint. They differ only in how the growing set of secondary tools is organised.</p>
+  <div class="scope"><span class="tag">Translation switch parked</span><span class="tag">Synthetic data</span><span class="tag">44pt controls</span><span class="tag">Large text reflow</span></div>
+</header>
+
+<main class="mk-stage">
+  <section class="option" id="option-a">
+    <div class="phone recommended">
+      <div class="safe"></div>
+      <header class="sheet-head"><h2>The knot</h2><button class="close">Close</button></header>
+      <div class="content">
+        <div class="status">Today · John 6</div>
+        <div class="bolt" aria-label="Synthetic woven progress"></div>
+        <p class="summary">18 of 21 days woven</p>
+        <div class="kicker">Practice</div>
+        <details class="accordion" open>
+          <summary><span><span class="row-title">The cue</span><span class="row-sub">After breakfast · kitchen table</span></span><span class="chev">↑</span></summary>
+          <div class="inside"><div class="cue">After <b>breakfast</b>, I read at <b>the kitchen table</b>.</div><div class="actions"><button class="secondary">Earlier</button><button class="secondary">Later</button></div></div>
+        </details>
+        <details class="accordion"><summary><span><span class="row-title">Reading &amp; study</span><span class="row-sub">History, remembered passages, dictionary</span></span><span class="chev">↓</span></summary></details>
+        <div class="kicker">Safekeeping</div>
+        <details class="accordion" open>
+          <summary><span><span class="row-title">Backup</span><span class="row-sub">On-device recovery · outside-phone backup</span></span><span class="status warn">Needs attention</span></summary>
+          <div class="inside"><div class="error"><strong>No backup outside this phone is confirmed.</strong> The current on-device snapshot can restore this installation, but cannot protect a lost phone.</div><div class="actions"><button class="primary">Export now</button><button class="secondary">Recovery snapshots</button></div></div>
+        </details>
+        <details class="accordion"><summary><span><span class="row-title">Partner</span><span class="row-sub">Not set</span></span><span class="chev">↓</span></summary></details>
+        <details class="accordion" open><summary><span><span class="row-title">Support</span><span class="row-sub">Local diagnostics · nothing sent automatically</span></span><span class="chev">↑</span></summary><div class="inside"><div class="cue"><strong>No recent issue.</strong><br>Last amendment: none · invariant checks passed</div><p>Preview the sanitized device and app context before copying it. Verse text, cues, reflections, contacts, keys, and raw errors stay out.</p><div class="actions"><button class="primary">Preview diagnostics</button><button class="secondary">Copy diagnostics</button></div></div></details>
+        <details class="accordion"><summary><span><span class="row-title">App</span><span class="row-sub">Adaptive policy and starting over</span></span><span class="chev">↓</span></summary></details>
+      </div>
+    </div>
+    <p class="option-note"><strong>A · Quiet accordion — recommended.</strong> Preserves the single-sheet model, keeps today and the cue close, and collapses infrequent tools without inventing navigation.</p>
+  </section>
+
+  <section class="option" id="option-b">
+    <div class="phone">
+      <div class="safe"></div>
+      <header class="sheet-head"><h2>The knot</h2><button class="close">Close</button></header>
+      <div class="content">
+        <div class="cue">After <b>breakfast</b>, I read at <b>the kitchen table</b>.</div>
+        <div class="kicker">Choose a section</div>
+        <div class="index-grid">
+          <button class="index-card wide"><h3>The weave</h3><p>John · 18 of 21 days woven</p><span class="status">Open cloth</span></button>
+          <button class="index-card"><h3>Reading</h3><p>History and remembered passages</p></button>
+          <button class="index-card"><h3>Study</h3><p>Offline dictionary and introductions</p></button>
+          <button class="index-card"><h3>The cue</h3><p>Anchor, place, and nudge</p></button>
+          <button class="index-card"><h3>Partner</h3><p>Optional weekly conversation</p></button>
+          <button class="index-card"><h3>Backup</h3><p>No recoverable export yet</p><span class="status warn">Needs attention</span></button>
+          <button class="index-card"><h3>App</h3><p>Policy, support, starting over</p></button>
+        </div>
+      </div>
+    </div>
+    <p class="option-note"><strong>B · Index + detail.</strong> Fastest scanning and best long-term extensibility, but each tool becomes a second navigation step and the knot feels more like conventional settings.</p>
+  </section>
+
+  <section class="option" id="option-c">
+    <div class="phone">
+      <div class="safe"></div>
+      <header class="sheet-head"><h2>The knot</h2><button class="close">Close</button></header>
+      <div class="content">
+        <nav class="tabs" aria-label="Knot sections"><button class="tab">Practice</button><button class="tab">Reading</button><button class="tab active">Safekeeping</button></nav>
+        <h3 class="section-title">Safekeeping</h3>
+        <p class="lead">The things that help Thread survive a lost phone, a long pause, or a problem you need to report.</p>
+        <div class="error"><strong>No recoverable backup yet.</strong> Make an export and save it somewhere outside this app.</div>
+        <button class="row"><span><span class="row-title">Backup</span><span class="row-sub">Encryption off · no export</span></span><span class="chev">→</span></button>
+        <button class="row"><span><span class="row-title">Partner</span><span class="row-sub">Not set</span></span><span class="chev">→</span></button>
+        <button class="row"><span><span class="row-title">Support</span><span class="row-sub">Copy local diagnostics</span></span><span class="chev">→</span></button>
+        <div class="kicker">Account</div>
+        <button class="row"><span><span class="row-title">Starting over</span><span class="row-sub">Erase everything and return to first run</span></span><span class="chev">→</span></button>
+      </div>
+    </div>
+    <p class="option-note"><strong>C · Three rooms.</strong> Practice, Reading, and Safekeeping create strong conceptual groups with shallow navigation, but tabs add persistent furniture to an intentionally sparse app.</p>
+  </section>
+</main>
+
+<section class="shared">
+  <h2>Shared across every direction</h2>
+  <div class="shared-grid">
+    <article class="shared-card"><h3>Typography actually ships</h3><p>Bundle and load all three declared families before the first screen renders.</p></article>
+    <article class="shared-card"><h3>One terminal ending</h3><p>Reports and reviews appear before “Now close the app,” never beneath it.</p></article>
+    <article class="shared-card"><h3>Accessible by construction</h3><p>44pt minimum targets, focus and pressed states, large-text reflow, safe areas, and reduced-motion modals.</p></article>
+    <article class="shared-card"><h3>Honest recovery</h3><p>Only a user-recoverable file is called a backup; cache copies are labelled as temporary.</p></article>
+    <article class="shared-card"><h3>Local support, made legible</h3><p>Recent issues, amendment context, and a copyable support bundle stay on-device until the reader chooses to share them.</p></article>
+    <article class="shared-card"><h3>Study without guessing</h3><p>A restrained first-use hint explains verse study and remembering; the scripture surface stays calm afterward.</p></article>
+  </div>
+</section>
+</body>
+</html>
