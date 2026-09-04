@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { SRBAI_QUESTIONS, type SrbaiAnswers } from '../lab/srbai';
+import { ActionButton, ChoiceChip } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 
 interface SrbaiZoneProps {
@@ -14,14 +15,14 @@ function LikertRow({ value, onChange }: { value: number | null; onChange: (v: nu
   return (
     <View style={styles.likertRow}>
       {SCALE.map((n) => (
-        <Pressable
+        <ChoiceChip
           key={n}
-          style={[styles.likertDot, value === n && styles.likertDotActive]}
+          label={`${n}`}
+          selected={value === n}
           onPress={() => onChange(n)}
-          accessibilityLabel={`${n} of 5`}
-        >
-          <Text style={[styles.likertLabel, value === n && styles.likertLabelActive]}>{n}</Text>
-        </Pressable>
+          accessibilityHint={`${n} of 5`}
+          style={styles.likertDot}
+        />
       ))}
     </View>
   );
@@ -94,12 +95,12 @@ export function SrbaiZone({ eyeballDates, onSave }: SrbaiZoneProps) {
         multiline
       />
 
-      <Pressable onPress={() => setShowEyeball((v) => !v)}>
-        <Text style={styles.eyeballToggle}>
-          {showEyeball ? 'Hide' : 'Show'} the {eyeballDates.length} day{eyeballDates.length === 1 ? '' : 's'} it
-          thinks you read this month
-        </Text>
-      </Pressable>
+      <ActionButton
+        label={`${showEyeball ? 'Hide' : 'Show'} the ${eyeballDates.length} day${eyeballDates.length === 1 ? '' : 's'} it thinks you read this month`}
+        variant="link"
+        onPress={() => setShowEyeball((v) => !v)}
+        style={styles.eyeballToggle}
+      />
       {showEyeball && (
         <View style={styles.eyeballList}>
           {eyeballDates.length === 0 ? (
@@ -114,9 +115,7 @@ export function SrbaiZone({ eyeballDates, onSave }: SrbaiZoneProps) {
         </View>
       )}
 
-      <Pressable style={[styles.saveBtn, !canSave && styles.saveBtnDisabled]} onPress={handleSave} disabled={!canSave}>
-        <Text style={styles.saveBtnLabel}>Save</Text>
-      </Pressable>
+      <ActionButton label="Save" onPress={handleSave} disabled={!canSave} style={styles.saveBtn} />
     </View>
   );
 }
@@ -143,27 +142,12 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: tokens.color.ink,
   },
-  likertRow: { flexDirection: 'row', gap: 8 },
+  likertRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   likertDot: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: tokens.color.ink15,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  likertDotActive: {
-    backgroundColor: tokens.color.ink,
-    borderColor: tokens.color.ink,
-  },
-  likertLabel: {
-    fontFamily: tokens.font.mono,
-    fontSize: 13,
-    color: tokens.color.ink,
-  },
-  likertLabelActive: {
-    color: tokens.color.paper,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    paddingHorizontal: 0,
   },
   scaleHint: {
     fontFamily: tokens.font.mono,
@@ -182,10 +166,7 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
   },
   eyeballToggle: {
-    fontFamily: tokens.font.mono,
-    fontSize: 12,
-    color: tokens.color.thread,
-    textDecorationLine: 'underline',
+    alignSelf: 'flex-start',
   },
   eyeballList: {
     gap: 2,
@@ -197,19 +178,6 @@ const styles = StyleSheet.create({
   },
   saveBtn: {
     alignSelf: 'flex-start',
-    backgroundColor: tokens.color.ink,
-    borderRadius: 999,
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-  },
-  saveBtnDisabled: {
-    opacity: 0.4,
-  },
-  saveBtnLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 13,
-    color: tokens.color.paper,
   },
   done: {
     fontFamily: tokens.font.mono,

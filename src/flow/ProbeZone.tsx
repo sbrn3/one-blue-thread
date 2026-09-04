@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { bookName } from '../text/canon';
+import { ActionButton, ChoiceChip } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 import type { ProbeGrade } from '../lab/probe';
 
@@ -44,30 +45,26 @@ export function ProbeZone({ book, chapter, getChapterText, onGrade }: ProbeZoneP
         Yesterday you read {bookName(book)} {chapter}. What do you remember?
       </Text>
       {revealed === null ? (
-        <Pressable style={styles.revealBtn} onPress={() => void reveal()}>
-          <Text style={styles.revealLabel}>Reveal</Text>
-        </Pressable>
+        <ActionButton label="Reveal" variant="secondary" onPress={() => void reveal()} style={styles.revealBtn} />
       ) : (
         <>
           <Text style={styles.revealed} numberOfLines={6}>
             {revealed}
           </Text>
           <View style={styles.gradeRow}>
-            <Pressable style={styles.gradeBtn} onPress={() => grade('held')}>
-              <Text style={styles.gradeLabel}>Held it</Text>
-            </Pressable>
-            <Pressable style={styles.gradeBtn} onPress={() => grade('partial')}>
-              <Text style={styles.gradeLabel}>Partly</Text>
-            </Pressable>
-            <Pressable style={styles.gradeBtn} onPress={() => grade('lost')}>
-              <Text style={styles.gradeLabel}>Lost it</Text>
-            </Pressable>
+            <ChoiceChip label="Held it" onPress={() => grade('held')} />
+            <ChoiceChip label="Partly" onPress={() => grade('partial')} />
+            <ChoiceChip label="Lost it" onPress={() => grade('lost')} />
           </View>
         </>
       )}
-      <Pressable style={styles.skipBtn} onPress={() => grade('skipped')} accessibilityLabel="Skip today's probe">
-        <Text style={styles.skipLabel}>Skip</Text>
-      </Pressable>
+      <ActionButton
+        label="Skip"
+        variant="link"
+        onPress={() => grade('skipped')}
+        accessibilityHint="Skip today's probe"
+        style={styles.skipBtn}
+      />
     </View>
   );
 }
@@ -85,17 +82,6 @@ const styles = StyleSheet.create({
   },
   revealBtn: {
     alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 18,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: tokens.color.ink,
-  },
-  revealLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 13,
-    color: tokens.color.ink,
   },
   revealed: {
     fontFamily: tokens.font.scripture,
@@ -106,28 +92,11 @@ const styles = StyleSheet.create({
   },
   gradeRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
-  },
-  gradeBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    backgroundColor: tokens.color.ink15,
-  },
-  gradeLabel: {
-    fontFamily: tokens.font.display,
-    fontSize: 12,
-    fontWeight: '600',
-    color: tokens.color.ink,
   },
   skipBtn: {
     alignSelf: 'flex-start',
-  },
-  skipLabel: {
-    fontFamily: tokens.font.mono,
-    fontSize: 12,
-    color: tokens.color.ink40,
-    textDecorationLine: 'underline',
   },
   done: {
     fontFamily: tokens.font.mono,

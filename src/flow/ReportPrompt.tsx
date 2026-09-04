@@ -1,6 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import type { PhaseMetric } from '../lab/analysis/reversal';
 import { PHASE_DAYS } from '../lab/phases';
+import { ActionButton } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 import { PhaseChart } from './PhaseChart';
 
@@ -27,12 +28,8 @@ export function ReportPrompt({ recommendation, reportText, phases, onApply, onKe
       <Text style={styles.mono}>{reportText}</Text>
       <Text style={styles.recommendation}>{recommendation}</Text>
       <View style={styles.buttons}>
-        <Pressable style={styles.applyBtn} onPress={onApply}>
-          <Text style={styles.applyLabel}>Apply</Text>
-        </Pressable>
-        <Pressable style={styles.keepBtn} onPress={onKeep}>
-          <Text style={styles.keepLabel}>Keep as is</Text>
-        </Pressable>
+        <ActionButton label="Apply" onPress={onApply} />
+        <ActionButton label="Keep as is" variant="secondary" onPress={onKeep} />
       </View>
     </View>
   );
@@ -68,30 +65,7 @@ const styles = StyleSheet.create({
   },
   buttons: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 10,
-  },
-  applyBtn: {
-    backgroundColor: tokens.color.ink,
-    borderRadius: 999,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-  },
-  applyLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 13,
-    color: tokens.color.paper,
-  },
-  keepBtn: {
-    borderWidth: 1,
-    borderColor: tokens.color.ink15,
-    borderRadius: 999,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-  },
-  keepLabel: {
-    fontFamily: tokens.font.display,
-    fontSize: 13,
-    color: tokens.color.ink60,
   },
 });

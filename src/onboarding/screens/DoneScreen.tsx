@@ -1,5 +1,7 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { bookName } from '../../text/canon';
+import { ActionButton } from '../../ui/controls';
 import { tokens } from '../../ui/tokens';
 import type { OnboardingDraft } from '../types';
 
@@ -7,6 +9,8 @@ interface DoneScreenProps {
   draft: OnboardingDraft;
   onFinish: () => void;
 }
+
+const FOOTER_PADDING_BOTTOM = 32;
 
 function formatHour(h: number | null): string {
   if (h === null) return '';
@@ -16,9 +20,10 @@ function formatHour(h: number | null): string {
 }
 
 export function DoneScreen({ draft, onFinish }: DoneScreenProps) {
+  const insets = useSafeAreaInsets();
   return (
     <View style={styles.screen}>
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.step}>Ready</Text>
         <Text style={styles.title}>That&apos;s everything.</Text>
 
@@ -47,11 +52,9 @@ export function DoneScreen({ draft, onFinish }: DoneScreenProps) {
             : 'Reading from the offline public-domain text — add a translation any time from the knot.'}
         </Text>
         <Text style={styles.note}>Tomorrow, after your anchor, open this and read. That&apos;s the whole thing.</Text>
-      </View>
-      <View style={styles.footer}>
-        <Pressable style={styles.primaryBtn} onPress={onFinish}>
-          <Text style={styles.primaryLabel}>Start reading</Text>
-        </Pressable>
+      </ScrollView>
+      <View style={[styles.footer, { paddingBottom: Math.max(FOOTER_PADDING_BOTTOM, insets.bottom) }]}>
+        <ActionButton label="Start reading" onPress={onFinish} style={styles.primaryBtn} />
       </View>
     </View>
   );
@@ -59,7 +62,7 @@ export function DoneScreen({ draft, onFinish }: DoneScreenProps) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: tokens.color.paper },
-  content: { flex: 1, paddingHorizontal: 32, paddingTop: 64, gap: 10 },
+  content: { flexGrow: 1, paddingHorizontal: 32, paddingTop: 64, paddingBottom: 24, gap: 10 },
   step: {
     fontFamily: tokens.font.display,
     fontWeight: '700',
@@ -87,7 +90,6 @@ const styles = StyleSheet.create({
   dim: { color: tokens.color.ink40 },
   note: { fontFamily: tokens.font.display, fontSize: 13, lineHeight: 20, color: tokens.color.ink40 },
   noteBold: { color: tokens.color.ink, fontWeight: '700' },
-  footer: { paddingHorizontal: 32, paddingBottom: 32, paddingTop: 12 },
-  primaryBtn: { backgroundColor: tokens.color.ink, borderRadius: 12, paddingVertical: 16, alignItems: 'center' },
-  primaryLabel: { fontFamily: tokens.font.display, fontWeight: '700', fontSize: 14, color: tokens.color.paper },
+  footer: { paddingHorizontal: 32, paddingBottom: FOOTER_PADDING_BOTTOM, paddingTop: 12 },
+  primaryBtn: { borderRadius: 12, paddingVertical: 16 },
 });

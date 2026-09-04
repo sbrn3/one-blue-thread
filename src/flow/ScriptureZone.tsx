@@ -42,6 +42,11 @@ export const ScriptureZone = forwardRef<ScriptureZoneHandle,ScriptureZoneProps>(
     matches.forEach((term, index) => {
       if (term.start > cursor) nodes.push(verse.text.slice(cursor, term.start));
       nodes.push(
+        // Inline term stays intrinsically sized: tapping the whole verse
+        // (below) opens VerseContextSheet, whose Dictionary section lists
+        // this same article as a full-size 44pt chip (Flow.tsx wires the
+        // same study.termsForVerses() cue into VerseContextSheet's
+        // `related` prop; see VerseContextSheet.tsx styles.chip).
         <Text
           key={`${term.articleId}-${index}`}
           accessibilityRole="link"
@@ -90,6 +95,7 @@ export const ScriptureZone = forwardRef<ScriptureZoneHandle,ScriptureZoneProps>(
             accessibilityHint={selecting ? 'Select as the end of the passage' : 'Open study context'}
             onPress={selecting ? () => onSelectEndpoint(verse.verse) : onOpenVerse ? () => onOpenVerse(verse.verse) : undefined}
             disabled={!selecting && !onOpenVerse}
+            style={styles.verse}
           >
             <Text style={[styles.paragraph, marked && styles.marked, selectionAnchor === verse.verse && styles.anchor]}>
               <Text style={styles.verseNum}>{verse.verse} </Text>
@@ -106,6 +112,9 @@ export const ScriptureZone = forwardRef<ScriptureZoneHandle,ScriptureZoneProps>(
 
 const styles = StyleSheet.create({
   zone: { paddingHorizontal: 32, paddingVertical: 24, gap: 18 },
+  // Whole-verse tap target: a 44pt floor so short verses (e.g. "Jesus
+  // wept.") still meet the minimum, without affecting the wrapped prose.
+  verse: { minHeight: 44, justifyContent: 'center' },
   paragraph: { fontFamily: tokens.font.scripture, fontSize: 19, lineHeight: 30, color: tokens.color.ink },
   marked: { backgroundColor: 'rgba(31, 63, 255, 0.08)' },
   anchor: { borderBottomWidth: 1, borderBottomColor: tokens.color.thread },

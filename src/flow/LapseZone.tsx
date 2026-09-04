@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import type { Cue } from '../cue';
 import type { LadderResponse, Signature } from '../lab/ladder';
 import { BookPicker } from '../ui/BookPicker';
+import { ActionButton } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 import { CueEditor } from '../knot/CueEditor';
 
@@ -57,18 +58,12 @@ export function LapseZone({
           {renegotiatingCue ? (
             <View style={styles.pickerBlock}>
               <CueEditor cue={cue} onSave={onSaveCue} />
-              <Pressable style={styles.primaryBtn} onPress={onDismiss}>
-                <Text style={styles.primaryBtnLabel}>Done</Text>
-              </Pressable>
+              <ActionButton label="Done" onPress={onDismiss} style={styles.inlineBtn} />
             </View>
           ) : (
             <View style={styles.row}>
-              <Pressable style={styles.primaryBtn} onPress={() => setRenegotiatingCue(true)}>
-                <Text style={styles.primaryBtnLabel}>Update it</Text>
-              </Pressable>
-              <Pressable style={styles.secondaryBtn} onPress={onDismiss}>
-                <Text style={styles.secondaryBtnLabel}>Still the same</Text>
-              </Pressable>
+              <ActionButton label="Update it" onPress={() => setRenegotiatingCue(true)} style={styles.inlineBtn} />
+              <ActionButton label="Still the same" variant="secondary" onPress={onDismiss} style={styles.inlineBtn} />
             </View>
           )}
         </View>
@@ -83,25 +78,20 @@ export function LapseZone({
             <View style={styles.pickerBlock}>
               <BookPicker excludeId={currentBookId} selected={pickingBook} onSelect={setPickingBook} />
               {pickingBook && (
-                <Pressable
-                  style={styles.primaryBtn}
+                <ActionButton
+                  label="Switch now"
                   onPress={() => {
                     onExitBook(pickingBook);
                     onDismiss();
                   }}
-                >
-                  <Text style={styles.primaryBtnLabel}>Switch now</Text>
-                </Pressable>
+                  style={styles.inlineBtn}
+                />
               )}
             </View>
           ) : (
             <View style={styles.row}>
-              <Pressable style={styles.primaryBtn} onPress={() => setPickingBook('')}>
-                <Text style={styles.primaryBtnLabel}>Pick something else</Text>
-              </Pressable>
-              <Pressable style={styles.secondaryBtn} onPress={onDismiss}>
-                <Text style={styles.secondaryBtnLabel}>Keep going</Text>
-              </Pressable>
+              <ActionButton label="Pick something else" onPress={() => setPickingBook('')} style={styles.inlineBtn} />
+              <ActionButton label="Keep going" variant="secondary" onPress={onDismiss} style={styles.inlineBtn} />
             </View>
           )}
         </View>
@@ -111,9 +101,7 @@ export function LapseZone({
     return (
       <View style={styles.zone}>
         <Text style={styles.prompt}>{ONE_QUESTION_COPY[response.route] ?? ONE_QUESTION_COPY.drift}</Text>
-        <Pressable style={styles.secondaryBtn} onPress={onDismiss}>
-          <Text style={styles.secondaryBtnLabel}>OK</Text>
-        </Pressable>
+        <ActionButton label="OK" variant="secondary" onPress={onDismiss} style={styles.inlineBtn} />
       </View>
     );
   }
@@ -123,34 +111,34 @@ export function LapseZone({
       <View style={styles.zone}>
         <Text style={styles.prompt}>It&apos;s been a couple of weeks. What would help?</Text>
         <View style={styles.row}>
-          <Pressable
-            style={styles.secondaryBtn}
+          <ActionButton
+            label="Pause"
+            variant="secondary"
             onPress={() => {
               onPause();
               onDismiss();
             }}
-          >
-            <Text style={styles.secondaryBtnLabel}>Pause</Text>
-          </Pressable>
-          <Pressable
-            style={styles.secondaryBtn}
+            style={styles.inlineBtn}
+          />
+          <ActionButton
+            label="Keep nudging"
+            variant="secondary"
             onPress={() => {
               onKeepNudging();
               onDismiss();
             }}
-          >
-            <Text style={styles.secondaryBtnLabel}>Keep nudging</Text>
-          </Pressable>
+            style={styles.inlineBtn}
+          />
           {response.options.includes('handoff') && partnerName && (
-            <Pressable
-              style={styles.secondaryBtn}
+            <ActionButton
+              label={`Talk to ${partnerName}`}
+              variant="secondary"
               onPress={() => {
                 onHandoff();
                 onDismiss();
               }}
-            >
-              <Text style={styles.secondaryBtnLabel}>Talk to {partnerName}</Text>
-            </Pressable>
+              style={styles.inlineBtn}
+            />
           )}
         </View>
       </View>
@@ -169,13 +157,9 @@ export function LapseZone({
       </Text>
       <View style={styles.row}>
         {response.farewell === 'handoff' && partnerName && (
-          <Pressable style={styles.secondaryBtn} onPress={onHandoff}>
-            <Text style={styles.secondaryBtnLabel}>Talk to {partnerName}</Text>
-          </Pressable>
+          <ActionButton label={`Talk to ${partnerName}`} variant="secondary" onPress={onHandoff} style={styles.inlineBtn} />
         )}
-        <Pressable style={styles.secondaryBtn} onPress={onDismiss}>
-          <Text style={styles.secondaryBtnLabel}>OK</Text>
-        </Pressable>
+        <ActionButton label="OK" variant="secondary" onPress={onDismiss} style={styles.inlineBtn} />
       </View>
     </View>
   );
@@ -210,31 +194,7 @@ const styles = StyleSheet.create({
   pickerBlock: {
     gap: 12,
   },
-  primaryBtn: {
+  inlineBtn: {
     alignSelf: 'flex-start',
-    backgroundColor: tokens.color.ink,
-    borderRadius: 999,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-  },
-  primaryBtnLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 13,
-    color: tokens.color.paper,
-  },
-  secondaryBtn: {
-    alignSelf: 'flex-start',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: tokens.color.ink15,
-  },
-  secondaryBtnLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 13,
-    color: tokens.color.ink,
   },
 });

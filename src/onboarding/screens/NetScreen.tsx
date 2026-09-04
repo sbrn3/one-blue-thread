@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { ChoiceChip } from '../../ui/controls';
 import { tokens } from '../../ui/tokens';
 import { OnboardingScreen } from '../OnboardingScreen';
 
@@ -30,13 +31,7 @@ export function NetScreen({ anchor, place, onNext }: NetScreenProps) {
     >
       <View style={styles.chips}>
         {HOURS.map((h) => (
-          <Pressable
-            key={h.label}
-            style={[styles.chip, selected === h.value && styles.chipSelected]}
-            onPress={() => setSelected(h.value)}
-          >
-            <Text style={[styles.chipLabel, selected === h.value && styles.chipLabelSelected]}>{h.label}</Text>
-          </Pressable>
+          <ChoiceChip key={h.label} label={h.label} selected={selected === h.value} onPress={() => setSelected(h.value)} />
         ))}
       </View>
 
@@ -60,16 +55,6 @@ export function NetScreen({ anchor, place, onNext }: NetScreenProps) {
 
 const styles = StyleSheet.create({
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 24 },
-  chip: {
-    borderWidth: 1,
-    borderColor: tokens.color.ink15,
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 13,
-  },
-  chipSelected: { borderColor: tokens.color.thread },
-  chipLabel: { fontFamily: tokens.font.display, fontSize: 12.5, color: tokens.color.ink40 },
-  chipLabelSelected: { color: tokens.color.thread },
   sentence: {
     backgroundColor: tokens.color.dyeSoft,
     borderRadius: 12,
