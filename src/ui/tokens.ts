@@ -22,6 +22,8 @@ export const tokens = {
     ink60: '#5B584F',
     ink40: '#726D5C', // secondary text — 4.59:1, see note below
     ink15: '#E0DACB', // rules and gaps
+    scrim: 'rgba(26,26,23,.45)', // modal/sheet backdrop — replaces ad hoc rgba literals
+    markSoft: 'rgba(46,58,140,.08)', // the weft tint at low opacity — remembered-verse highlight, soft fills
   },
   // One natural dye per book, assigned by canonical index (see src/ui/dye.ts).
   // Only ever one on screen at a time; a year of reading is a polychrome shelf.
@@ -46,4 +48,11 @@ export const tokens = {
     holdMs: 1200, // ~1.2s hold — E1 arm B replaces this with a tap
     maxDriftPx: 20, // below this the hold cancels constantly (§05 risk)
   },
+  // App-quality foundations (docs/plans/app-quality-foundations) — a shared
+  // spacing/radius/target scale so common values stop being re-guessed at
+  // each call site.
+  space: { 1: 4, 2: 8, 3: 12, 4: 16, 6: 24, 8: 32, 12: 48 },
+  radius: { input: 10, panel: 12, sheet: 20, pill: 999 },
+  control: { minTarget: 44 },
+  motion: { sheet: 'slide' as const },
 } as const;

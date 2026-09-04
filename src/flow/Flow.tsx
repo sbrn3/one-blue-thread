@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   runOnJS,
   useAnimatedScrollHandler,
@@ -33,6 +34,8 @@ import { YearReviewZone } from './YearReviewZone';
 import { DismissalZone } from './DismissalZone';
 import { ThreadRail } from './ThreadRail';
 import { deriveBolt, type Bolt } from './bolt';
+import { ErrorState } from '../ui/FeedbackState';
+import { LaunchWeave } from '../ui/LaunchWeave';
 import { VerseContextSheet } from '../study/VerseContextSheet';
 import { visibleTermCues } from '../study/selection';
 
@@ -48,6 +51,8 @@ export function Flow({ services }: FlowProps) {
   const { db, log, text, study, memory, notifier, partner } = services;
   const session = useSession();
   const reducedMotion = useReducedMotion();
+  const insets = useSafeAreaInsets();
+  const [railHeight, setRailHeight] = useState(0);
 
   const scrollY = useSharedValue(0);
   const contentHeight = useSharedValue(1);
@@ -137,9 +142,9 @@ export function Flow({ services }: FlowProps) {
   const [partnerName, setPartnerName] = useState<string | null>(null);
 
   useEffect(() => {
-    if (session.loading) return;
+    if (session.status !== 'ready') return;
     setPendingLapse(getPendingLadderResponse(db, today));
-  }, [session.loading, db, today]);
+  }, [session.status, db, today]);
 
   useEffect(() => {
     void partner.get().then((p) => setPartnerName(p?.name ?? null));
@@ -182,14 +187,14 @@ export function Flow({ services }: FlowProps) {
   }, [db, today]);
 
   useEffect(() => {
-    if (session.loading) return;
+    if (session.status !== 'ready') return;
     // Known simplification: runs once per app open against whatever
     // cue is active then. Editing the cue mid-session (via the knot)
     // doesn't retroactively reschedule notifications already planned
     // for future dates — they catch up on the next open.
     const currentCue = services.cue.current();
     if (currentCue) void notifier.syncWindow(currentCue, today);
-  }, [session.loading, notifier, services.cue, today]);
+  }, [session.status, notifier, services.cue, today]);
 
   // §14 E4, applied — the completion floor. 'one_verse' only requires
   // reading to have started; the default 'full_chapter' requires
@@ -369,14 +374,14 @@ export function Flow({ services }: FlowProps) {
   const recallShownLogged = useRef(false);
 
   useEffect(() => {
-    if (session.loading) return;
+    if (session.status !== 'ready') return;
     const due = memory.due(today).slice(0, DAILY_RECALL_CAP);
     setDueToday(due);
     if (due.length > 0 && !recallShownLogged.current) {
       recallShownLogged.current = true;
       log.write({ type: 'recall_shown' });
     }
-  }, [session.loading, memory, today, log]);
+  }, [session.status, memory, today, log]);
 
   const getVerseText = useCallback(
     async (p: Passage) => {
@@ -407,7 +412,7 @@ export function Flow({ services }: FlowProps) {
   const probeFiredLogged = useRef(false);
 
   useEffect(() => {
-    if (session.loading) return;
+    if (session.status !== 'ready') return;
     const trialSeed = meta.get(db, 'trial_seed') ?? 'thread-default-seed';
     const probeRate = Number(getProfile(db, 'probeRate') ?? '0.6'); // §14 E9, applied
     const todaysProbe = resolveTodaysProbe(db, today, trialSeed, probeRate);
@@ -416,7 +421,7 @@ export function Flow({ services }: FlowProps) {
       probeFiredLogged.current = true;
       log.write({ type: 'probe_fired', book: todaysProbe.book, chapter: todaysProbe.chapter });
     }
-  }, [session.loading, db, today, log]);
+  }, [session.status, db, today, log]);
 
   const getProbeChapterText = useCallback(async () => {
     if (!probe) return '';
@@ -433,7 +438,37 @@ export function Flow({ services }: FlowProps) {
     [db, today, log, probe],
   );
 
-  if (session.loading) return null;
+  const handleRetryLoad = useCallback(() => {
+    void session.load(db, log, text, today);
+  }, [session, db, log, text, today]);
+
+  // The launch weave keeps playing through its own success dissolve even
+  // after status flips to 'ready', so it stays mounted one tick longer than
+  // the loading state itself.
+  const [showLaunch, setShowLaunch] = useState(true);
+  const dismissLaunch = useCallback(() => setShowLaunch(false), []);
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+
+  if (session.status === 'error') {
+    return (
+      <ErrorState
+        message={session.error ?? 'Something went wrong while loading today’s reading.'}
+        onRetry={handleRetryLoad}
+      />
+    );
+  }
+
+  if (showLaunch) {
+    return (
+      <LaunchWeave
+        width={windowWidth}
+        height={windowHeight}
+        done={session.status === 'ready'}
+        onDismissed={dismissLaunch}
+        onRetry={handleRetryLoad}
+      />
+    );
+  }
 
   // §14, applied settings — read fresh each render (a plain SQLite
   // read, same pattern as services.cue.current() below) so a report
@@ -444,8 +479,22 @@ export function Flow({ services }: FlowProps) {
   const streak = getProfile(db, 'streakVisible') === '1' && session.sealedToday ? computeStreak(db, today) : null;
 
   return (
-    <View style={styles.container} onLayout={(e) => (layoutHeight.value = e.nativeEvent.layout.height)}>
-      <ThreadRail scrollY={scrollY} contentHeight={contentHeight} layoutHeight={layoutHeight} />
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, paddingBottom: insets.bottom, paddingRight: insets.right },
+      ]}
+      onLayout={(e) => {
+        layoutHeight.value = e.nativeEvent.layout.height;
+        setRailHeight(e.nativeEvent.layout.height);
+      }}
+    >
+      <ThreadRail
+        scrollY={scrollY}
+        contentHeight={contentHeight}
+        layoutHeight={layoutHeight}
+        railHeight={railHeight}
+      />
       <Animated.ScrollView
         style={styles.scroll}
         onScroll={onScroll}
