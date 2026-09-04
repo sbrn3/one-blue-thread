@@ -22,6 +22,11 @@ export class Memory {
 
   /** A tap while reading. No text is stored — only the reference. */
   markCandidate(r: PassageRef, now: () => number = Date.now): void {
+    const existing = this.db.get<{ id:number }>(
+      `SELECT id FROM passages WHERE book = ? AND chapter = ? AND verse_start = ? AND verse_end = ? AND promoted_at IS NULL`,
+      [r.book, r.chapter, r.verseStart, r.verseEnd],
+    );
+    if (existing) return;
     this.db.run(
       `INSERT INTO passages (book, chapter, verse_start, verse_end, marked_at, box)
        VALUES (?, ?, ?, ?, ?, 1)`,
@@ -48,6 +53,18 @@ export class Memory {
     return this.db.all<Passage>(
       'SELECT * FROM passages WHERE book = ? AND promoted_at IS NULL ORDER BY marked_at DESC',
       [book],
+    );
+  }
+
+  /** Removes exactly one unpromoted candidate, including in databases that predate de-duplication. */
+  unmarkCandidateById(id: number): void {
+    this.db.run('DELETE FROM passages WHERE id = ? AND promoted_at IS NULL', [id]);
+  }
+
+  candidatesForChapter(book: string, chapter: number): Passage[] {
+    return this.db.all<Passage>(
+      'SELECT * FROM passages WHERE book = ? AND chapter = ? AND promoted_at IS NULL ORDER BY verse_start, verse_end, marked_at',
+      [book, chapter],
     );
   }
 

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   runOnJS,
@@ -25,13 +25,15 @@ import { ArrivalZone } from './ArrivalZone';
 import { LapseZone } from './LapseZone';
 import { ProbeZone } from './ProbeZone';
 import { RecallZone } from './RecallZone';
-import { ScriptureZone } from './ScriptureZone';
+import { ScriptureZone, type ScriptureZoneHandle } from './ScriptureZone';
 import { SealZone } from './SealZone';
 import { SrbaiZone } from './SrbaiZone';
 import { WeaveZone } from './WeaveZone';
 import { YearReviewZone } from './YearReviewZone';
 import { DismissalZone } from './DismissalZone';
 import { ThreadRail } from './ThreadRail';
+import { VerseContextSheet } from '../study/VerseContextSheet';
+import { visibleTermCues } from '../study/selection';
 
 interface FlowProps {
   services: Services;
@@ -42,7 +44,7 @@ interface FlowProps {
 // is also reachable any time via the knot (W5), independent of
 // today's seal.
 export function Flow({ services }: FlowProps) {
-  const { db, log, text, memory, notifier, partner } = services;
+  const { db, log, text, study, memory, notifier, partner } = services;
   const session = useSession();
   const reducedMotion = useReducedMotion();
 
@@ -267,21 +269,89 @@ export function Flow({ services }: FlowProps) {
   }, [log, session.book, session.chapter, session.sittingIndex]);
 
   const [scrollEnabled, setScrollEnabled] = useState(true);
+  const scriptureRef=useRef<ScriptureZoneHandle>(null);
 
   const [candidates, setCandidates] = useState<Passage[]>([]);
+  const [chapterCandidates, setChapterCandidates] = useState<Passage[]>([]);
+  const [contextVerse, setContextVerse] = useState<number | null>(null);
+  const [activeArticleId, setActiveArticleId] = useState<string | null>(null);
+  const [rangeAnchor, setRangeAnchor] = useState<number | null>(null);
+  const [rangePreview, setRangePreview] = useState<{ start:number; end:number } | null>(null);
+  const sittingVerses = useMemo(
+    () => session.sittings[session.sittingIndex] ?? [],
+    [session.sittings, session.sittingIndex],
+  );
+  const termCues = useMemo(() => study.termsForVerses(sittingVerses, 4), [sittingVerses, study]);
+  const contextTarget = contextVerse === null
+    ? null
+    : { book: session.book, chapter: session.chapter, verse: contextVerse };
+  const contextResources = useMemo(
+    () => contextTarget ? study.resourcesForVerse(contextTarget) : [],
+    [contextTarget?.book, contextTarget?.chapter, contextTarget?.verse, study],
+  );
+  const contextBookResources = useMemo(
+    () => contextTarget ? study.bookResources(session.book) : [],
+    [contextTarget?.book, session.book, study],
+  );
+  const relatedArticles = useMemo(() => {
+    if (contextVerse === null) return [];
+    return study
+      .termsForVerses(sittingVerses.filter((verse) => verse.verse === contextVerse), 4)
+      .map((cue) => study.article(cue.articleId))
+      .filter((article): article is NonNullable<typeof article> => article !== null);
+  }, [contextVerse, sittingVerses, study]);
 
   useEffect(() => {
     setCandidates(session.justFinishedBook ? memory.candidates(session.justFinishedBook) : []);
   }, [session.justFinishedBook, memory]);
 
-  const handleMarkVerse = useCallback(
-    (verse: number, marked: boolean) => {
-      const ref = { book: session.book, chapter: session.chapter, verseStart: verse, verseEnd: verse };
-      if (marked) memory.markCandidate(ref);
-      else memory.unmarkCandidate(ref);
-    },
-    [memory, session.book, session.chapter],
-  );
+  const refreshChapterCandidates = useCallback(() => {
+    setChapterCandidates(memory.candidatesForChapter(session.book, session.chapter));
+  }, [memory, session.book, session.chapter]);
+
+  useEffect(() => {
+    refreshChapterCandidates();
+    setContextVerse(null);
+    setActiveArticleId(null);
+    setRangeAnchor(null);
+    setRangePreview(null);
+  }, [refreshChapterCandidates]);
+
+  const handleOpenVerse = useCallback((verse: number) => {
+    setActiveArticleId(null);
+    setContextVerse(verse);
+  }, []);
+  const handleOpenTerm = useCallback((articleId: string, verse: number) => {
+    setActiveArticleId(articleId);
+    setContextVerse(verse);
+  }, []);
+  const handleRememberVerse = useCallback(() => {
+    if (contextVerse === null) return;
+    memory.markCandidate({ book:session.book, chapter:session.chapter, verseStart:contextVerse, verseEnd:contextVerse });
+    refreshChapterCandidates();
+    setContextVerse(null);
+  }, [contextVerse, memory, refreshChapterCandidates, session.book, session.chapter]);
+  const handleSelectPassage = useCallback(() => {
+    if (contextVerse !== null) setRangeAnchor(contextVerse);
+    setContextVerse(null);
+  }, [contextVerse]);
+  const handleSelectEndpoint = useCallback((verse: number) => {
+    if (rangeAnchor === null) return;
+    setRangePreview({ start:Math.min(rangeAnchor, verse), end:Math.max(rangeAnchor, verse) });
+    setContextVerse(verse);
+  }, [rangeAnchor]);
+  const handleConfirmRange = useCallback(() => {
+    if (!rangePreview) return;
+    memory.markCandidate({ book:session.book, chapter:session.chapter, verseStart:rangePreview.start, verseEnd:rangePreview.end });
+    refreshChapterCandidates();
+    setRangeAnchor(null);
+    setRangePreview(null);
+    setContextVerse(null);
+  }, [memory, rangePreview, refreshChapterCandidates, session.book, session.chapter]);
+  const handleRemoveCandidate = useCallback((passage: Passage) => {
+    memory.unmarkCandidateById(passage.id);
+    refreshChapterCandidates();
+  }, [memory, refreshChapterCandidates]);
 
   const handlePromote = useCallback(
     (id: number) => {
@@ -432,13 +502,20 @@ export function Flow({ services }: FlowProps) {
           />
         )}
         <ScriptureZone
-          verses={session.sittings[session.sittingIndex] ?? []}
+          ref={scriptureRef}
+          verses={sittingVerses}
           attribution={session.attribution}
           onLayout={(y, height) => {
             scriptureTop.value = y;
             scriptureBottom.value = y + height;
           }}
-          onMarkVerse={handleMarkVerse}
+          onOpenVerse={handleOpenVerse}
+          onOpenTerm={handleOpenTerm}
+          onSelectEndpoint={handleSelectEndpoint}
+          onCancelSelection={() => setRangeAnchor(null)}
+          selectionAnchor={rangeAnchor}
+          remembered={chapterCandidates}
+          terms={visibleTermCues(termCues, rangeAnchor)}
         />
         <SealZone
           sealed={session.sealedToday}
@@ -480,6 +557,28 @@ export function Flow({ services }: FlowProps) {
           </>
         )}
       </Animated.ScrollView>
+      <VerseContextSheet
+        verse={contextTarget}
+        resources={contextResources}
+        bookResources={contextBookResources}
+        related={relatedArticles}
+        activeArticle={activeArticleId ? study.article(activeArticleId) : null}
+        remembered={contextVerse === null ? [] : chapterCandidates.filter((passage) => contextVerse >= passage.verse_start && contextVerse <= passage.verse_end)}
+        preview={rangePreview}
+        onClose={() => {
+          const returnVerse=contextVerse;
+          setContextVerse(null);
+          setActiveArticleId(null);
+          setRangePreview(null);
+          setRangeAnchor(null);
+          if(returnVerse!==null)setTimeout(()=>scriptureRef.current?.focusVerse(returnVerse),100);
+        }}
+        onRememberVerse={handleRememberVerse}
+        onSelectPassage={handleSelectPassage}
+        onConfirmRange={handleConfirmRange}
+        onRemove={handleRemoveCandidate}
+        onOpenArticle={(article) => setActiveArticleId(article.id)}
+      />
     </View>
   );
 }

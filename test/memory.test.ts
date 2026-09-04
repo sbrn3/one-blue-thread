@@ -48,6 +48,33 @@ describe('Memory (§13.3 /src/memory, §21)', () => {
     expect(memory.candidates('john')).toHaveLength(1);
   });
 
+  it('markCandidate is idempotent for an identical active range', () => {
+    const { db, memory } = setup();
+    const ref = { book:'philippians', chapter:1, verseStart:3, verseEnd:7 };
+    memory.markCandidate(ref, () => 1);
+    memory.markCandidate(ref, () => 2);
+    expect(memory.candidatesForChapter('philippians', 1)).toHaveLength(1);
+    expect(db.all("SELECT * FROM events WHERE type = 'candidate_marked'")).toHaveLength(1);
+  });
+
+  it('keeps overlapping ranges separate and retracts only an exact range', () => {
+    const { memory } = setup();
+    memory.markCandidate({ book:'philippians', chapter:1, verseStart:3, verseEnd:7 }, () => 1);
+    memory.markCandidate({ book:'philippians', chapter:1, verseStart:5, verseEnd:9 }, () => 2);
+    memory.unmarkCandidate({ book:'philippians', chapter:1, verseStart:3, verseEnd:7 });
+    expect(memory.candidatesForChapter('philippians', 1)).toMatchObject([{ verse_start:5, verse_end:9 }]);
+  });
+
+  it('removes only the selected row when a legacy database contains duplicate ranges', () => {
+    const {db,memory}=setup();
+    const values=['john',3,16,16,1,1];
+    db.run('INSERT INTO passages (book, chapter, verse_start, verse_end, marked_at, box) VALUES (?, ?, ?, ?, ?, ?)',values);
+    db.run('INSERT INTO passages (book, chapter, verse_start, verse_end, marked_at, box) VALUES (?, ?, ?, ?, ?, ?)',[...values.slice(0,4),2,1]);
+    const rows=memory.candidatesForChapter('john',3);
+    memory.unmarkCandidateById(rows[0].id);
+    expect(memory.candidatesForChapter('john',3).map((row)=>row.id)).toEqual([rows[1].id]);
+  });
+
   it('unmarkCandidate never touches a promoted passage, even for the same reference', () => {
     const { memory } = setup();
     const ref = { book: 'john', chapter: 3, verseStart: 16, verseEnd: 16 };
