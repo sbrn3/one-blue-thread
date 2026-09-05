@@ -5,6 +5,132 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## 2026-09-05 — The rebrand semantic audit is closed
+
+Ticket 6's scoped name search over current surfaces (excluding `JOURNAL.md`,
+`docs/plans/`, and bundled assets, which are historical by design) returns 99
+hits, all classified:
+
+- **Brand** — the new name on `app.json`, `src/brand/`, backup, knot and
+  onboarding copy, `README.md`, `AGENTS.md`, site metadata, and the APK
+  artifact.
+- **Compatibility** — the legacy pending-notification matcher
+  (`title !== 'Thread'`), the dual `thread-backup` / `one-blue-thread-backup`
+  filename matcher and its near-miss tests, and the deliberately preserved
+  `slug: "thread"` and `com.sngugi.thread`.
+- **Technical** — the weaving "Thread count" comment in
+  `scripts/lib/icon-mark.mjs`.
+
+One defect: the 24 internal `.agents/skills/` documents still described the
+product in the present tense as "Thread". Renamed. No source, schema, event,
+seed, or time-boundary change was involved.
+
+Verified: 430 tests, strict TypeScript, and `git diff -- app.json` showing only
+`expo.name` changed. `refreshDisplayName()` is wired at the top of
+`syncWindow()`, ahead of its early returns, so a paused or nudge-free reader
+still gets the title migration.
+
+Still open, and neither is code: ticket 0 (domain, trademark, and cultural
+content review) gates public launch, and the Android upgrade/accessibility
+device matrix needs physical hardware. The whole rebrand is still uncommitted
+in `thread-aesthetic-loom/` on `main`, not on `feat/one-blue-thread-rebrand`
+as the plan intends.
+
+## Decision 2026-09-05 — One Blue Thread puts Scripture before product prose
+
+**Decision:** The public product name is **One Blue Thread**, with the descriptor
+“A quiet place to read Scripture.” The name is grounded in Numbers 15:37–41.
+Whenever a product or marketing surface cites that source or explains the blue
+cord, it presents the whole passage on the same surface with attribution; small
+surfaces omit the explanation. The app does not generate devotional prose,
+summaries, prayers, interpretations, takeaways, or simulated spiritual
+authority. Scripture is the primary voice, followed by the reader's own words
+and only the operational or factual prose the experience needs.
+
+**Why:** The blue cord gives the name a memorable biblical centre, but the image
+must remain subordinate to the passage rather than becoming an invented product
+metaphor. The full-passage rule prevents the reference being reduced to a slogan.
+
+**Consequences:** Current releases use the bundled public-domain World English
+Bible for the origin passage. NIV remains preferred but cannot ship until
+written permission covers every intended app, source, release, website, image,
+and marketing surface. The public name changes while the Android package, Expo
+slug, database, keys, event names, deterministic seeds, textile code terms, and
+legacy backup import remain stable. Exact-name searching found no competing
+Bible app or active software brand, and the user accepted unrelated descriptive
+results; domain ownership, trademark research, and cultural content review still
+gate public launch. Canonical rules live in `docs/BRAND.md`.
+
+## Repair 2026-09-05 - align the SDK 57 native runtime
+
+The installed release dependencies had drifted behind Expo SDK 57's current
+compatibility matrix, including Expo core, React Native, SQLite, Notifications,
+Reanimated, and Worklets. That is a native/JavaScript mismatch capable of
+failing before React paints the launch weave. The dependency manifest and lock
+file are now aligned with Expo's required SDK 57 patch versions, and Expo added
+the `expo-status-bar` config plugin during the repair. Verification is clean:
+426 tests, strict TypeScript, `expo install --check`, public config resolution,
+and an Android production Metro export. A fresh APK launch on the affected
+physical device remains the release gate.
+
+## Decision 2026-09-05 — WEB is a translation you can choose, not silent infrastructure
+
+**Decision:** The knot gains a translation section that can change provider
+(NIV↔ESV), paste or replace a key, or select the bundled public-domain text
+outright — named in full as "World English Bible (WEB)", in both the knot and
+onboarding. Onboarding's escape becomes "Skip for now — read the World English
+Bible" rather than a third card, so screen 5 keeps two licensed choices plus one
+low-friction exit. A change logs a new `translation_changed` event that
+`hasConfound()` treats exactly as it treats `cue_changed`. Keys are validated by
+a live round-trip before being saved; a failed check refuses the save and leaves
+the current setting untouched. Keys are kept per provider, so switching back
+does not mean re-pasting. A switch reloads today's portion immediately and
+restarts it at sitting 1. Both providers must pass a live round-trip before
+merge, and the docs that wrongly imply NIV is already proven are corrected as
+part of the same work.
+
+**Why:** The plan says the opposite — line 297 calls WEB "silent, automatic
+infrastructure, not a choice" and line 313 says it "is never mentioned", with
+onboarding screen 5 "the only place translation is ever discussed". That stance
+depends on WEB only ever appearing as an invisible catch during a network
+failure. It stops holding the moment the knot can change translations at all:
+`ChainedProvider` falls back to WEB silently, so an unnamed fallback plus a bad
+key produces a reader who believes they are in NIV and is not, with nothing on
+screen to contradict them. Naming WEB is what makes the silent fallback legible.
+Validation before save closes the same hole from the other side. Restarting the
+day's portion rather than clamping follows from sittings being derived from
+verse counts that differ per translation — `load()`'s existing
+`Math.min` clamp would otherwise drop a mid-read reader past verses they had not
+seen, the precise kind of quiet wrongness the monthly eyeball exists to catch.
+Re-reading is the safe failure; skipping is not.
+
+**Consequences:** The plan's §19 settings table already classes translation as a
+confound, so this is the first setting to make that clause real —
+`hasConfound()` has only ever known about `cue_changed` and 7-day gaps, and days
+around a switch will now be reported but excluded from verdicts. Recall probes
+fetch verse text live, so switching mid-trial changes the wording of an
+in-flight memory probe; the confound flag covers the data but the reader still
+meets a passage they memorised in different words, which nothing undoes.
+Per-provider keys mean two API keys resident in `meta`, which is inside
+`BACKUP_TABLES` — an unencrypted export now carries both, where before it
+carried one. `niv_bible_id` is cached in `meta` globally rather than per key and
+must be cleared whenever the NIV key changes, or a replaced key inherits a stale
+bible id. Multi-translation reading stays cut (plan line 226): this is one
+primary at a time, changed deliberately, not passages shown side by side.
+
+Designing this surfaced that **neither** licensed provider has ever made a real
+network call in this codebase. ESV says so in three places; NIV says nothing, so
+it reads as proven when its tests are equally mocked and its only verification
+claim is that the host was checked against the published docs. That asymmetry is
+not harmless: an earlier `apiBible.ts` pointed at the wrong host and would have
+failed silently into the WEB fallback forever, a bug that survived exactly
+because nothing exercised it live. The validation round-trip is therefore the
+first real exercise of either provider, which is why both are gated on it rather
+than ESV alone.
+
+**Branch:** none yet — targets `main` (`efcf041`). Designed via `/grill`; not
+implemented.
+
 ## 2026-09-05 — Account reset shipped as "the unravel"
 
 Design settled by `/grill` (see the decision entry below), then implemented

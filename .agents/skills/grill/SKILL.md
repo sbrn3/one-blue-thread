@@ -1,6 +1,6 @@
 ---
 name: grill
-description: Interview the user to sharpen an unresolved Thread design before planning, recording agreed vocabulary, hard-to-reverse decisions, and a temporary plan handoff without implementing code.
+description: Interview the user to sharpen an unresolved One Blue Thread design before planning, recording agreed vocabulary, hard-to-reverse decisions, and a temporary plan handoff without implementing code.
 ---
 
 # Grill

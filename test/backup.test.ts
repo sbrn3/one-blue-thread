@@ -212,6 +212,7 @@ describe('Backup (§16.9 export/restore orchestration)', () => {
 
     expect(io.shared).toHaveLength(1);
     const uri = io.shared[0];
+    expect(uri).toContain('one-blue-thread-backup-2023-11-14.json');
     const stored = JSON.parse(io.writtenShareFiles.get(uri)!);
     expect(stored.encrypted).toBe(false);
     expect(io.deletedShareFiles).toContain(uri); // the finally-block cleanup

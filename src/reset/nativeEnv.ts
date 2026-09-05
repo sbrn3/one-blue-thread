@@ -10,12 +10,11 @@ import * as Updates from 'expo-updates';
 import { PASSPHRASE_KEY } from '../backup';
 import { nativeBackupIo } from '../backup/nativeIo';
 import type { ResetEnv } from './perform';
+import { isAppShareFilename } from './shareFiles';
 
 // Matches exactly the filenames writeShareFile() ever produces
 // (src/backup/index.ts's exportNow) — scoped so this never touches cache
 // files belonging to anything else.
-const SHARE_FILE_PATTERN = /^thread-backup-.*\.json$/;
-
 export const nativeResetEnv: ResetEnv = {
   async cancelAllNotifications() {
     await ExpoNotifications.cancelAllScheduledNotificationsAsync();
@@ -27,7 +26,7 @@ export const nativeResetEnv: ResetEnv = {
     const dir = new Directory(Paths.cache);
     if (!dir.exists) return;
     for (const entry of dir.list()) {
-      if (SHARE_FILE_PATTERN.test(entry.name)) entry.delete();
+      if (isAppShareFilename(entry.name)) entry.delete();
     }
   },
   async clearBackupPassphrase() {

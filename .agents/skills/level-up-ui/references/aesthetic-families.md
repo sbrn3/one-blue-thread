@@ -5,12 +5,12 @@ Adapted from ryanthedev/design-for-ai (`archetypes.md`, `design-dna.md`) and its
 ## Two-stage funnel
 
 1. **Archetype** - the product's emotional relationship with its audience (not the founder's self-image). Derive 2 to 3 candidates from purpose + audience + personality words. The twelve: Innocent, Everyman, Hero, Outlaw, Explorer, Creator, Ruler, Magician, Lover, Caregiver, Jester, Sage.
-   For Thread the honest set is roughly **Sage** (scripture, quiet authority, no gimmicks), **Everyman** (a personal tool for one reader, not a product), **Innocent** (calm, unburdened, nothing to defend — no streaks).
+   For One Blue Thread the honest set is roughly **Sage** (scripture, quiet authority, no gimmicks), **Everyman** (a personal tool for one reader, not a product), **Innocent** (calm, unburdened, nothing to defend — no streaks).
 2. **Aesthetic family** - a concrete, constrained visual system the archetype maps to.
 
 ## Content has a vote
 
-Dense data and tables pull toward Swiss / Terminal / instrument families. Long-form pulls toward Editorial — Thread's scripture surface lives here (a reading, not a screen). A reading-habit tool also has a records-and-notation vote (almanac, devotional, ship's log). Let the content type override a family the archetype alone would suggest.
+Dense data and tables pull toward Swiss / Terminal / instrument families. Long-form pulls toward Editorial — One Blue Thread's scripture surface lives here (a reading, not a screen). A reading-habit tool also has a records-and-notation vote (almanac, devotional, ship's log). Let the content type override a family the archetype alone would suggest.
 
 ## Register rule
 

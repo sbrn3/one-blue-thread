@@ -1,6 +1,6 @@
 ---
 name: design-audit
-description: Audit Thread's shipped UI for evidence-backed design-system drift across tokens, typography, spacing, color, components, atmosphere, and motion.
+description: Audit One Blue Thread's shipped UI for evidence-backed design-system drift across tokens, typography, spacing, color, components, atmosphere, and motion.
 ---
 
 # Design audit

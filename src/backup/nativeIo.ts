@@ -48,7 +48,7 @@ export const nativeBackupIo: BackupIO = {
 
   async shareFile(uri) {
     if (!(await Sharing.isAvailableAsync())) throw new Error('Sharing is not available on this device');
-    await Sharing.shareAsync(uri, { mimeType: 'application/json', dialogTitle: 'Export Thread backup' });
+    await Sharing.shareAsync(uri, { mimeType: 'application/json', dialogTitle: 'Export One Blue Thread backup' });
   },
 
   async pickImportFile() {

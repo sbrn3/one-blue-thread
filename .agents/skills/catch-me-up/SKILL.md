@@ -1,6 +1,6 @@
 ---
 name: catch-me-up
-description: Orient a new Thread session by inspecting Git state, STATUS.md, ROADMAP.md, open bugs, and recent history. Reclassifies mislabelled bugs, re-triages the roadmap, batches real bugs, and hands back a short brief.
+description: Orient a new One Blue Thread session by inspecting Git state, STATUS.md, ROADMAP.md, open bugs, and recent history. Reclassifies mislabelled bugs, re-triages the roadmap, batches real bugs, and hands back a short brief.
 ---
 
 # Catch me up

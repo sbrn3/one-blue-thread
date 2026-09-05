@@ -34,12 +34,20 @@ describe('planSyncWindow (§13.4 — pure, no device needed)', () => {
   });
 });
 
-function fakeNotifications(): NotificationsLike & { scheduled: Map<string, unknown>; cancelled: string[] } {
+function fakeNotifications(): NotificationsLike & {
+  scheduled: Map<string, unknown>;
+  cancelled: string[];
+  scheduleCalls: unknown[];
+  failNewTitleOnce: boolean;
+} {
   const scheduled = new Map<string, unknown>();
   const cancelled: string[] = [];
+  const scheduleCalls: unknown[] = [];
   return {
     scheduled,
     cancelled,
+    scheduleCalls,
+    failNewTitleOnce: false,
     async getPermissionsAsync() {
       return { status: 'granted', canAskAgain: true };
     },
@@ -47,6 +55,11 @@ function fakeNotifications(): NotificationsLike & { scheduled: Map<string, unkno
       return { status: 'granted' };
     },
     async scheduleNotificationAsync(request) {
+      scheduleCalls.push(request);
+      if (this.failNewTitleOnce && request.content.title === 'One Blue Thread') {
+        this.failNewTitleOnce = false;
+        throw new Error('replacement failed');
+      }
       const id = request.identifier ?? `id-${scheduled.size}`;
       scheduled.set(id, request);
       return id;
@@ -55,10 +68,78 @@ function fakeNotifications(): NotificationsLike & { scheduled: Map<string, unkno
       cancelled.push(identifier);
       scheduled.delete(identifier);
     },
+    async getAllScheduledNotificationsAsync() {
+      return [...scheduled.entries()].map(([identifier, request]) => ({
+        ...(request as object),
+        identifier,
+      })) as never;
+    },
   };
 }
 
 describe('Notifier (§13.3 /src/notify, §08, §10 E5 arm selection)', () => {
+  it('renames already-pending Thread notifications without changing their request or decision row', async () => {
+    const db = openTestDb();
+    migrate(db);
+    const fake = fakeNotifications();
+    const request = {
+      identifier: 'nudge-2026-07-15',
+      content: {
+        title: 'Thread',
+        body: "Haven't read yet today.",
+        data: { localDate: '2026-07-15' },
+        subtitle: null,
+        categoryIdentifier: null,
+        sound: null,
+      },
+      trigger: { type: 'date', date: new Date(2026, 6, 15, 21) },
+    };
+    fake.scheduled.set(request.identifier, request);
+    db.run(
+      `INSERT INTO decisions (ts, local_date, point, arm, explored, delivered)
+       VALUES (1, '2026-07-15', 'nudge_hour', 'neutral', 0, 0)`,
+    );
+    const before = db.all('SELECT * FROM decisions');
+
+    const notifier = new Notifier(db, fake);
+    await notifier.refreshDisplayName();
+
+    const replaced = fake.scheduled.get(request.identifier) as typeof request;
+    expect(replaced.content).toEqual({
+      title: 'One Blue Thread',
+      body: request.content.body,
+      data: request.content.data,
+    });
+    expect(replaced.trigger).toEqual(request.trigger);
+    expect(db.all('SELECT * FROM decisions')).toEqual(before);
+    expect(meta.get(db, 'brand_notification_title_v1')).toBe('1');
+
+    const callsAfterFirstRun = fake.scheduleCalls.length;
+    await notifier.refreshDisplayName();
+    expect(fake.scheduleCalls).toHaveLength(callsAfterFirstRun);
+  });
+
+  it('restores the old request and leaves the migration retryable when replacement fails', async () => {
+    const db = openTestDb();
+    migrate(db);
+    const fake = fakeNotifications();
+    const request = {
+      identifier: 'nudge-2026-07-15',
+      content: { title: 'Thread', body: "Haven't read yet today." },
+      trigger: { type: 'date', date: new Date(2026, 6, 15, 21) },
+    };
+    fake.scheduled.set(request.identifier, request);
+    fake.failNewTitleOnce = true;
+    const notifier = new Notifier(db, fake);
+
+    await expect(notifier.refreshDisplayName()).rejects.toThrow('replacement failed');
+    expect(fake.scheduled.get(request.identifier)).toEqual(request);
+    expect(meta.get(db, 'brand_notification_title_v1')).toBeNull();
+
+    await notifier.refreshDisplayName();
+    expect((fake.scheduled.get(request.identifier) as typeof request).content.title).toBe('One Blue Thread');
+  });
+
   it('syncWindow schedules a decision row per planned day, with a deterministic identifier', async () => {
     const db = openTestDb();
     migrate(db);

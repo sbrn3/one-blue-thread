@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup — One Blue Thread brand direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800;900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper:#F4F1E9; --ink:#1A1A17; --thread:#2E3A8C; --warp:#8F8779;
+  --madder:#B5482F; --dye-soft:#E7E9F4; --ink60:#5B584F; --ink40:#726D5C;
+  --ink15:#E0DACB; --display:'Schibsted Grotesk',system-ui,sans-serif;
+  --scripture:'Newsreader',Georgia,serif; --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;background:#d9d4c8;color:var(--ink);font-family:var(--display)}
+.mk-bar{position:sticky;top:0;z-index:10;display:flex;gap:1rem;align-items:center;justify-content:space-between;padding:.8rem 1.1rem;background:var(--ink);color:var(--paper);font:12px var(--mono)}
+.mk-bar nav{display:flex;gap:.4rem;flex-wrap:wrap}.mk-bar a{color:inherit;text-decoration:none;border:1px solid #68685f;border-radius:999px;padding:.35rem .7rem}
+.intro{max-width:940px;margin:0 auto;padding:3rem 1.5rem 1rem}.intro h1{font:500 clamp(2.4rem,7vw,5.2rem)/.94 var(--scripture);margin:0}.intro p{max-width:720px;color:var(--ink60);line-height:1.65}
+.stage{display:grid;grid-template-columns:minmax(300px,520px);gap:1.5rem;padding:1.5rem;max-width:560px;margin:auto;align-items:start}
+.direction{background:var(--paper);border-radius:28px;overflow:hidden;box-shadow:0 18px 60px rgba(26,26,23,.15)}
+.direction-head{padding:1.2rem 1.4rem;border-bottom:1px solid var(--ink15)}.eyebrow{font:600 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--thread)}
+.direction-head h2{font:600 1.55rem var(--scripture);margin:.4rem 0 .25rem}.direction-head p{font-size:.82rem;color:var(--ink60);margin:0;line-height:1.5}
+.surface{min-height:650px;padding:2.2rem 1.7rem;position:relative;overflow:hidden}.surface h3{font:800 clamp(2.15rem,4vw,3.5rem)/.96 var(--display);letter-spacing:-.05em;margin:0}.surface h3 em{font:500 1.08em var(--scripture);color:var(--thread)}
+.descriptor{font:400 1rem/1.6 var(--scripture);color:var(--ink60);max-width:29ch}.cta{display:inline-block;margin-top:1.2rem;background:var(--thread);color:white;text-decoration:none;border-radius:999px;padding:.75rem 1.05rem;font-weight:700;font-size:.82rem}
+.thread-mark{width:82px;height:82px;margin-bottom:2rem}.thread-mark svg{width:100%;height:100%}.warp{stroke:var(--warp);stroke-width:7;stroke-linecap:round}.weft{stroke:var(--thread);stroke-width:8;stroke-linecap:round;fill:none}
+.verse{font:400 1.2rem/1.55 var(--scripture);margin:0}.ref{font:600 10px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--thread);margin-top:.8rem}.attribution{font:10px/1.4 var(--mono);color:var(--ink40);margin-top:.35rem}
+.origin{border-top:1px solid var(--ink15);padding-top:1.25rem;margin-top:5rem}.origin-label{font:600 10px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--thread)}.origin p{font:400 .95rem/1.65 var(--scripture);color:var(--ink60)}
+.a .origin{margin-top:2.2rem}.a .origin .verse{font-size:.98rem;color:var(--ink)}.passage-line{display:block;margin:.55rem 0}.vn{font:600 9px var(--mono);color:var(--thread);vertical-align:super;margin-right:.35rem}
+.b{background:var(--ink);color:var(--paper)}.b:before{content:'';position:absolute;top:0;bottom:0;left:44px;width:2px;background:var(--thread)}.b .story{padding-left:3.25rem}.b .scripture-lead{font:400 1.75rem/1.3 var(--scripture);margin:4.5rem 0 1rem}.b .descriptor{color:#bbb6a9}.b .ref{color:#8f9cff}.b .attribution{color:#999487}.b h3{font-family:var(--scripture);font-weight:500;letter-spacing:-.025em}.b h3 em{font-family:var(--display);font-style:normal;font-weight:800;color:#8f9cff}.b .cta{background:var(--paper);color:var(--ink)}
+.c{text-align:center;display:flex;flex-direction:column;align-items:center}.c .thread-mark{margin-top:1.5rem}.c .refrain{font:700 11px var(--mono);text-transform:uppercase;letter-spacing:.18em;color:var(--thread);margin:2rem 0 .8rem}.c h3{font-family:var(--scripture);font-weight:500;letter-spacing:-.025em}.c .descriptor{margin-left:auto;margin-right:auto}.c .memory-card{margin-top:auto;border:1px solid var(--ink15);border-radius:18px;padding:1.3rem;text-align:left;background:rgba(255,255,255,.35)}.c .memory-card .verse{font-size:1rem}
+.phone-note{padding:1rem 1.4rem 1.4rem;background:#fff;border-top:1px solid var(--ink15);font-size:.8rem;line-height:1.55;color:var(--ink60)}.phone-note strong{color:var(--ink)}
+@media(max-width:1000px){.stage{grid-template-columns:1fr;max-width:520px}.surface{min-height:590px}.mk-bar{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<div class="mk-bar">
+  <span><strong>One Blue Thread</strong> — narrative direction gate</span>
+  <nav aria-label="Mockup direction"><a href="#option-a">Approved · Scripture holds the centre</a></nav>
+</div>
+<header class="intro">
+  <p class="eyebrow">Rebrand study · the existing Loom visual system remains</p>
+  <h1>Where should the name’s meaning live?</h1>
+  <p>The approved direction keeps the current icon, indigo, linen ground, textile vocabulary, and one-person promise. Scripture is the app’s primary voice: product copy explains controls and provenance, but never competes with, summarises, or manufactures meaning for the biblical text.</p>
+</header>
+<main class="stage">
+  <article class="direction" id="option-a">
+    <header class="direction-head"><span class="eyebrow">Option A · revised recommendation</span><h2>Scripture holds the centre</h2><p>The name opens the door, Scripture supplies the meaning, and the product uses only enough prose to explain what it does.</p></header>
+    <section class="surface a">
+      <div class="thread-mark" aria-hidden="true"><svg viewBox="0 0 80 80"><path class="warp" d="M20 9c-2 22 5 42 3 62M40 7c-2 23 4 43 3 66M60 10c-2 20 5 40 3 59"/><path class="weft" d="M8 27c18-7 40 3 64-7M9 52c20-7 41 3 63-7"/></svg></div>
+      <h3>One<br><em>Blue Thread</em></h3>
+      <p class="descriptor">A quiet place to read Scripture.</p>
+      <div class="origin"><p class="verse"><span class="passage-line"><span class="vn">37</span>Yahweh spoke to Moses, saying,</span><span class="passage-line"><span class="vn">38</span>“Speak to the children of Israel, and tell them that they should make themselves fringes on the borders of their garments throughout their generations, and that they put on the fringe of each border a cord of blue.</span><span class="passage-line"><span class="vn">39</span>It shall be to you for a fringe, that you may see it, and remember all Yahweh’s commandments, and do them; and that you don’t follow your own heart and your own eyes, after which you used to play the prostitute;</span><span class="passage-line"><span class="vn">40</span>so that you may remember and do all my commandments, and be holy to your God.</span><span class="passage-line"><span class="vn">41</span>I am Yahweh your God, who brought you out of the land of Egypt, to be your God: I am Yahweh your God.”</span></p><div class="ref">Numbers 15:37–41</div><div class="attribution">World English Bible (WEB) · mockup fallback; target publication uses NIV after licensing is documented</div></div>
+      <a class="cta" href="#option-a">Begin reading</a>
+    </section>
+    <div class="phone-note"><strong>Inside the app:</strong> onboarding presents Numbers 15:37–41 in full, followed by one factual context sentence. Any surface naming this passage or explaining the origin must contain the complete passage; constrained surfaces omit the origin entirely. Daily reading, recall, memory, and study preserve source text and attribution; there are no generated devotionals, summaries, “takeaways,” or spiritual interpretations.</div>
+  </article>
+</main>
+</body>
+</html>

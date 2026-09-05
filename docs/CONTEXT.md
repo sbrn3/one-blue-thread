@@ -4,6 +4,23 @@ Glossary of canonical project terms. Definitions only — no implementation
 detail, no spec prose. If a term here conflicts with usage in code or docs, this
 file is the one to fix or the usage is wrong.
 
+## The product
+
+**One Blue Thread** — the canonical public product name.
+
+**A quiet place to read Scripture.** — the canonical descriptor.
+
+**Scripture-first voice** — Scripture is quoted verbatim and attributed; the
+reader's language comes next; necessary operational and factual prose stays
+brief. The app does not generate devotionals, summaries, prayers,
+interpretations, takeaways, spiritual diagnoses, or simulated spiritual
+authority.
+
+**The blue cord** — the source of the product name in Numbers 15:37–41. Any
+product or marketing surface that cites that source or explains the name shows
+the entire passage on the same surface with its translation and notice. See
+`docs/BRAND.md` for the release-safe source and usage constraints.
+
 ## The cloth
 
 **Bolt** — the current book of the Bible rendered as one piece of woven cloth.
@@ -25,6 +42,12 @@ progress indicator; there is no bar and no percentage.
 **Set mark** — the permanent displacement left where weaving resumes after a
 lapse. A weaver returning to a loom never beats the first pass flush against the
 old cloth, and the line it leaves never comes out.
+
+## The text
+
+**The World English Bible (WEB)** — the public-domain translation bundled in the
+app binary. Both the offline floor that serves when a licensed provider fails,
+and a translation the reader may choose outright: it is named, not hidden.
 
 ## Actions
 

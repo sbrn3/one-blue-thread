@@ -1,7 +1,7 @@
 # Builds an installable release APK on every push to main and attaches
 # it to a GitHub Release on version tags (v1.0.0, v1.1.0, ...).
 #
-# Download: repo → Releases → thread.apk (tags), or Actions → run →
+# Download: repo → Releases → one-blue-thread.apk (tags), or Actions → run →
 # Artifacts (any push). Sideload on the phone; no store, no EAS.
 #
 # Signing: Expo's generated project signs release builds with the
@@ -69,16 +69,16 @@ jobs:
         run: ./gradlew assembleRelease
 
       - name: Rename APK
-        run: cp android/app/build/outputs/apk/release/app-release.apk thread.apk
+        run: cp android/app/build/outputs/apk/release/app-release.apk one-blue-thread.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: thread-apk
-          path: thread.apk
+          name: one-blue-thread-apk
+          path: one-blue-thread.apk
 
       - name: Attach to release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: thread.apk
+          files: one-blue-thread.apk
           generate_release_notes: true

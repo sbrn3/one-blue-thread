@@ -35,6 +35,7 @@ import { HistoryModal } from './HistoryModal';
 import { PartnerSection } from './PartnerSection';
 import { ResetSection } from './ResetSection';
 import { DictionaryLibrary } from '../study/DictionaryLibrary';
+import { BrandOrigin } from '../brand/BrandOrigin';
 
 interface KnotProps {
   services: Services;
@@ -249,6 +250,7 @@ export function Knot({ services }: KnotProps) {
               </DisclosureSection>
 
               <DisclosureSection summary="App" expanded={openSections.app} onToggle={() => toggleSection('app')}>
+                <BrandOrigin />
                 <Text style={styles.sectionLabel}>Adaptive policy</Text>
                 <AdaptiveSection db={db} today={today} />
                 <ResetSection db={db} log={log} />

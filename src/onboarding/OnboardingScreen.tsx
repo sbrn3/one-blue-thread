@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ActionButton } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 
@@ -27,6 +28,7 @@ export function OnboardingScreen({
   onSkip,
   skipLabel,
 }: OnboardingScreenProps) {
+  const insets = useSafeAreaInsets();
   return (
     <View style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -35,7 +37,7 @@ export function OnboardingScreen({
         {sub ? <Text style={styles.sub}>{sub}</Text> : null}
         {children}
       </ScrollView>
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(32, insets.bottom) }]}>
         <ActionButton
           label={primaryLabel}
           onPress={onPrimary}
@@ -57,7 +59,7 @@ export function OnboardingScreen({
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: tokens.color.paper },
-  content: { paddingHorizontal: 32, paddingTop: 64, paddingBottom: 24, gap: 4 },
+  content: { paddingHorizontal: 32, paddingTop: 64, paddingBottom: 48, gap: 4 },
   step: {
     fontFamily: tokens.font.display,
     fontWeight: '700',

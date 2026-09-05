@@ -6,7 +6,7 @@ here whenever `.agents/skills/<name>/SKILL.md` exists — so editing a `SKILL.md
 in this folder changes the behavior every tool gets. `AGENTS.md` at the repo root
 outranks any skill on conflict.
 
-These were adapted from the Surgery Logbook set for Thread's stack (Expo / React
+These were adapted from the Surgery Logbook set for One Blue Thread's stack (Expo / React
 Native, Vitest logic suite, `src/ui/tokens.ts`, the §13.6 hard rules, offline /
 single-user). If a step still reads like a different project, fix it here.
 

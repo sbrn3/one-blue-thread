@@ -27,7 +27,7 @@ export function SafekeepingScreen({ onNext }: SafekeepingScreenProps) {
       skipLabel="Skip notifications"
     >
       <Text style={styles.note}>
-        <Text style={styles.noteBold}>Backups.</Text> Thread keeps a weekly recovery snapshot on this phone, so a
+        <Text style={styles.noteBold}>Backups.</Text> One Blue Thread keeps a weekly recovery snapshot on this phone, so a
         reinstall doesn&apos;t lose the year. Protection from losing the phone itself requires Export from the knot
         to Files, Drive, or wherever you keep things — that&apos;s a separate, deliberate step, any time. Neither is
         encrypted by default — the data isn&apos;t sensitive, and encryption is an opt-in toggle in the knot.

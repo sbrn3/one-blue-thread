@@ -1,11 +1,11 @@
 ---
 name: update-wiki
-description: Update Thread's user-facing documentation (README and the public demo page) after a verified user-facing behavior change, preserving unrelated prose.
+description: Update One Blue Thread's user-facing documentation (README and the public demo page) after a verified user-facing behavior change, preserving unrelated prose.
 ---
 
 # Update wiki
 
-Thread has no in-app help system. Its user-facing surfaces are `README.md` (pitch
+One Blue Thread has no in-app help system. Its user-facing surfaces are `README.md` (pitch
 + how it works + how to build) and `docs/index.html` (the public demo / walkthrough
 of the daily flow). Run this after implementation is verified.
 

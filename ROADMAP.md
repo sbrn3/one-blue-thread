@@ -8,7 +8,10 @@ Status key: 📋 planned · 🔨 in progress · ✅ shipped · ❄️ parked
 
 ## Planned
 
-_(nothing planned — see Under consideration)_
+- 🔨 **One Blue Thread rebrand** — local implementation complete; public launch
+  remains gated on domain/trademark/content/device review. Scripture-centred
+  identity and the full Numbers 15:37–41 origin preserve all reader data. Plan:
+  `docs/plans/one-blue-thread-rebrand/plan.html`.
 
 ## Under consideration
 

@@ -5,6 +5,7 @@ import { migrate, schemaVersion } from '../src/log/schema';
 import type { ResetEnv } from '../src/reset/perform';
 import { performReset } from '../src/reset/perform';
 import { RESET_TABLES, resetToFirstRun } from '../src/reset/index';
+import { isAppShareFilename } from '../src/reset/shareFiles';
 import { openTestDb } from './util/testDb';
 
 function seed(db: ReturnType<typeof openTestDb>) {
@@ -62,6 +63,17 @@ describe('resetToFirstRun', () => {
     for (const t of BACKUP_TABLES) expect(RESET_TABLES).toContain(t);
     expect(RESET_TABLES).toContain('chapter_cache');
     expect(RESET_TABLES).toContain('error_log');
+  });
+});
+
+describe('isAppShareFilename', () => {
+  it('accepts dated legacy and One Blue Thread backups only', () => {
+    expect(isAppShareFilename('thread-backup-2026-09-05.json')).toBe(true);
+    expect(isAppShareFilename('one-blue-thread-backup-2026-09-05.json')).toBe(true);
+    expect(isAppShareFilename('thread-backup-anything.json')).toBe(false);
+    expect(isAppShareFilename('one-blue-thread-backup-2026-9-5.json')).toBe(false);
+    expect(isAppShareFilename('someone-else-backup-2026-09-05.json')).toBe(false);
+    expect(isAppShareFilename('one-blue-thread-backup-2026-09-05.json.bak')).toBe(false);
   });
 });
 
