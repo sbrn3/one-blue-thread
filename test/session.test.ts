@@ -26,7 +26,8 @@ function setup(now: () => number = () => Date.parse('2026-07-14T12:00:00Z')) {
 
 beforeEach(() => {
   useSession.setState({
-    loading: true,
+    status: 'loading',
+    error: null,
     book: 'genesis',
     chapter: 1,
     sittingIndex: 0,
@@ -162,5 +163,78 @@ describe('session store — verse-normalized dose (§07, Phase 1)', () => {
     );
     expect(day?.verses_read).toBe(1); // fakeText's chapters are exactly 1 verse
     expect(day?.target_verses).toBeNull(); // seed mode — todaysTarget() is null until Phase 2/4
+  });
+});
+
+// A rejecting/deferred TextProvider fake, for the failure and race paths
+// below — `loadPortion` only ever awaits `getChapter`.
+function rejectingText(message: string): TextProvider {
+  return {
+    async getChapter(): Promise<Verse[]> {
+      throw new Error(message);
+    },
+    attribution: () => null,
+  };
+}
+
+function deferredText() {
+  const pending: Array<{ resolve: (v: Verse[]) => void; reject: (e: Error) => void }> = [];
+  return {
+    provider: {
+      async getChapter(): Promise<Verse[]> {
+        return new Promise<Verse[]>((resolve, reject) => pending.push({ resolve, reject }));
+      },
+      attribution: () => null,
+    } as TextProvider,
+    settle(index: number, verses: Verse[]) {
+      pending[index].resolve(verses);
+    },
+  };
+}
+
+describe('session store — loading failure and retry (blank-page fix)', () => {
+  it('a rejected load() reports status=error with a bounded message and drifts no meta/event', async () => {
+    const { db, log } = setup();
+    const failing = rejectingText('network unreachable');
+
+    await useSession.getState().load(db, log, failing, '2026-07-14');
+
+    expect(useSession.getState().status).toBe('error');
+    expect(useSession.getState().error).toBe('network unreachable');
+    // The onboarding-bypassed backstop must not commit until a load succeeds.
+    expect(meta.get(db, 'current_book')).toBeNull();
+    expect(db.all("SELECT * FROM events WHERE type = 'book_start'")).toHaveLength(0);
+  });
+
+  it('retrying with a working provider recovers to status=ready', async () => {
+    const { db, log, text } = setup();
+    await useSession.getState().load(db, log, rejectingText('boom'), '2026-07-14');
+    expect(useSession.getState().status).toBe('error');
+
+    await useSession.getState().load(db, log, text, '2026-07-14');
+
+    expect(useSession.getState().status).toBe('ready');
+    expect(useSession.getState().error).toBeNull();
+    expect(useSession.getState().book).toBe('genesis');
+  });
+
+  it('an overlapping retry wins even if the stale first load settles later', async () => {
+    const { db, log } = setup();
+    const d = deferredText();
+
+    const first = useSession.getState().load(db, log, d.provider, '2026-07-14'); // generation 1
+    const second = useSession.getState().load(db, log, d.provider, '2026-07-14'); // generation 2, supersedes
+
+    // Resolve the newer (second) call first, then the stale first call —
+    // the stale one must not overwrite the newer result when it finally settles.
+    d.settle(1, [{ book: 'genesis', chapter: 1, verse: 1, text: 'FRESH' }]);
+    await second;
+    expect(useSession.getState().status).toBe('ready');
+
+    d.settle(0, [{ book: 'genesis', chapter: 1, verse: 1, text: 'STALE' }]);
+    await first;
+
+    expect(useSession.getState().status).toBe('ready');
+    expect(useSession.getState().sittings[0]?.[0]?.text).toBe('FRESH');
   });
 });

@@ -32,6 +32,32 @@ export function registerErrorDb(db: SqlDb): void {
   dbRef = db;
 }
 
+const BOOTSTRAP_LOG_CAP = 20;
+const bootstrapLog: ErrorLogEntry[] = [];
+
+/**
+ * Bootstrap failures (openDb/createServices throwing before any database
+ * exists to log into) go here first, always — then to the real error_log
+ * table too, once/if a database happens to be registered. This is what the
+ * root ErrorBoundary's "Copy startup details" reads, so a reader who never
+ * got as far as a working database still has something bounded to copy.
+ */
+export function logBootstrapError(message: string, stack?: string | null): void {
+  bootstrapLog.unshift({ ts: Date.now(), message, stack: stack ?? null });
+  if (bootstrapLog.length > BOOTSTRAP_LOG_CAP) bootstrapLog.length = BOOTSTRAP_LOG_CAP;
+  if (dbRef) {
+    try {
+      logError(dbRef, message, stack);
+    } catch {
+      // Logging the crash must never itself crash the crash handler.
+    }
+  }
+}
+
+export function getBootstrapDiagnostics(): ErrorLogEntry[] {
+  return [...bootstrapLog];
+}
+
 interface ErrorUtilsLike {
   setGlobalHandler: (fn: (error: Error, isFatal?: boolean) => void) => void;
   getGlobalHandler?: () => (error: Error, isFatal?: boolean) => void;
@@ -49,13 +75,7 @@ export function installGlobalErrorHandler(): void {
 
   const previous = g.ErrorUtils.getGlobalHandler?.();
   g.ErrorUtils.setGlobalHandler((error, isFatal) => {
-    if (dbRef) {
-      try {
-        logError(dbRef, error.message, error.stack ?? null);
-      } catch {
-        // Logging the crash must never itself crash the crash handler.
-      }
-    }
+    logBootstrapError(error.message, error.stack ?? null);
     previous?.(error, isFatal);
   });
 }

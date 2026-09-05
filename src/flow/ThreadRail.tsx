@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
 import Svg, { G, Path } from 'react-native-svg';
 import { geometry, ridesOver, warpPath, weftPath } from '../ui/loom';
@@ -24,10 +24,12 @@ interface ThreadRailProps {
   scrollY: SharedValue<number>;
   contentHeight: SharedValue<number>;
   layoutHeight: SharedValue<number>;
+  /** The actual safe content height (post safe-area-inset) — see Flow.tsx's onLayout measurement. Full window height overcounted the status bar/home-indicator as rail. */
+  railHeight: number;
 }
 
-export function ThreadRail({ scrollY, contentHeight, layoutHeight }: ThreadRailProps) {
-  const { height: windowHeight } = useWindowDimensions();
+export function ThreadRail({ scrollY, contentHeight, layoutHeight, railHeight }: ThreadRailProps) {
+  const windowHeight = railHeight;
 
   const { bare, woven } = useMemo(() => {
     const rows = Math.max(2, Math.ceil(windowHeight / ROW_PITCH) + 1);

@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { installGlobalErrorHandler, logError, registerErrorDb } from './src/errors';
 import { ErrorBoundary } from './src/errors/ErrorBoundary';
 import { Flow } from './src/flow/Flow';
@@ -19,6 +20,22 @@ import { tokens } from './src/ui/tokens';
 installGlobalErrorHandler();
 
 export default function App() {
+  return (
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: tokens.color.paper }}>
+      <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+        {/* Mounted outside AppRuntime so it also catches openDb()/createServices()
+            throwing synchronously during AppRuntime's own render, not just
+            failures deeper in the tree (docs/plans/app-quality-foundations). */}
+        <ErrorBoundary>
+          <AppRuntime />
+        </ErrorBoundary>
+      </SafeAreaProvider>
+      <StatusBar style="dark" />
+    </GestureHandlerRootView>
+  );
+}
+
+function AppRuntime() {
   const db = useMemo(() => openDb(), []);
   useEffect(() => registerErrorDb(db), [db]);
 
@@ -52,19 +69,12 @@ export default function App() {
     });
   }, [onboarded, services, db]);
 
-  return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: tokens.color.paper }}>
-      <ErrorBoundary db={db}>
-        {onboarded ? (
-          <>
-            <Flow services={services} />
-            <Knot services={services} />
-          </>
-        ) : (
-          <OnboardingFlow services={services} onDone={() => setOnboarded(true)} />
-        )}
-      </ErrorBoundary>
-      <StatusBar style="dark" />
-    </GestureHandlerRootView>
+  return onboarded ? (
+    <>
+      <Flow services={services} />
+      <Knot services={services} />
+    </>
+  ) : (
+    <OnboardingFlow services={services} onDone={() => setOnboarded(true)} />
   );
 }

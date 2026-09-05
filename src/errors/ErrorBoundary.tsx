@@ -1,11 +1,10 @@
+import * as Clipboard from 'expo-clipboard';
 import { Component, type ReactNode } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import type { SqlDb } from '../log/db';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { tokens } from '../ui/tokens';
-import { logError } from './index';
+import { getBootstrapDiagnostics, logBootstrapError } from './index';
 
 interface ErrorBoundaryProps {
-  db: SqlDb;
   children: ReactNode;
 }
 
@@ -14,9 +13,15 @@ interface ErrorBoundaryState {
 }
 
 /**
- * §19 error log — catches render-tree errors (what installGlobalErrorHandler
- * can't see) and shows a plain fallback instead of a blank/frozen
- * screen. Must be a class component; React has no hook equivalent for
+ * §19 error log — the root boundary. It is mounted OUTSIDE AppRuntime (see
+ * App.tsx) specifically so it also catches openDb()/createServices() failing
+ * synchronously during AppRuntime's own render, not just failures deeper in
+ * the tree — before this, a failed database open had no boundary above it at
+ * all. It never requires a database: bootstrap failures go through
+ * logBootstrapError, which keeps a bounded in-memory copy for "Copy startup
+ * details" regardless of whether a database exists yet.
+ *
+ * Must be a class component; React has no hook equivalent for
  * getDerivedStateFromError/componentDidCatch.
  */
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -27,12 +32,23 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, info: { componentStack?: string | null }): void {
-    try {
-      logError(this.props.db, error.message, info.componentStack ?? error.stack ?? null);
-    } catch {
-      // Logging the crash must never itself crash the crash handler.
-    }
+    logBootstrapError(error.message, info.componentStack ?? error.stack ?? null);
   }
+
+  // Clearing the caught error remounts only this boundary's children
+  // (AppRuntime), because React discards the failed subtree entirely on
+  // catch — the next render of `children` is a fresh mount, re-running
+  // useMemo(() => openDb(), []) and everything downstream of it.
+  retry = (): void => {
+    this.setState({ error: null });
+  };
+
+  copyDetails = (): void => {
+    const details = getBootstrapDiagnostics()
+      .map((e) => `${new Date(e.ts).toISOString()} ${e.message}`)
+      .join('\n');
+    void Clipboard.setStringAsync(details || 'No startup details recorded.');
+  };
 
   render() {
     if (this.state.error) {
@@ -40,10 +56,22 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         <View style={styles.wrap}>
           <Text style={styles.title}>Something went wrong.</Text>
           <Text style={styles.message}>{this.state.error.message}</Text>
-          <Text style={styles.hint}>
-            Reopen the app. If this keeps happening, use &quot;Copy diagnostics&quot; in the knot for details to
-            report it.
-          </Text>
+          <Pressable
+            onPress={this.retry}
+            style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Retry"
+          >
+            <Text style={styles.buttonLabel}>Retry</Text>
+          </Pressable>
+          <Pressable
+            onPress={this.copyDetails}
+            style={({ pressed }) => [styles.linkButton, pressed && styles.buttonPressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Copy startup details"
+          >
+            <Text style={styles.linkLabel}>Copy startup details</Text>
+          </Pressable>
         </View>
       );
     }
@@ -72,10 +100,36 @@ const styles = StyleSheet.create({
     color: tokens.color.ink60,
     textAlign: 'center',
   },
-  hint: {
+  button: {
+    marginTop: 8,
+    minHeight: tokens.control.minTarget,
+    minWidth: tokens.control.minTarget,
+    paddingHorizontal: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: tokens.radius.input,
+    backgroundColor: tokens.color.thread,
+  },
+  buttonPressed: {
+    opacity: 0.85,
+  },
+  buttonLabel: {
+    fontFamily: tokens.font.display,
+    fontWeight: '700',
+    fontSize: 15,
+    color: tokens.color.paper,
+  },
+  linkButton: {
+    minHeight: tokens.control.minTarget,
+    minWidth: tokens.control.minTarget,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  linkLabel: {
     fontFamily: tokens.font.mono,
     fontSize: 12,
     color: tokens.color.ink40,
-    textAlign: 'center',
+    textDecorationLine: 'underline',
   },
 });
