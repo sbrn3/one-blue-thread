@@ -17,6 +17,9 @@ interface DismissalZoneProps {
   /** Unpromoted candidates from the just-finished book (§21) — offered once, at book end. */
   candidates: Passage[];
   onPromote: (id: number) => void;
+  /** True once the reader promoted a candidate or explicitly chose "Not this time" — hides the prompt either way. */
+  promotionResolved: boolean;
+  onSkipPromotion: () => void;
   /** True whenever the next-book queue is empty (§04) — persists across days until picked, not gated by justFinishedBook. */
   needsNextBookPick: boolean;
   onPickNextBook: (bookId: string) => void;
@@ -26,6 +29,8 @@ interface DismissalZoneProps {
   reportPhases: PhaseMetric[];
   onApplyReport: (expId: string) => void;
   onKeepReport: (expId: string) => void;
+  /** §04 zone 5 — see dismissalReadiness.ts. Only once true may "Now close the app" render. */
+  terminalReady: boolean;
 }
 
 function reference(book: string, p: Passage): string {
@@ -47,12 +52,15 @@ export function DismissalZone({
   justFinishedBook,
   candidates,
   onPromote,
+  promotionResolved,
+  onSkipPromotion,
   needsNextBookPick,
   onPickNextBook,
   pendingReport,
   reportPhases,
   onApplyReport,
   onKeepReport,
+  terminalReady,
 }: DismissalZoneProps) {
   const [pending, setPending] = useState<string | null>(null);
   const pct = chapterCount > 0 ? Math.round((chapter / chapterCount) * 100) : 0;
@@ -67,7 +75,7 @@ export function DismissalZone({
         </Text>
       )}
 
-      {justFinishedBook && candidates.length > 0 && (
+      {justFinishedBook && candidates.length > 0 && !promotionResolved && (
         <View style={styles.promoteBlock}>
           <Text style={styles.promoteLabel}>Carry one passage forward to memorise?</Text>
           {candidates.map((p) => (
@@ -80,6 +88,7 @@ export function DismissalZone({
               <Text style={styles.candidateText}>{reference(justFinishedBook, p)}</Text>
             </Pressable>
           ))}
+          <ActionButton label="Not this time" variant="link" onPress={onSkipPromotion} />
         </View>
       )}
 
@@ -107,7 +116,7 @@ export function DismissalZone({
         />
       )}
 
-      <Text style={styles.close}>Now close the app.</Text>
+      {terminalReady && <Text style={styles.close}>Now close the app.</Text>}
     </View>
   );
 }

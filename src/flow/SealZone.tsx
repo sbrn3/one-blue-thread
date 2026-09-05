@@ -12,6 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { G, Path } from 'react-native-svg';
+import { ActionButton } from '../ui/controls';
 import { geometry, polylineLength, ridesOver, warpPath, weftPath, weftPoints } from '../ui/loom';
 import { tokens } from '../ui/tokens';
 
@@ -37,6 +38,8 @@ interface SealZoneProps {
   sealMode?: 'hold' | 'tap';
   /** §14 E4, applied — the completion floor: whether today's reading has met the bar to seal yet. Defaults to true (no gate) when omitted. */
   canSeal?: boolean;
+  /** §14 E4, applied — which floor is active, so the helper text names the actual bar ("Read to the end" vs "Start reading"). Defaults to 'full_chapter'. */
+  floor?: 'full_chapter' | 'one_verse';
 }
 
 /**
@@ -62,10 +65,18 @@ export function SealZone({
   onScrollLock,
   sealMode = 'hold',
   canSeal = true,
+  floor = 'full_chapter',
 }: SealZoneProps) {
   const [screenReaderEnabled, setScreenReaderEnabled] = useState(false);
+  const [twoTapArmed, setTwoTapArmed] = useState(false);
   const ringProgress = useSharedValue(0);
   const pulseTick = useSharedValue(0);
+
+  useEffect(() => {
+    if (sealed) setTwoTapArmed(false);
+  }, [sealed]);
+
+  const helperText = canSeal ? 'Hold to seal' : floor === 'one_verse' ? 'Start reading to seal' : 'Read to the end to seal';
 
   useEffect(() => {
     AccessibilityInfo.isScreenReaderEnabled().then(setScreenReaderEnabled);
@@ -156,9 +167,9 @@ export function SealZone({
   }
 
   return (
-    <View style={[styles.zone, !canSeal && styles.disabled]}>
+    <View style={styles.zone}>
       <GestureDetector gesture={composed}>
-        <View style={styles.ringWrap} accessible={false}>
+        <View style={[styles.ringWrap, !canSeal && styles.disabled]} accessible={false}>
           <Svg width={LOOM_W} height={LOOM_H}>
             {/* the warp, strung and waiting */}
             <G>
@@ -214,9 +225,31 @@ export function SealZone({
               strokeLinecap="round"
             />
           </Svg>
-          <Text style={styles.holdLabel}>Hold to seal</Text>
         </View>
       </GestureDetector>
+      <Text style={styles.holdLabel}>{helperText}</Text>
+
+      {!twoTapArmed ? (
+        <ActionButton
+          label="Use two taps instead"
+          variant="link"
+          onPress={() => setTwoTapArmed(true)}
+          disabled={!canSeal}
+          style={styles.twoTapLink}
+        />
+      ) : (
+        <View style={styles.twoTapConfirmRow}>
+          <ActionButton
+            label="Seal today"
+            onPress={() => {
+              setTwoTapArmed(false);
+              triggerSuccess();
+            }}
+            disabled={!canSeal}
+          />
+          <ActionButton label="Cancel" variant="secondary" onPress={() => setTwoTapArmed(false)} />
+        </View>
+      )}
     </View>
   );
 }
@@ -226,6 +259,7 @@ const styles = StyleSheet.create({
     minHeight: 220,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 4,
   },
   ringWrap: {
     alignItems: 'center',
@@ -239,6 +273,16 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 13,
     color: tokens.color.ink,
+  },
+  twoTapLink: {
+    marginTop: 4,
+  },
+  twoTapConfirmRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: 8,
   },
   ringFallback: {
     width: 96,
