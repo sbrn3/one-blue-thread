@@ -147,7 +147,9 @@ export class Notifier {
    * ("No nudge at all" is a valid onboarding choice — §05).
    */
   async syncWindow(cue: Cue, today: string = logicalToday()): Promise<void> {
+    console.log('[boot] syncWindow enter');
     await this.refreshDisplayName();
+    console.log('[boot] syncWindow refreshDisplayName done');
     if (cue.nudgeHour === null) return;
     if (meta.get(this.db, 'paused') === '1') return; // §11 offramp — "pause," chosen from the lapse ladder's offer
     if (guardrailsSilence(this.db, today)) return; // §18 — dormancy or life_disruption vetoes the policy entirely

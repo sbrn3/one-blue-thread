@@ -49,9 +49,13 @@ interface FlowProps {
 // Scripture → Seal → Weave → Dismissal, one continuous scroll. Weave
 // is also reachable any time via the knot (W5), independent of
 // today's seal.
+let bootRenderCount = 0;
+
 export function Flow({ services }: FlowProps) {
   const { db, log, text, study, memory, notifier, partner } = services;
   const session = useSession();
+  bootRenderCount += 1;
+  if (bootRenderCount <= 5 || bootRenderCount % 50 === 0) console.log(`[boot] Flow render #${bootRenderCount} status=${session.status}`);
   const reducedMotion = useReducedMotion();
   const insets = useSafeAreaInsets();
   const [railHeight, setRailHeight] = useState(0);
@@ -146,6 +150,7 @@ export function Flow({ services }: FlowProps) {
 
   useEffect(() => {
     if (session.status !== 'ready') return;
+    console.log('[boot] ready-effect 1 enter');
     setPendingLapse(getPendingLadderResponse(db, today));
   }, [session.status, db, today]);
 
@@ -191,6 +196,7 @@ export function Flow({ services }: FlowProps) {
 
   useEffect(() => {
     if (session.status !== 'ready') return;
+    console.log('[boot] ready-effect 2 enter');
     // Known simplification: runs once per app open against whatever
     // cue is active then. Editing the cue mid-session (via the knot)
     // doesn't retroactively reschedule notifications already planned
@@ -395,6 +401,7 @@ export function Flow({ services }: FlowProps) {
 
   useEffect(() => {
     if (session.status !== 'ready') return;
+    console.log('[boot] ready-effect 3 enter');
     const due = memory.due(today).slice(0, DAILY_RECALL_CAP);
     setDueToday(due);
     if (due.length > 0 && !recallShownLogged.current) {
@@ -433,6 +440,7 @@ export function Flow({ services }: FlowProps) {
 
   useEffect(() => {
     if (session.status !== 'ready') return;
+    console.log('[boot] ready-effect 4 enter');
     const trialSeed = meta.get(db, 'trial_seed') ?? 'thread-default-seed';
     const probeRate = Number(getProfile(db, 'probeRate') ?? '0.6'); // §14 E9, applied
     const todaysProbe = resolveTodaysProbe(db, today, trialSeed, probeRate);
