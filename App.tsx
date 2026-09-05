@@ -64,8 +64,8 @@ function AppRuntime() {
 
     // §19 "Weekly (auto): encrypted export. Silent unless it fails" —
     // fire-and-forget, never blocks app open.
-    void services.backup.autoExportIfDue().catch((e: unknown) => {
-      logError(db, `weekly auto-export failed: ${e instanceof Error ? e.message : String(e)}`);
+    void services.backup.snapshotIfDue().catch((e: unknown) => {
+      logError(db, `weekly recovery snapshot failed: ${e instanceof Error ? e.message : String(e)}`);
     });
   }, [onboarded, services, db]);
 
