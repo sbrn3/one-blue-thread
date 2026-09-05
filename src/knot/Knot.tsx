@@ -17,21 +17,21 @@ import type { Cue } from '../cue';
 import { WeaveZone } from '../flow/WeaveZone';
 import { deriveBolt } from '../flow/bolt';
 import { bundledChapterCount } from '../text';
-import { ScriptureZone } from '../flow/ScriptureZone';
 import { getSupportSummary, needsAttention } from '../lab/diagnostics';
 import { getProfile } from '../lab/profile';
 import { computeStreak, meta } from '../log/log';
 import { logicalToday } from '../log/time';
 import type { Services } from '../services';
-import { bookName } from '../text/canon';
-import type { Verse } from '../text/provider';
 import { tokens } from '../ui/tokens';
 import { AdaptiveSection } from './AdaptiveSection';
 import { BackupSection } from './BackupSection';
-import { ChapterStrip, type ChapterEntry } from './ChapterStrip';
+import { ChapterStrip } from './ChapterStrip';
+import { ChapterViewer } from './ChapterViewer';
 import { CueEditor } from './CueEditor';
 import { DiagnosticsSection } from './DiagnosticsSection';
 import { DisclosureSection } from './DisclosureSection';
+import { type HistoryEntry } from './history';
+import { HistoryModal } from './HistoryModal';
 import { PartnerSection } from './PartnerSection';
 import { ResetSection } from './ResetSection';
 import { DictionaryLibrary } from '../study/DictionaryLibrary';
@@ -59,7 +59,8 @@ export function Knot({ services }: KnotProps) {
 
   const [open, setOpen] = useState(false);
   const [cueState, setCueState] = useState<Cue | null>(() => cue.current());
-  const [viewing, setViewing] = useState<{ entry: ChapterEntry; verses: Verse[] } | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [viewingEntry, setViewingEntry] = useState<HistoryEntry | null>(null);
   const [paused, setPaused] = useState(() => meta.get(db, 'paused') === '1');
 
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
@@ -84,12 +85,11 @@ export function Knot({ services }: KnotProps) {
     [open, db, log, today],
   );
 
-  const chapterEntries: ChapterEntry[] = useMemo(() => {
-    if (!open) return [];
-    return db.all<ChapterEntry>(
-      `SELECT local_date, book, chapter, sitting FROM days
-       WHERE sealed = 1 AND book IS NOT NULL ORDER BY local_date DESC LIMIT 100`,
-    );
+  // Cheap existence check only — HistoryModal owns the actual paginated
+  // query (src/knot/history.ts) once opened.
+  const hasHistory = useMemo(() => {
+    if (!open) return false;
+    return db.all(`SELECT 1 FROM days WHERE sealed = 1 AND book IS NOT NULL LIMIT 1`).length > 0;
   }, [open, db]);
 
   // Re-read on every open, not just once — a foreground snapshot or a prior
@@ -97,14 +97,11 @@ export function Knot({ services }: KnotProps) {
   const backupStatus = useMemo(() => (open ? backup.status() : null), [open, backup]);
   const supportSummary = useMemo(() => (open ? getSupportSummary(db) : null), [open, db]);
 
-  const handleSelect = useCallback(
-    async (entry: ChapterEntry) => {
-      log.write({ type: 'knot_open' });
-      const verses = await text.getChapter(entry.book, entry.chapter);
-      setViewing({ entry, verses });
-    },
-    [log, text],
-  );
+  // knot_open logs only when the knot itself opens (handleOpen below) — not
+  // again here when a history row is chosen from within an already-open knot.
+  const handleSelectHistoryEntry = useCallback((entry: HistoryEntry) => {
+    setViewingEntry(entry);
+  }, []);
 
   const handleCueSave = useCallback(
     (next: Cue) => {
@@ -211,9 +208,12 @@ export function Knot({ services }: KnotProps) {
                 onToggle={() => toggleSection('reading')}
               >
                 <Text style={styles.sectionLabel}>Chapters read</Text>
-                <ChapterStrip entries={chapterEntries} onSelect={handleSelect} />
+                <ChapterStrip hasHistory={hasHistory} onOpen={() => setHistoryOpen(true)} />
                 <Text style={styles.sectionLabel}>Study library</Text>
-                <DictionaryLibrary study={study} book={viewing?.entry.book ?? meta.get(db, 'current_book') ?? 'genesis'} />
+                <DictionaryLibrary
+                  study={study}
+                  book={viewingEntry?.book ?? meta.get(db, 'current_book') ?? 'genesis'}
+                />
               </DisclosureSection>
 
               <DisclosureSection
@@ -258,21 +258,15 @@ export function Knot({ services }: KnotProps) {
         </KeyboardAvoidingView>
       </Modal>
 
-      <Modal visible={viewing !== null} animationType={reducedMotion ? 'none' : 'slide'} onRequestClose={() => setViewing(null)}>
-        <View style={styles.viewerWrap}>
-          <Pressable style={styles.closeRow} onPress={() => setViewing(null)}>
-            <Text style={styles.close}>Close</Text>
-          </Pressable>
-          {viewing && (
-            <ScrollView>
-              <Text style={styles.viewerTitle}>
-                {bookName(viewing.entry.book)} {viewing.entry.chapter}
-              </Text>
-              <ScriptureZone verses={viewing.verses} attribution={text.attribution()} />
-            </ScrollView>
-          )}
-        </View>
-      </Modal>
+      <HistoryModal
+        visible={historyOpen}
+        db={db}
+        reducedMotion={reducedMotion}
+        onClose={() => setHistoryOpen(false)}
+        onSelectEntry={handleSelectHistoryEntry}
+      />
+
+      <ChapterViewer entry={viewingEntry} text={text} reducedMotion={reducedMotion} onClose={() => setViewingEntry(null)} />
     </>
   );
 }
@@ -354,17 +348,5 @@ const styles = StyleSheet.create({
     color: tokens.color.ink40,
     marginTop: 12,
     marginBottom: 4,
-  },
-  viewerWrap: {
-    flex: 1,
-    backgroundColor: tokens.color.paper,
-    paddingTop: 56,
-  },
-  viewerTitle: {
-    fontFamily: tokens.font.display,
-    fontWeight: '900',
-    fontSize: 28,
-    color: tokens.color.ink,
-    paddingHorizontal: 32,
   },
 });
