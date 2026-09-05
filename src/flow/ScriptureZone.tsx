@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   // wept.") still meet the minimum, without affecting the wrapped prose.
   verse: { minHeight: 44, justifyContent: 'center' },
   paragraph: { fontFamily: tokens.font.scripture, fontSize: 19, lineHeight: 30, color: tokens.color.ink },
-  marked: { backgroundColor: 'rgba(31, 63, 255, 0.08)' },
+  marked: { backgroundColor: tokens.color.markSoft },
   anchor: { borderBottomWidth: 1, borderBottomColor: tokens.color.thread },
   verseNum: { fontFamily: tokens.font.mono, fontSize: 12, color: tokens.color.ink40 },
   term: {

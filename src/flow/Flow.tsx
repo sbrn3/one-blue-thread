@@ -27,6 +27,7 @@ import { LapseZone } from './LapseZone';
 import { ProbeZone } from './ProbeZone';
 import { RecallZone } from './RecallZone';
 import { ScriptureZone, type ScriptureZoneHandle } from './ScriptureZone';
+import { StudyHint } from './StudyHint';
 import { SealZone } from './SealZone';
 import { SrbaiZone } from './SrbaiZone';
 import { WeaveZone } from './WeaveZone';
@@ -279,6 +280,14 @@ export function Flow({ services }: FlowProps) {
     () => session.sittings[session.sittingIndex] ?? [],
     [session.sittings, session.sittingIndex],
   );
+
+  // §04 — one-time study-tap hint. ChapterViewer (the knot's recorded-portion
+  // viewer) is a separate component entirely, so this never shows there.
+  const [studyHintSeen, setStudyHintSeen] = useState(() => meta.get(db, 'study_hint_seen') === '1');
+  const handleDismissStudyHint = useCallback(() => {
+    meta.set(db, 'study_hint_seen', '1');
+    setStudyHintSeen(true);
+  }, [db]);
   const termCues = useMemo(() => study.termsForVerses(sittingVerses, 4), [sittingVerses, study]);
   const contextTarget = contextVerse === null
     ? null
@@ -552,6 +561,7 @@ export function Flow({ services }: FlowProps) {
             onGrade={handleGradeProbe}
           />
         )}
+        {!studyHintSeen && sittingVerses.length > 0 && <StudyHint onDismiss={handleDismissStudyHint} />}
         <ScriptureZone
           ref={scriptureRef}
           verses={sittingVerses}
