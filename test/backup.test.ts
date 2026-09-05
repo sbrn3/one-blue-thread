@@ -475,7 +475,9 @@ describe('Backup (§16.9 export/restore orchestration)', () => {
     it('external attention: not needed inside the 7-day grace period, needed exactly after it', () => {
       const db = openTestDb();
       migrate(db);
-      meta.set(db, 'trial_start', '0');
+      // trial_start is a logical 'YYYY-MM-DD' date (OnboardingFlow.tsx), not epoch ms —
+      // 1970-01-01 parses to epoch 0, keeping the offsets below easy to read.
+      meta.set(db, 'trial_start', '1970-01-01');
       const backup = new Backup(db, fakeCrypto(), fakeIo());
 
       expect(backup.status(() => 7 * DAY - 1).externalAttentionNeeded).toBe(false);
@@ -485,7 +487,7 @@ describe('Backup (§16.9 export/restore orchestration)', () => {
     it('external attention: clears on confirmation, needed again exactly after 90 days stale', () => {
       const db = openTestDb();
       migrate(db);
-      meta.set(db, 'trial_start', '0');
+      meta.set(db, 'trial_start', '1970-01-01');
       const backup = new Backup(db, fakeCrypto(), fakeIo());
 
       backup.confirmExternalBackupSaved(() => 10_000);

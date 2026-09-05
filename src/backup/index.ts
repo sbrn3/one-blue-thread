@@ -59,6 +59,13 @@ function numOrNull(raw: string | null): number | null {
   return raw ? Number(raw) : null;
 }
 
+/** trial_start is stored as a logical 'YYYY-MM-DD' date (see OnboardingFlow.tsx), not epoch ms — Date.parse reads that ISO date-only form as UTC midnight, which is precise enough for a 7/90-day wall-clock grace window. */
+function dateStringToEpochMs(raw: string | null): number | null {
+  if (!raw) return null;
+  const ms = Date.parse(raw);
+  return Number.isNaN(ms) ? null : ms;
+}
+
 /** Maps a raw snapshot failure to a bounded, sharing-safe code — the raw error still propagates to the caller for local diagnostics. */
 function snapshotErrorCode(e: unknown): string {
   const msg = e instanceof Error ? e.message : String(e);
@@ -173,7 +180,7 @@ export class Backup {
     const lastOk = numOrNull(meta.get(this.db, META_SNAPSHOT_LAST_OK));
     const lastError = meta.get(this.db, META_SNAPSHOT_LAST_ERROR) || null;
     const externalConfirmedAt = numOrNull(meta.get(this.db, META_EXTERNAL_CONFIRMED));
-    const trialStart = numOrNull(meta.get(this.db, META_TRIAL_START));
+    const trialStart = dateStringToEpochMs(meta.get(this.db, META_TRIAL_START));
 
     const externalAttentionNeeded =
       externalConfirmedAt === null
