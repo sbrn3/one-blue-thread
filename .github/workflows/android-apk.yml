@@ -40,6 +40,19 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      # Without this every run recompiles all native code from scratch (~20
+      # min). The key covers the native inputs prebuild derives the Gradle
+      # project from; the restore-key still gives a warm cache when they move.
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('package-lock.json', 'app.json') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
       - name: Install dependencies
         run: npm ci
 

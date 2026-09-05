@@ -1,3 +1,4 @@
+import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -20,6 +21,16 @@ import { tokens } from './src/ui/tokens';
 installGlobalErrorHandler();
 
 export default function App() {
+  // Bundled, so this resolves in milliseconds — but it is deliberately NOT a
+  // render gate. Blocking the tree on an async load is how the launch screen
+  // froze once already; a few frames in the system fallback is the cheaper
+  // failure. tokens.font.* names must match these keys exactly.
+  useFonts({
+    'Schibsted Grotesk': require('./assets/fonts/SchibstedGrotesk.ttf'),
+    Newsreader: require('./assets/fonts/Newsreader.ttf'),
+    'JetBrains Mono': require('./assets/fonts/JetBrainsMono.ttf'),
+  });
+
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: tokens.color.paper }}>
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
