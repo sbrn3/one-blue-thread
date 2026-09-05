@@ -1,6 +1,6 @@
 ---
 name: save-plan
-description: Reconcile a completed Thread plan with the plan ledger and project status so it stays findable, correctly ordered, and clearly unimplemented.
+description: Reconcile a completed One Blue Thread plan with the plan ledger and project status so it stays findable, correctly ordered, and clearly unimplemented.
 ---
 
 # Save plan
@@ -8,9 +8,10 @@ description: Reconcile a completed Thread plan with the plan ledger and project 
 For a plan the user wants retained for later. Updates planning documentation
 only — no implementing, committing, pushing, or deploying.
 
-1. Identify the canonical plan at `docs/plans/<slug>/plan.html`. Confirm its
-   status, trigger/owner, next action, dependencies, verification gates, and any
-   unresolved product decisions.
+1. Identify the plan folder. For graded plans, confirm approval intent/scope in
+   `plan.html`, the executable graph and gates in `exec.md`, and live status in
+   `PROGRESS.md`. Do not copy content between them. Legacy plans may have only
+   `plan.html`; do not retrofit them unless requested.
 2. Read `STATUS.md`, `ROADMAP.md`, and `docs/plans/README.md` (create the last
    one if this is the first saved plan — a short table: slug, one-line intent,
    status, next action). Determine ordering from dependencies, overlapping
@@ -27,4 +28,4 @@ only — no implementing, committing, pushing, or deploying.
    next invocation.
 
 Never create a separate memory file or a parallel planning location. The
-repository documents are the shared source of truth.
+grade-appropriate repository artifacts are the shared source of truth.

@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&display=swap" rel="stylesheet">
 <style>
-/* ── Thread identity — mirrors docs/index.html / src/ui/tokens.ts. Do not swap for generic styles ── */
+/* ── One Blue Thread identity — mirrors docs/index.html / src/ui/tokens.ts. Do not swap for generic styles ── */
 :root {
   --bg:            #FBFAF7;
   --surface:       #ffffff;
@@ -69,19 +69,6 @@ code { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: 
 .panel { display: none; animation: fade .25s ease; }
 .panel.active { display: block; }
 @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-/* File blocks */
-.file-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin: .7rem 0; overflow: hidden; box-shadow: var(--shadow); }
-.file-header { padding: .5rem .9rem; background: var(--primary-tint); border-bottom: 1px solid var(--border); font-family: ui-monospace, monospace; font-size: .8rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
-.file-body { padding: .8rem .9rem; }
-pre { margin: 0; font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: .8rem; overflow-x: auto; white-space: pre-wrap; line-height: 1.55; color: var(--text); }
-.copy-btn { background: var(--primary); color: #ffffff; border: none; border-radius: 6px; padding: .2rem .6rem; font-size: .72rem; font-weight: 600; cursor: pointer; flex-shrink: 0; }
-.copy-btn:hover { background: var(--primary-dark); }
-/* Commits */
-.commit { background: var(--primary-tint); border-left: 3px solid var(--primary); padding: .5rem .8rem; margin: .4rem 0; border-radius: 0 8px 8px 0; font-family: ui-monospace, monospace; font-size: .8rem; display: flex; justify-content: space-between; align-items: center; gap: .8rem; flex-wrap: wrap; }
-/* Model-use tags (Phase 7 only — omit entirely on default-tier items) */
-.tag { display: inline-block; padding: .12em .55em; border-radius: 999px; font-size: .68rem; font-weight: 600; white-space: nowrap; font-family: var(--font-body); }
-.tag.effort   { color: var(--warning); background: var(--warning-bg); border: 1px solid #ffeeba; }
-.tag.subagent { color: var(--primary); background: var(--primary-tint); border: 1px solid var(--primary); }
 /* Checklist */
 .checklist { list-style: none; padding: 0; margin: .5rem 0; }
 .checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; font-size: .9rem; border-bottom: 1px solid var(--border); }
@@ -98,15 +85,6 @@ pre { margin: 0; font-family: ui-monospace, "Cascadia Code", Menlo, monospace; f
 .evidence-table { width: 100%; border-collapse: collapse; margin: .8rem 0 1.2rem; font-size: .84rem; }
 .evidence-table th, .evidence-table td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: left; vertical-align: top; }
 .evidence-table th { background: var(--primary-tint); color: var(--primary); }
-/* Tickets tab (Phase 8, sliced plans only) */
-.ticket-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin: .7rem 0; padding: .9rem 1.1rem; box-shadow: var(--shadow); }
-.ticket-card.ready { border-color: var(--success-bg); box-shadow: 0 0 0 1px #c3e6cb, var(--shadow); }
-.ticket-head { display: flex; justify-content: space-between; align-items: center; gap: .8rem; flex-wrap: wrap; margin-bottom: .3rem; }
-.ticket-title { font-weight: 600; font-size: .92rem; }
-.ticket-meta { font-size: .78rem; color: var(--text-muted); margin: .2rem 0 .5rem; }
-.ticket-ac { font-size: .85rem; margin: .3rem 0 .5rem; }
-.ticket-status { font-size: .78rem; padding: .2em .6em; border-radius: 999px; border: 1px solid var(--border); font-family: var(--font-body); background: var(--surface); color: var(--text-2); }
-.ticket-status.ready-badge { color: var(--success); background: var(--success-bg); border-color: #c3e6cb; }
 </style>
 </head>
 <body>
@@ -114,14 +92,12 @@ pre { margin: 0; font-family: ui-monospace, "Cascadia Code", Menlo, monospace; f
 <h1>{{TITLE}}</h1>
 <div class="meta">
   {{DATE}}
+  <span class="badge navy">{{COMPLEXITY_GRADE}}</span>
   <span class="badge navy">{{N}} files</span>
   <span class="badge navy">{{N}} commits</span>
   <span class="badge yellow">~{{ESTIMATE}}</span>
+  <!-- C4 only; delete for C2-C3 -->
   <span class="badge green">{{SMART_REVIEW_STATUS}}</span>
-  <!-- Phase 7 only, and only if at least one item is non-default; delete otherwise -->
-  <span class="badge yellow">{{MODEL_PLAN_STATUS}}</span>
-  <!-- Phase 8 only (sliced plans); delete for plans that skipped slicing -->
-  <span class="badge navy">{{TICKET_STATUS}}</span>
   <!-- UI features only; delete next line for non-UI plans -->
   <span class="badge navy">{{AESTHETICS_STATUS}}</span>
 </div>
@@ -138,11 +114,9 @@ pre { margin: 0; font-family: ui-monospace, "Cascadia Code", Menlo, monospace; f
   <button class="tab" data-tab="requirements" onclick="show('requirements')">Requirements</button>
   <!-- UI only: delete this tab + panel for non-UI plans -->
   <button class="tab" data-tab="aesthetics" onclick="show('aesthetics')">Aesthetics</button>
-  <button class="tab" data-tab="implementation" onclick="show('implementation')">Implementation</button>
-  <button class="tab" data-tab="commits" onclick="show('commits')">Commits</button>
+  <button class="tab" data-tab="execution" onclick="show('execution')">Execution</button>
+  <!-- C4 only: delete this tab + panel for C0-C3 -->
   <button class="tab" data-tab="review" onclick="show('review')">Smart Review</button>
-  <!-- Phase 8 only: delete this tab + panel for plans that skipped slicing -->
-  <button class="tab" data-tab="tickets" onclick="show('tickets')">Tickets</button>
   <button class="tab" data-tab="verify" onclick="show('verify')">Verification</button>
 </div>
 
@@ -205,52 +179,25 @@ pre { margin: 0; font-family: ui-monospace, "Cascadia Code", Menlo, monospace; f
   <p class="note">Chosen direction: <strong>{{CHOSEN}}</strong>. {{rationale / blend notes / UI research refs}}</p>
 </div>
 
-<div id="implementation" class="panel">
-  <h2>Implementation</h2>
-  <!-- FILL: one .file-block per file. Pattern: -->
-  <div class="file-block">
-    <div class="file-header">
-      <span>src/path/File.tsx — MODIFY (line ~N)</span>
-      <!-- Phase 7 only: add a tag if this item is non-default. Omit the span entirely for 🟢 default items. -->
-      <span><span class="tag effort">🟡 high-effort — event-log migration shape</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span>
-    </div>
-    <div class="file-body"><pre>{{exact code to paste}}</pre></div>
-  </div>
+<div id="execution" class="panel">
+  <h2>Execution</h2>
+  <p><strong>Grade {{C2|C3|C4}}:</strong> {{triggering signals and why this planning depth is proportionate}}</p>
+  <p>The authoritative file recipes, slice dependencies, commands, budgets,
+  branching strategy, delegation decisions, and rollback steps are in
+  <a href="exec.md">exec.md</a>. Live status is recorded only in
+  <a href="PROGRESS.md">PROGRESS.md</a>.</p>
+  <p>{{short user-facing execution summary; do not duplicate recipes or live status}}</p>
 </div>
 
-<div id="commits" class="panel">
-  <h2>Commits</h2>
-  <!-- FILL: one .commit per commit. Add a .tag span only for non-default items (see Phase 7 tagging). -->
-  <div class="commit"><span>{{type(scope): message}} — {{files}}</span><span class="tag subagent">🔵 subagent — verify every caller of the log writer before changing a stamped field</span></div>
-  <h3>Branching &amp; rollback</h3>
-  <p>{{branch strategy + one-sentence rollback}}</p>
-</div>
-
+<!-- C4 only -->
 <div id="review" class="panel">
   <h2>Smart Review</h2>
   <!-- FILL: findings (HIGH/MED/LOW) + how each was fixed. If not needed, say why. -->
 </div>
 
-<!-- Phase 8 only: delete this whole panel for plans that skipped slicing -->
-<div id="tickets" class="panel">
-  <h2>Tickets</h2>
-  <p class="ticket-meta">The <strong>frontier</strong> (ready to start now) is computed live from each card's <code>data-blocked-by</code> against every other card's <code>data-status</code> — don't hand-maintain a separate list.</p>
-  <!-- FILL: one .ticket-card per slice. Pattern: -->
-  <div class="ticket-card" data-slice="1" data-blocked-by="" data-status="not-started">
-    <div class="ticket-head">
-      <span class="ticket-title">1. {{Slice title}}</span>
-      <span><span class="tag effort">🟡 high-effort — {{why}}</span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
-    </div>
-    <div class="ticket-meta">Blocked by: {{None — can start immediately, or slice numbers/titles}}</div>
-    <div class="ticket-meta">Delivers: {{end-to-end behaviour this slice makes work}}</div>
-    <div class="ticket-ac">Acceptance criteria: satisfies user stories {{#N, #N}}</div>
-    <div class="ticket-meta">Rollback: {{one-sentence slice-specific rollback}}</div>
-  </div>
-</div>
-
 <div id="verify" class="panel">
   <h2>Verification</h2>
-  <!-- Sliced plans: this is the whole-feature rollup, run once every ticket above is done — not a per-slice gate. -->
+  <!-- This is the approved whole-feature verification contract. Per-slice commands live in exec.md. -->
   <!-- Automated (npm test + npm run typecheck + CI) is the real gate. Add a Manual/Visual block ONLY for event-log schema/migration, PRNG determinism, notification scheduling, backup crypto, or partner hand-off changes, or visually load-bearing UI (see AGENTS.md verification policy); otherwise a 1-3 bullet optional owner spot-check is enough. Do not write a checklist no one will run. -->
   <ul class="checklist">
     <!-- FILL: <li><input type=checkbox><span>step → expected</span></li> -->
@@ -262,41 +209,12 @@ function show(id){
   document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
 }
-function copyCode(btn){
-  const pre = btn.closest('.file-block').querySelector('pre');
-  navigator.clipboard.writeText(pre.innerText).then(() => {
-    const old = btn.textContent; btn.textContent = 'Copied ✓';
-    setTimeout(() => btn.textContent = old, 1200);
-  });
-}
 // Persist checklist state per plan file
 const KEY = 'plan-checks-' + location.pathname;
 document.querySelectorAll('.checklist input[type=checkbox]').forEach((cb, i) => {
   cb.checked = localStorage.getItem(KEY + i) === '1';
   cb.addEventListener('change', () => localStorage.setItem(KEY + i, cb.checked ? '1' : '0'));
 });
-// Tickets (Phase 8): source data-status is authoritative; recompute the frontier from blocking edges.
-// Update plan.html itself whenever project status changes. No localStorage is used for ticket state.
-function setStatus(sel){
-  const card = sel.closest('.ticket-card');
-  card.dataset.status = sel.value;
-  computeFrontier();
-}
-function computeFrontier(){
-  const cards = document.querySelectorAll('.ticket-card');
-  const statusBySlice = {};
-  cards.forEach(c => statusBySlice[c.dataset.slice] = c.dataset.status);
-  cards.forEach(c => {
-    const blockers = (c.dataset.blockedBy || '').split(',').map(s => s.trim()).filter(Boolean);
-    const unblocked = blockers.every(b => statusBySlice[b] === 'done');
-    c.classList.toggle('ready', unblocked && c.dataset.status !== 'done');
-  });
-}
-document.querySelectorAll('.ticket-card').forEach(c => {
-  const sel = c.querySelector('.ticket-status');
-  if (sel) sel.value = c.dataset.status;
-});
-computeFrontier();
 </script>
 </body>
 </html>

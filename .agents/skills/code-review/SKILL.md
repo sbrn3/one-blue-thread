@@ -1,6 +1,6 @@
 ---
 name: code-review
-description: Review a Thread diff against the repository standards and its originating plan or user stories, prioritizing concrete regressions, the §13.6 invariants, missing tests, and specification drift.
+description: Review a One Blue Thread diff against the repository standards and its originating plan or user stories, prioritizing concrete regressions, the §13.6 invariants, missing tests, and specification drift.
 ---
 
 # Code review
@@ -10,8 +10,10 @@ Read-only unless the user also asks for fixes.
 1. Establish the fixed point: the user-supplied commit/branch, the start of the
    current ticket, or `git merge-base HEAD main`. State the range before
    reviewing.
-2. Read `AGENTS.md`, the affected source/tests, and the originating
-   `docs/plans/<slug>/plan.html` or the explicit user stories.
+2. Read `AGENTS.md`, the affected source/tests, approved intent from the
+   originating `plan.html`, and only the assigned slice from `exec.md` when it
+   exists. Legacy plans may keep recipes in `plan.html`; use explicit user
+   stories when no durable plan exists.
 3. Review two axes:
    - **Standards:** correctness; the §13.6 hard rules (append-only events,
      additive-only migrations, no `Math.random()`, writer-stamped fields, the

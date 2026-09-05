@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Design a significant Thread change before implementation, producing an evidence-backed interactive plan with user stories, exact file recipes, UI mockups when needed, verification, Smart Review, and tracer-bullet tickets for complex work.
+description: Grade and design a One Blue Thread change before implementation, using planning depth from an in-chat outline through an evidence-backed plan with isolated execution slices, UI mockups, review, and verification when warranted.
 ---
 
 # Plan
@@ -9,22 +9,46 @@ Plan only. Do not edit product code, install dependencies, commit, push, deploy,
 or apply an event-log migration. Planning artifacts under `docs/plans/<slug>/`
 are allowed.
 
-Run the phases in order. `[always]` runs every time; `[UI only]` applies to
-visible UI work. Phases 7–8 are conditional and live in
-[references/complex-plans.md](references/complex-plans.md).
+Classify the change first. C0-C1 stop after the proportionate lightweight
+output below. C2-C4 run Phases 1-6 and 9. C3-C4 also read
+[references/complex-plans.md](references/complex-plans.md) for slicing and
+execution waves; C4 also runs Smart Review. `[UI only]` applies to visible UI.
+
+## Complexity grade `[always]`
+
+Choose the highest matching grade. File counts guide; risk overrides size.
+
+| Grade | Signals | Output |
+| --- | --- | --- |
+| C0 Patch | 1-2 files; obvious behavior; no product decision or protected mechanism | No durable plan. State intent, change, focused test, and gate. |
+| C1 Scoped | 3-4 files; one layer; one session; established pattern | Brief in-chat scope, files, risks, and verification. No delegation or ledger. |
+| C2 Structured | 5-9 files; two layers; UI decision; or 2-3 shippable slices | `plan.html`, `exec.md`, and `PROGRESS.md`; fresh session per slice. |
+| C3 Parallel | 10-24 files; 3+ layers; or 3-6 slices with disjoint ownership | C2 artifacts plus execution waves, bounded delegation when justified, worktree/branch plan, and integration gate. |
+| C4 Programme | 25+ files; 7+ slices; high uncertainty; or protected mechanism change | C3 plus Smart Review, independent final audit, rollback gates, and post-build `OUTCOME.md`. |
+
+Event-log migrations, PRNG determinism, notification scheduling, backup crypto,
+partner hand-off, destructive reset, and dependency migrations are C4 minimum.
+New cross-layer persistent state is C3 minimum. UI requiring direction mockups is
+C2 minimum. If uncertainty plausibly raises scope one grade, use the higher
+grade. Record the grade and triggers. If later evidence crosses a boundary,
+re-grade and re-slice before approval or implementation.
 
 ## Before Phase 1
 
-1. Read `AGENTS.md`, `STATUS.md`, `ROADMAP.md`, the relevant part of `README.md`,
-   the relevant sections of `../thread-plan_3.html` (the product spec), and
-   recent `JOURNAL.md` entries and `docs/CONTEXT.md` if present.
-2. Search `docs/plans/*/grill-summary.md`. Reuse the matching slug and folder;
+1. Read `AGENTS.md`, inspect `git status`, and locate only the affected symbols,
+   callers, and closest tests needed to assign a provisional grade. Preserve
+   unrelated work.
+2. For C0-C1, state the grade and its triggers, produce the table's lightweight
+   output, and stop. Escalate if inspection crosses a grade boundary.
+3. For C2-C4, read `STATUS.md`, `ROADMAP.md`, the relevant part of `README.md`,
+   only the relevant sections of `../thread-plan_3.html`, recent relevant
+   `JOURNAL.md` entries, and `docs/CONTEXT.md` if present.
+4. Search `docs/plans/*/grill-summary.md`. Reuse the matching slug and folder;
    never create a second plan folder for the same work.
-3. Read every companion evidence artifact in the folder — `grill-summary.md`,
+5. Read every companion evidence artifact in the folder — `grill-summary.md`,
    `level-up.md`, `mockup.html`. Confirmed decisions are inputs, not questions to
    repeat. The user's latest explicit statement beats a stale artifact label.
-4. Inspect `git status`. Preserve unrelated work; keep planning changes inside
-   the plan folder until approval.
+6. Keep planning changes inside the plan folder until approval.
 
 ## Phase 1 — Intent `[always]`
 
@@ -32,7 +56,7 @@ Resolve repository facts by inspection; ask only for product decisions that
 materially change scope. Use a structured question tool when the host provides
 one; otherwise one concise question at a time.
 
-Write into the plan: the underlying problem and desired user outcome; hard
+Write into `plan.html`: the underlying problem and desired user outcome; hard
 constraints and privacy boundaries; scope and non-goals; dependencies and
 unresolved gates; plain-language acceptance criteria. When a grill summary
 exists, treat its confirmed decisions as answered.
@@ -43,10 +67,10 @@ Trace the real screens, data flow, tests, styles, the event-log schema, and
 external boundaries (`TextProvider`, notifier, backup crypto, partner hand-off).
 Cite exact paths and stable symbols, not invented architecture.
 
-- For broad work, delegate up to three non-overlapping read-only exploration
-  tasks in parallel (existing patterns; affected-file/caller map;
-  dependencies/constraints) only if the user authorizes delegation. The main
-  planner integrates and verifies.
+- For provisional C3-C4 work, delegate up to three non-overlapping read-only
+  exploration tasks only if the user authorizes it. Give each worker one bounded
+  question and no full conversation history; the main planner integrates and
+  verifies a result of at most 150 tokens.
 - For UI work, read `src/ui/tokens.ts` yourself and record exact tokens, fonts,
   spacing, and radii. The reference palette/type is `docs/index.html`.
 - Preserve the stack: Expo / React Native, Zustand, Reanimated, `expo-sqlite`,
@@ -59,13 +83,15 @@ Cite exact paths and stable symbols, not invented architecture.
 
 ## Phase 3 — Requirements and traceability `[always]`
 
-Write an extensive numbered list of observable user stories:
+Write a numbered list of observable user stories proportionate to the grade:
+C2 covers every affected state; C3-C4 also exhaustively cover cross-layer seams,
+protected mechanisms, and slice integration.
 
 `<N>. As a <actor>, I want <behaviour>, so that <benefit>.`
 
 Cover the golden path, every affected actor (the reader; the partner; the lab, as
 a silent actor), loading/empty/error/retry states, accessibility, offline
-behavior (Thread is offline-first — the WEB translation always works with no
+behavior (One Blue Thread is offline-first — the WEB translation always works with no
 network), and important edge cases (a missed day, a lapse, the 4 AM boundary,
 year-one vs post-day-366). These story numbers are the traceability spine.
 
@@ -122,17 +148,20 @@ Do not proceed to the recipe until the user confirms a direction.
 
 ## Phase 5 — Exact implementation recipe `[always]`
 
-Write an actionable recipe in `docs/plans/<slug>/plan.html` a fresh session can
-execute without repeating research. For every file: mark `NEW` / `MODIFY` /
-`DELETE`; cite the stable symbol and an approximate line; describe the precise
-change and data/control flow; include focused code or pseudocode where it removes
-ambiguity; name matching tests and acceptance criteria; call out risk against the
-hard rules and the rollback implication.
+For C2-C4, copy
+[references/exec-template.md](references/exec-template.md) to
+`docs/plans/<slug>/exec.md` and make it executable without repeating research.
+For every file: mark `NEW` / `MODIFY` / `DELETE`; cite the stable symbol and an
+approximate line; describe the precise change and data/control flow; use
+signatures or short pseudocode, never complete code bodies; name matching tests
+and acceptance criteria; call out hard-rule risk and rollback.
 
 Define ordered commits, dependency order, branch/worktree/PR strategy, and a
-one-sentence rollback per slice. Use a sibling worktree for broad, risky,
-multi-session, or 10+ commit work; a small clean single-session change stays on
-`main`. Two or more active worktrees → separate branches, PR-ordered merges.
+one-sentence rollback per slice in `exec.md`. Use a sibling worktree for broad,
+risky, multi-session, or 10+ commit work; a small clean single-session change
+stays on `main`. Two or more active worktrees → separate branches, PR-ordered
+merges. Record missing authorization as a gate; plan approval alone does not
+authorize commit, push, PR, merge, or deploy.
 
 ## Phase 6 — Verification `[always]`
 
@@ -161,47 +190,47 @@ fallback.
   system, a new flow zone): small + large OS font scale, safe-area insets, focus
   order, reduced motion, touch targets, loading/empty/error/long-content.
 
-### Plan audit `[complex only]`
+### Plan audit `[C4 only]`
 
 Require an independent post-implementation review of the final diff against
-`plan.html`. Fix HIGH and MEDIUM gaps before completion.
+`plan.html` and `exec.md`. Fix HIGH and MEDIUM gaps before completion.
 
-## Complexity gate `[always]`
+## Grade confirmation `[always]`
 
-Complex if any signal is true: five or more files affected; multiple layers
-(e.g. schema + lab engine + UI, or notifier + state + UI); an event-log
-migration, dependency update, or a change to a §13.6 invariant's mechanism; the
-backup crypto or partner hand-off; ten or more commits or two or more
-independently shippable phases.
-
-If any fire, read [references/complex-plans.md](references/complex-plans.md)
-completely and run Phase 7 Smart Review and Phase 8 tracer-bullet slicing before
-approval. If none fire, go to Phase 9.
+After Phase 5, confirm the grade against the evidenced file count, layers,
+slices, uncertainty, and protected mechanisms. C2 proceeds to Phase 9. C3-C4
+read [references/complex-plans.md](references/complex-plans.md) completely and
+apply the matching sections before Phase 9.
 
 ## Phase 9 — Authoritative artifact and approval `[always]`
 
 1. Copy [assets/plan-template.html](assets/plan-template.html) to
-   `docs/plans/<slug>/plan.html` and fill its `FILL` markers. Don't hand-roll a
-   second visual system.
-2. Every phase that ran must appear. Remove tabs/panels that don't apply.
-3. Include status, owner/trigger, next action, scope, non-goals, dependencies,
-   evidence, decisions, unresolved gates, ordered tickets/recipe, branching,
-   commits, verification, documentation effects, and rollback.
-4. Keep one authoritative plan. No parallel Markdown snapshot.
-5. Keep `grill-summary.md` / `level-up.md` / rejected mockup directions through
+   `docs/plans/<slug>/plan.html` and fill its `FILL` markers. Keep detailed file
+   recipes, commands, commits, and live status in `exec.md`, not the HTML.
+2. Create `PROGRESS.md` with the plan title and the format
+   `SNN status | files N | focused result | suite result | types result | gap …`.
+   Do not create `OUTCOME.md`; C4 execution creates it once at completion.
+3. Every phase that ran must appear. Remove tabs/panels that don't apply.
+4. Include approval status, owner/trigger, next action, grade, scope, non-goals,
+   dependencies, evidence, decisions, unresolved gates, verification,
+   documentation effects, and a link to `exec.md`.
+5. Keep one authority per concern: `plan.html` owns approved intent and scope;
+   `exec.md` owns execution; `PROGRESS.md` owns live status; C4's eventual
+   `OUTCOME.md` owns final results. Do not duplicate their content.
+6. Keep `grill-summary.md` / `level-up.md` / rejected mockup directions through
    drafting and review. Only after explicit plan approval, and after verifying
    `plan.html` preserves every accepted decision, delete genuinely superseded
    scratch. Retain the approved mockup until the feature ships.
-6. Update `docs/plans/README.md` and `STATUS.md` together only after the plan is
+7. Update `docs/plans/README.md` and `STATUS.md` together only after the plan is
    active/approved. Use `/save-plan` if it is approved but intentionally
    deferred.
-7. Present scope, file/commit count, estimate, Smart Review status, slice
-   summary, aesthetics status, and a link to `plan.html`.
-8. Request approval via the host's plan-approval mechanism, or ask plainly.
+8. Present grade, scope, file/commit count, estimate, applicable review status,
+   slice summary, aesthetics status, and links to `plan.html` and `exec.md`.
+9. Request approval via the host's plan-approval mechanism, or ask plainly.
    Implementation begins only after explicit user approval.
 
 ## Completion boundary
 
-Planning is complete only when the interactive plan is internally consistent, all
-applicable gates ran, the user has reviewed it, and no unresolved product
-decision is hidden inside an implementation ticket.
+Planning is complete only when the grade-appropriate artifacts are internally
+consistent, applicable gates ran, the user reviewed them, and no unresolved
+product decision is hidden inside an execution slice.

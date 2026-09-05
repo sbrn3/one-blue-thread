@@ -1,6 +1,6 @@
 ---
 name: wrap-up
-description: Close a Thread work session by verifying the current slice, reconciling STATUS/ROADMAP/JOURNAL, checking worktrees, and handing off remaining work without assuming commit or push permission.
+description: Close a One Blue Thread work session by verifying the current slice, reconciling STATUS/ROADMAP/JOURNAL, checking worktrees, and handing off remaining work without assuming commit or push permission.
 ---
 
 # Wrap up
@@ -29,7 +29,10 @@ committing, pushing, merging, deploying, changing providers, or discarding work.
    - `JOURNAL.md` — one entry for durable completed history or a hard-to-reverse
      decision.
    - `README.md` — only if the repo shape, commands, or hard rules changed.
-   - `docs/plans/README.md` and the canonical `plan.html` — plan status.
+   - `docs/plans/README.md` — plan index status; `PROGRESS.md` — bounded live
+     slice result; C4 `OUTCOME.md` — final result. Never update approved
+     `plan.html` during graded-plan execution. Legacy plans retain their
+     existing status convention unless separately migrated.
    - User-facing behavior change → `/update-wiki`.
 5. Remove obsolete generated artifacts or duplicate plan snapshots only when
    their scope is known and recovery is clear. Never delete user work to tidy
