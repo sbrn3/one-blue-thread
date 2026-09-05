@@ -1,12 +1,24 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  AccessibilityInfo,
+  findNodeHandle,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { useReducedMotion } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Cue } from '../cue';
 import { WeaveZone } from '../flow/WeaveZone';
 import { deriveBolt } from '../flow/bolt';
 import { bundledChapterCount } from '../text';
 import { ScriptureZone } from '../flow/ScriptureZone';
-import { getAmendmentLog } from '../lab/analysis/amendments';
-import { buildDiagnostics } from '../lab/diagnostics';
+import { getSupportSummary, needsAttention } from '../lab/diagnostics';
 import { getProfile } from '../lab/profile';
 import { computeStreak, meta } from '../log/log';
 import { logicalToday } from '../log/time';
@@ -19,6 +31,7 @@ import { BackupSection } from './BackupSection';
 import { ChapterStrip, type ChapterEntry } from './ChapterStrip';
 import { CueEditor } from './CueEditor';
 import { DiagnosticsSection } from './DiagnosticsSection';
+import { DisclosureSection } from './DisclosureSection';
 import { PartnerSection } from './PartnerSection';
 import { ResetSection } from './ResetSection';
 import { DictionaryLibrary } from '../study/DictionaryLibrary';
@@ -27,20 +40,42 @@ interface KnotProps {
   services: Services;
 }
 
+type SectionKey = 'practice' | 'reading' | 'safekeeping' | 'partner' | 'support' | 'app';
+
 /**
- * §04 — the knot: the app's sole persistent control, present on
- * every screen. One sheet: the weave (viewable any time, not gated
- * behind sealing), a chapter strip for revisiting anything already
- * read, and the cue editor. The only concession to non-linear use.
+ * §04 — the knot: the app's sole persistent control, present on every
+ * screen. Direction A's quiet accordion (docs/plans/app-quality-foundations):
+ * today's compact weave, then Practice (open by default), Reading & Study,
+ * Safekeeping, Partner, Support, and App disclosures — Safekeeping and
+ * Support open themselves when they need attention, re-evaluated every time
+ * the knot opens. Translation state/provider/copy is untouched here — owned
+ * by the separate, parked knot-translation-switch plan.
  */
 export function Knot({ services }: KnotProps) {
   const { db, log, text, study, cue, backup, partner } = services;
   const today = useRef(logicalToday()).current;
+  const reducedMotion = useReducedMotion();
+  const insets = useSafeAreaInsets();
 
   const [open, setOpen] = useState(false);
   const [cueState, setCueState] = useState<Cue | null>(() => cue.current());
   const [viewing, setViewing] = useState<{ entry: ChapterEntry; verses: Verse[] } | null>(null);
   const [paused, setPaused] = useState(() => meta.get(db, 'paused') === '1');
+
+  const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
+    practice: true,
+    reading: false,
+    safekeeping: false,
+    partner: false,
+    support: false,
+    app: false,
+  });
+  const toggleSection = useCallback((key: SectionKey) => {
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  }, []);
+
+  const openerRef = useRef<View>(null);
+  const closeRef = useRef<View>(null);
 
   // Same derivation the flow uses. The knot reaches the weave independently of
   // today's seal, so this must be correct on an unsealed day too.
@@ -56,6 +91,11 @@ export function Knot({ services }: KnotProps) {
        WHERE sealed = 1 AND book IS NOT NULL ORDER BY local_date DESC LIMIT 100`,
     );
   }, [open, db]);
+
+  // Re-read on every open, not just once — a foreground snapshot or a prior
+  // Support-worthy error may have happened since the knot was last opened.
+  const backupStatus = useMemo(() => (open ? backup.status() : null), [open, backup]);
+  const supportSummary = useMemo(() => (open ? getSupportSummary(db) : null), [open, db]);
 
   const handleSelect = useCallback(
     async (entry: ChapterEntry) => {
@@ -74,9 +114,31 @@ export function Knot({ services }: KnotProps) {
     [cue],
   );
 
+  const focusCloseControl = useCallback(() => {
+    const handle = findNodeHandle(closeRef.current);
+    if (handle) AccessibilityInfo.setAccessibilityFocus(handle);
+  }, []);
+
+  const restoreOpenerFocus = useCallback(() => {
+    const handle = findNodeHandle(openerRef.current);
+    if (handle) AccessibilityInfo.setAccessibilityFocus(handle);
+  }, []);
+
   const handleOpen = () => {
     log.write({ type: 'knot_open' });
+    const status = backup.status();
+    const support = getSupportSummary(db);
+    setOpenSections((prev) => ({
+      ...prev,
+      safekeeping: status.snapshotAttentionNeeded || status.externalAttentionNeeded,
+      support: needsAttention(support),
+    }));
     setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    restoreOpenerFocus();
   };
 
   const handleResume = () => {
@@ -87,21 +149,34 @@ export function Knot({ services }: KnotProps) {
   return (
     <>
       <Pressable
+        ref={openerRef}
         style={styles.button}
         onPress={handleOpen}
         accessibilityRole="button"
-        accessibilityLabel="Open the knot: weave, past chapters, and cue"
+        accessibilityLabel="Open the knot: weave, practice, and settings"
       >
-        <View style={styles.knotDot} />
+        <Text style={styles.buttonLabel}>• Knot</Text>
       </Pressable>
 
-      <Modal visible={open} animationType="slide" transparent onRequestClose={() => setOpen(false)}>
+      <Modal
+        visible={open}
+        animationType={reducedMotion ? 'none' : 'slide'}
+        transparent
+        onRequestClose={handleClose}
+        onShow={focusCloseControl}
+      >
         <KeyboardAvoidingView
           style={styles.backdrop}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          <View style={styles.sheet}>
-            <Pressable style={styles.closeRow} onPress={() => setOpen(false)}>
+          <View style={[styles.sheet, { paddingBottom: insets.bottom }]} accessibilityViewIsModal>
+            <Pressable
+              ref={closeRef}
+              style={styles.closeRow}
+              onPress={handleClose}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+            >
               <Text style={styles.close}>Close</Text>
             </Pressable>
             <ScrollView contentContainerStyle={styles.sheetContent} keyboardShouldPersistTaps="handled">
@@ -114,42 +189,76 @@ export function Knot({ services }: KnotProps) {
                 </View>
               )}
 
-              <Text style={styles.sectionLabel}>The weave</Text>
               <WeaveZone
                 book={bolt.book}
                 chapterCount={bundledChapterCount(bolt.book)}
                 sealed={bolt.sealed}
                 streak={getProfile(db, 'streakVisible') === '1' ? computeStreak(db, today) : null}
+                compact
               />
 
-              <Text style={styles.sectionLabel}>Chapters read</Text>
-              <ChapterStrip entries={chapterEntries} onSelect={handleSelect} />
+              <DisclosureSection
+                summary="Practice"
+                expanded={openSections.practice}
+                onToggle={() => toggleSection('practice')}
+              >
+                <CueEditor cue={cueState} onSave={handleCueSave} />
+              </DisclosureSection>
 
-              <Text style={styles.sectionLabel}>Study library</Text>
-              <DictionaryLibrary study={study} book={viewing?.entry.book ?? meta.get(db, 'current_book') ?? 'genesis'} />
+              <DisclosureSection
+                summary="Reading & Study"
+                expanded={openSections.reading}
+                onToggle={() => toggleSection('reading')}
+              >
+                <Text style={styles.sectionLabel}>Chapters read</Text>
+                <ChapterStrip entries={chapterEntries} onSelect={handleSelect} />
+                <Text style={styles.sectionLabel}>Study library</Text>
+                <DictionaryLibrary study={study} book={viewing?.entry.book ?? meta.get(db, 'current_book') ?? 'genesis'} />
+              </DisclosureSection>
 
-              <Text style={styles.sectionLabel}>The cue</Text>
-              <CueEditor cue={cueState} onSave={handleCueSave} />
+              <DisclosureSection
+                summary="Safekeeping"
+                status={
+                  backupStatus?.snapshotAttentionNeeded || backupStatus?.externalAttentionNeeded
+                    ? 'Needs attention'
+                    : undefined
+                }
+                attention={backupStatus?.snapshotAttentionNeeded || backupStatus?.externalAttentionNeeded}
+                expanded={openSections.safekeeping}
+                onToggle={() => toggleSection('safekeeping')}
+              >
+                <BackupSection backup={backup} />
+              </DisclosureSection>
 
-              <Text style={styles.sectionLabel}>Partner</Text>
-              <PartnerSection partner={partner} />
+              <DisclosureSection
+                summary="Partner"
+                expanded={openSections.partner}
+                onToggle={() => toggleSection('partner')}
+              >
+                <PartnerSection partner={partner} />
+              </DisclosureSection>
 
-              <Text style={styles.sectionLabel}>Backup</Text>
-              <BackupSection backup={backup} />
+              <DisclosureSection
+                summary="Support"
+                status={supportSummary && needsAttention(supportSummary) ? 'Needs attention' : undefined}
+                attention={supportSummary ? needsAttention(supportSummary) : false}
+                expanded={openSections.support}
+                onToggle={() => toggleSection('support')}
+              >
+                {supportSummary && <DiagnosticsSection summary={supportSummary} />}
+              </DisclosureSection>
 
-              <Text style={styles.sectionLabel}>Adaptive policy</Text>
-              <AdaptiveSection db={db} today={today} />
-
-              <Text style={styles.sectionLabel}>Support</Text>
-              <DiagnosticsSection diagnosticsText={buildDiagnostics(db)} amendments={getAmendmentLog(db)} />
-
-              <ResetSection db={db} log={log} />
+              <DisclosureSection summary="App" expanded={openSections.app} onToggle={() => toggleSection('app')}>
+                <Text style={styles.sectionLabel}>Adaptive policy</Text>
+                <AdaptiveSection db={db} today={today} />
+                <ResetSection db={db} log={log} />
+              </DisclosureSection>
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
       </Modal>
 
-      <Modal visible={viewing !== null} animationType="slide" onRequestClose={() => setViewing(null)}>
+      <Modal visible={viewing !== null} animationType={reducedMotion ? 'none' : 'slide'} onRequestClose={() => setViewing(null)}>
         <View style={styles.viewerWrap}>
           <Pressable style={styles.closeRow} onPress={() => setViewing(null)}>
             <Text style={styles.close}>Close</Text>
@@ -173,18 +282,19 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 56,
     right: 20,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    minHeight: 44,
+    minWidth: 44,
+    paddingHorizontal: 12,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 200,
   },
-  knotDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: tokens.color.thread,
+  buttonLabel: {
+    fontFamily: tokens.font.mono,
+    fontSize: 12,
+    letterSpacing: 0.5,
+    color: tokens.color.ink40,
   },
   backdrop: {
     flex: 1,
@@ -201,10 +311,12 @@ const styles = StyleSheet.create({
   sheetContent: {
     paddingHorizontal: 24,
     paddingBottom: 40,
-    gap: 12,
+    gap: 4,
   },
   closeRow: {
     alignSelf: 'flex-end',
+    minHeight: 44,
+    justifyContent: 'center',
     paddingHorizontal: 24,
     paddingBottom: 8,
   },
@@ -221,6 +333,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 16,
+    marginBottom: 12,
   },
   pausedText: {
     fontFamily: tokens.font.mono,
@@ -239,7 +352,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     textTransform: 'uppercase',
     color: tokens.color.ink40,
-    marginTop: 20,
+    marginTop: 12,
     marginBottom: 4,
   },
   viewerWrap: {

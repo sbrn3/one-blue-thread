@@ -14,6 +14,8 @@ interface WeaveZoneProps {
   sealed: boolean[];
   /** §14 E3, applied — omitted/null (the default) shows no count, as before. */
   streak?: number | null;
+  /** Used only by the knot's compact "today's weave" summary — lower max height/padding, identical bolt semantics and labels. Flow's own caller always renders full size. */
+  compact?: boolean;
 }
 
 /**
@@ -28,13 +30,13 @@ interface WeaveZoneProps {
  * Replaces the calendar-month grid: the zone now answers "how is this book
  * going" rather than "how was this month".
  */
-export function WeaveZone({ book, chapterCount, sealed, streak }: WeaveZoneProps) {
+export function WeaveZone({ book, chapterCount, sealed, streak, compact = false }: WeaveZoneProps) {
   const [width, setWidth] = useState(0);
   const days = sealed.length;
   const read = sealed.filter(Boolean).length;
 
   return (
-    <View style={styles.zone} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+    <View style={[styles.zone, compact && styles.zoneCompact]} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
       <View style={styles.headerRow}>
         <Text style={styles.label}>
           {bookName(book)} · {chapterCount} {chapterCount === 1 ? 'chapter' : 'chapters'}
@@ -48,7 +50,7 @@ export function WeaveZone({ book, chapterCount, sealed, streak }: WeaveZoneProps
       {width > 0 && (
         <Cloth
           width={width}
-          maxHeight={CLOTH_MAX_HEIGHT}
+          maxHeight={compact ? CLOTH_MAX_HEIGHT_COMPACT : CLOTH_MAX_HEIGHT}
           chapterCount={chapterCount}
           sealed={sealed}
           dye={dyeFor(book)}
@@ -62,12 +64,18 @@ export function WeaveZone({ book, chapterCount, sealed, streak }: WeaveZoneProps
 }
 
 const CLOTH_MAX_HEIGHT = 520;
+const CLOTH_MAX_HEIGHT_COMPACT = 220;
 
 const styles = StyleSheet.create({
   zone: {
     paddingHorizontal: 32,
     paddingVertical: 40,
     gap: 20,
+  },
+  zoneCompact: {
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+    gap: 12,
   },
   headerRow: {
     flexDirection: 'row',
