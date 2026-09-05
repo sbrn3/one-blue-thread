@@ -16,9 +16,15 @@ const SEARCH_RADIUS = 6; // how far a cut may slide to land on a paragraph start
  * produce a near-useless 21/20 split.
  */
 export function splitSittings(verses: Verse[], target = 40): Sitting[] {
-  if (verses.length <= target * 1.5) return [verses];
+  // A target of 0 (or NaN/negative) makes n below Infinity, and the cut loop
+  // then never terminates - it allocates until the device gives out. Because
+  // the app has already rendered by then, this presents as a hang, not a
+  // crash. Treat any unusable target as the default rather than trust it.
+  const safeTarget = Number.isFinite(target) && target > 0 ? target : 40;
+  console.log(`[boot] splitSittings verses=${verses.length} target=${JSON.stringify(target)} safe=${safeTarget}`);
+  if (verses.length <= safeTarget * 1.5) return [verses];
 
-  const n = Math.ceil(verses.length / target);
+  const n = Math.ceil(verses.length / safeTarget);
   const size = Math.ceil(verses.length / n);
 
   const cuts: number[] = [];
@@ -81,15 +87,21 @@ export async function buildDailyPortion(
   totalChapters: number,
   target: number | null,
 ): Promise<DailyPortion> {
+  console.log(`[boot] buildDailyPortion book=${book} ch=${chapter} total=${totalChapters} target=${JSON.stringify(target)}`);
   const first = await text.getChapter(book, chapter);
-  if (target === null || first.length >= target) {
-    return { sittings: splitSittings(first, target ?? 40), chapters: [chapter] };
+  console.log(`[boot] buildDailyPortion got ${first.length} verses`);
+  // `?? 40` only catches null/undefined, so a stored 0 used to reach
+  // splitSittings and hang the JS thread. Normalise anything unusable to
+  // null here, which means seed mode: no fixed target, just this chapter.
+  const safeTarget = target !== null && Number.isFinite(target) && target > 0 ? target : null;
+  if (safeTarget === null || first.length >= safeTarget) {
+    return { sittings: splitSittings(first, safeTarget ?? 40), chapters: [chapter] };
   }
 
   let verses = first;
   const chapters = [chapter];
   let next = chapter;
-  while (verses.length < target && next < totalChapters) {
+  while (verses.length < safeTarget && next < totalChapters) {
     next += 1;
     verses = verses.concat(await text.getChapter(book, next));
     chapters.push(next);

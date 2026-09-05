@@ -71,6 +71,7 @@ export const useSession = create<SessionState>((set, get) => ({
   nextBookNeeded: false,
 
   async load(db, log, text, today) {
+    console.log(`[boot] session.load today=${JSON.stringify(today)}`);
     const generation = ++loadGeneration;
     set({ status: 'loading', error: null });
 

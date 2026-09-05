@@ -49,8 +49,11 @@ function AppRuntime() {
     // §13.4 — everything the app "does at 4 AM" happens here instead,
     // lazily, on foreground. Runs before app_open is logged so the
     // reconciled state reflects days up to (not including) today.
+    console.log('[boot] AppRuntime effect: reconcile start');
     reconcile({ db, log: services.log }, RECONCILE_STEPS);
+    console.log('[boot] reconcile done; maybeGenerateReports start');
     maybeGenerateReports(db);
+    console.log('[boot] maybeGenerateReports done');
 
     // §19 — marks deploy boundaries on the phase chart / amendment log.
     // Never fires on the very first-ever open (nothing to compare against).

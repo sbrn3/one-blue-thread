@@ -39,7 +39,20 @@ export function logicalDateFromOffset(ts: number, tzOffsetMin: number): string {
 }
 
 /** Calendar dates after `fromExclusive` up to and including `toInclusive`. */
+/** Every stored/derived logical date is exactly YYYY-MM-DD; anything else is a bug. */
+const ISO_DATE = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;
+
 export function datesBetween(fromExclusive: string, toInclusive: string): string[] {
+  // The loop below compares dates as STRINGS. A malformed bound silently
+  // breaks that ordering - "2026-09-06" < "Invalid Date" is true, and stays
+  // true for millennia - so the walk becomes an unbounded allocation that
+  // pins the JS thread. Fail loudly instead: a surfaced error is recoverable,
+  // a frozen launch screen is not.
+  if (!ISO_DATE.test(fromExclusive) || !ISO_DATE.test(toInclusive)) {
+    throw new Error(
+      `datesBetween: expected YYYY-MM-DD bounds, got ${JSON.stringify(fromExclusive)}..${JSON.stringify(toInclusive)}`,
+    );
+  }
   const out: string[] = [];
   let cursor = fromExclusive;
   // Walk in UTC so DST transitions cannot skip or repeat a date.
