@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — Knot translation switch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&display=swap" rel="stylesheet">
+<style>
+/* ── Thread identity — mirrors docs/index.html / src/ui/tokens.ts. Do not swap for generic styles ── */
+:root {
+  --bg:            #FBFAF7;
+  --surface:       #ffffff;
+  --card-bg:       #ffffff;
+  --border:        #E6E5E1;
+  --border-strong: #d8d7d2;
+  --text:          #16161A;
+  --text-2:        #5E5D66;
+  --text-muted:    #9C9BA3;
+  --primary:       #1F3FFF;
+  --primary-dark:  #1732cc;
+  --primary-tint:  #EEF0FF;
+  --success:       #155724;
+  --success-bg:    #d4edda;
+  --warning:       #856404;
+  --warning-bg:    #fff3cd;
+  --danger:        #c0392b;
+  --danger-bg:     #fde8e8;
+  --font-head:     'Newsreader', Georgia, serif;
+  --font-body:     'Schibsted Grotesk', system-ui, -apple-system, sans-serif;
+  --radius:        12px;
+  --shadow:        0 4px 6px rgba(0,0,0,0.08);
+  --shadow-lg:     0 8px 32px rgba(0,0,0,0.16);
+}
+* { box-sizing: border-box; }
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(600px 400px at 0% -5%, rgba(26,58,92,0.06), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2.2rem 1.6rem 4rem;
+}
+h1 { font-family: var(--font-head); font-size: 2rem; font-weight: 400; margin: 0 0 .3rem; letter-spacing: .01em; }
+h2 { font-family: var(--font-head); font-size: 1.25rem; font-weight: 400; color: var(--primary); margin: 1.8rem 0 .8rem; }
+h3 { font-size: .95rem; font-weight: 600; color: var(--text); margin: 1.3rem 0 .4rem; }
+a { color: var(--primary); }
+code { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: .85em; color: var(--primary-dark); background: var(--primary-tint); padding: .1em .4em; border-radius: 5px; }
+.meta { font-size: .82rem; color: var(--text-muted); margin-bottom: 1.6rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.badge { display: inline-block; padding: .25em .7em; border-radius: 999px; font-size: .74rem; font-weight: 600; border: 1px solid var(--border); background: var(--surface); }
+.badge.navy   { color: var(--primary); border-color: var(--primary); background: var(--primary-tint); }
+.badge.green  { color: var(--success); background: var(--success-bg); border-color: #c3e6cb; }
+.badge.yellow { color: var(--warning); background: var(--warning-bg); border-color: #ffeeba; }
+.badge.red    { color: var(--danger);  background: var(--danger-bg);  border-color: #f5c6cb; }
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: .8rem; margin-bottom: 2rem; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .9rem 1.1rem; box-shadow: var(--shadow); }
+.stat-value { font-family: var(--font-head); font-size: 1.7rem; color: var(--primary); font-variant-numeric: tabular-nums; }
+.stat-label { font-size: .72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+.tabs { display: flex; gap: .4rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 1.6rem; }
+.tab { padding: .5rem 1rem; border: none; background: none; cursor: pointer; font-family: var(--font-body); font-size: .87rem; color: var(--text-2); border-radius: 8px 8px 0 0; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: var(--text); background: var(--primary-tint); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; background: var(--primary-tint); }
+.panel { display: none; animation: fade .25s ease; }
+.panel.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.file-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin: .7rem 0; overflow: hidden; box-shadow: var(--shadow); }
+.file-header { padding: .5rem .9rem; background: var(--primary-tint); border-bottom: 1px solid var(--border); font-family: ui-monospace, monospace; font-size: .8rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.file-body { padding: .8rem .9rem; }
+pre { margin: 0; font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: .8rem; overflow-x: auto; white-space: pre-wrap; line-height: 1.55; color: var(--text); }
+.copy-btn { background: var(--primary); color: #ffffff; border: none; border-radius: 6px; padding: .2rem .6rem; font-size: .72rem; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+.copy-btn:hover { background: var(--primary-dark); }
+.commit { background: var(--primary-tint); border-left: 3px solid var(--primary); padding: .5rem .8rem; margin: .4rem 0; border-radius: 0 8px 8px 0; font-family: ui-monospace, monospace; font-size: .8rem; display: flex; justify-content: space-between; align-items: center; gap: .8rem; flex-wrap: wrap; }
+.tag { display: inline-block; padding: .12em .55em; border-radius: 999px; font-size: .68rem; font-weight: 600; white-space: nowrap; font-family: var(--font-body); }
+.tag.effort   { color: var(--warning); background: var(--warning-bg); border: 1px solid #ffeeba; }
+.tag.subagent { color: var(--primary); background: var(--primary-tint); border: 1px solid var(--primary); }
+.checklist { list-style: none; padding: 0; margin: .5rem 0; }
+.checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; font-size: .9rem; border-bottom: 1px solid var(--border); }
+.checklist li:last-child { border-bottom: none; }
+.checklist input { margin-top: .3rem; flex-shrink: 0; accent-color: var(--primary); width: 16px; height: 16px; }
+.checklist input:checked + span { color: var(--text-muted); text-decoration: line-through; }
+.note { background: var(--warning-bg); border: 1px solid #ffeeba; border-radius: var(--radius); padding: .7rem 1rem; font-size: .86rem; margin: .8rem 0; color: var(--text); }
+.mockup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: .9rem; margin: 1rem 0; }
+.mockup-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); }
+.mockup-card.chosen { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary), var(--shadow-lg); }
+.mockup-card h3 { margin-top: 0; }
+.requirements { font-size: .92rem; line-height: 2; padding-left: 1.3rem; }
+.evidence-table { width: 100%; border-collapse: collapse; margin: .8rem 0 1.2rem; font-size: .84rem; }
+.evidence-table th, .evidence-table td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: left; vertical-align: top; }
+.evidence-table th { background: var(--primary-tint); color: var(--primary); }
+.ticket-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin: .7rem 0; padding: .9rem 1.1rem; box-shadow: var(--shadow); }
+.ticket-card.ready { border-color: var(--success-bg); box-shadow: 0 0 0 1px #c3e6cb, var(--shadow); }
+.ticket-head { display: flex; justify-content: space-between; align-items: center; gap: .8rem; flex-wrap: wrap; margin-bottom: .3rem; }
+.ticket-title { font-weight: 600; font-size: .92rem; }
+.ticket-meta { font-size: .78rem; color: var(--text-muted); margin: .2rem 0 .5rem; }
+.ticket-ac { font-size: .85rem; margin: .3rem 0 .5rem; }
+.ticket-status { font-size: .78rem; padding: .2em .6em; border-radius: 999px; border: 1px solid var(--border); font-family: var(--font-body); background: var(--surface); color: var(--text-2); }
+.ticket-status.ready-badge { color: var(--success); background: var(--success-bg); border-color: #c3e6cb; }
+</style>
+</head>
+<body>
+
+<h1>Knot translation switch</h1>
+<div class="meta">
+  2026-09-05
+  <span class="badge navy">18 files</span>
+  <span class="badge navy">6 commits</span>
+  <span class="badge yellow">~1 session</span>
+  <span class="badge green">Smart Review: done — 1 HIGH, 1 MEDIUM, 3 LOW, all integrated</span>
+  <span class="badge navy">Tickets: 5 slices, 0 done</span>
+  <span class="badge navy">Aesthetics: extends BackupSection, no mockup round</span>
+</div>
+
+<div class="stat-row">
+  <div class="stat"><div class="stat-value">18</div><div class="stat-label">Files</div></div>
+  <div class="stat"><div class="stat-value">6</div><div class="stat-label">Commits</div></div>
+  <div class="stat"><div class="stat-value">3</div><div class="stat-label">Test files</div></div>
+  <div class="stat"><div class="stat-value">~1</div><div class="stat-label">Session estimate</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="intent" onclick="show('intent')">Intent</button>
+  <button class="tab" data-tab="requirements" onclick="show('requirements')">Requirements</button>
+  <button class="tab" data-tab="aesthetics" onclick="show('aesthetics')">Aesthetics</button>
+  <button class="tab" data-tab="implementation" onclick="show('implementation')">Implementation</button>
+  <button class="tab" data-tab="commits" onclick="show('commits')">Commits</button>
+  <button class="tab" data-tab="review" onclick="show('review')">Smart Review</button>
+  <button class="tab" data-tab="tickets" onclick="show('tickets')">Tickets</button>
+  <button class="tab" data-tab="verify" onclick="show('verify')">Verification</button>
+</div>
+
+<div id="intent" class="panel active">
+  <h2>Problem &amp; Intent</h2>
+
+  <h3>Status, owner &amp; next action</h3>
+  <p><strong>Status: drafted, awaiting approval.</strong> Trigger: the user asked "is it possible in the settings page
+  to switch bible translations?" — answer was no. Designed via <code>/grill</code>
+  (<code>docs/plans/knot-translation-switch/grill-summary.md</code>), confirmed 2026-09-05. Next action: user approval
+  of this plan, then Ticket 1 (see Tickets tab).</p>
+
+  <h3>Outcome and constraints</h3>
+  <p>Today, translation (NIV / ESV / the bundled WEB floor) is chosen exactly once, at onboarding
+  (<code>src/onboarding/screens/TranslationScreen.tsx</code>). The knot cannot change it, yet
+  <code>DoneScreen.tsx:47</code> already tells the reader "add a translation any time from the knot" — a promise the
+  code doesn't keep. This plan builds that knot control. It knowingly departs from
+  <code>../thread-plan_3.html</code> lines 297/313, which call WEB "silent, automatic infrastructure, not a choice"
+  and say it "is never mentioned" — the grill's confirmed reasoning (carried into <code>JOURNAL.md</code>, decision
+  "WEB is a translation you can choose, not silent infrastructure") is that this stance only holds while WEB can only
+  ever appear as an invisible catch; once translation is changeable in the knot, an unnamed fallback plus a bad key
+  produces a reader who believes they're in NIV and isn't. Constraints carried forward: §13.6 hard rules
+  (<code>events</code> append-only, no <code>Math.random()</code>, import boundaries), the on-device-only privacy rule
+  (API keys stay in SQLite <code>meta</code>, never leave the device), and AGENTS.md's verification policy.</p>
+
+  <h3>Scope and non-goals</h3>
+  <p>In scope: a knot "Translation" section that switches NIV↔ESV↔WEB, validates a licensed key live before saving it,
+  logs the change as a confound, and rebuilds the app's services so it takes effect immediately with today's portion
+  restarting at sitting 1. Also in scope: naming WEB explicitly in onboarding (skip label + <code>DoneScreen</code>
+  copy), and correcting NIV's live-verification status to match ESV's already-honest "unverified" framing, since
+  designing this surfaced that neither provider has ever made a real network call in this codebase (see Evidence).
+  Non-goals: see Requirements tab → Out of Scope.</p>
+
+  <h3>Dependencies and unresolved gates</h3>
+  <p>One real external dependency: a live <strong>api.bible</strong> key and a live <strong>api.esv.org</strong> key
+  (the latter requires accepting Crossway's statement of faith) are both required before merge — the grill session
+  made "both providers pass a live round-trip" an explicit acceptance criterion (round 5, reversing an earlier,
+  unfounded assistant claim that NIV was "already exercised in real use" — see <code>grill-summary.md</code>'s
+  Corrections section). No other external gate. No unresolved product decision remains — every open question from the
+  grill's four rounds was answered and confirmed; see Evidence below for the full decision list.</p>
+
+  <h3>Evidence and decisions</h3>
+  <p>Primary evidence: <code>docs/plans/knot-translation-switch/grill-summary.md</code> (all four rounds) and
+  <code>JOURNAL.md</code>'s "WEB is a translation you can choose, not silent infrastructure" decision entry — both
+  written 2026-09-05, both current. Key repository facts this plan relies on, verified directly against this
+  worktree (<code>main</code> @ <code>efcf041</code>, not the stale <code>feat/account-reset</code> checkout the
+  session initially opened — see Consequences below):</p>
+  <ul class="requirements">
+    <li><code>hasConfound()</code> (<code>src/lab/confound.ts:13</code>) checks only <code>cue_changed</code> and 7+
+      day gaps today.</li>
+    <li><code>reconcile()</code> (<code>src/lab/reconcile.ts:24</code>) only ever advances forward from
+      <code>meta['watermark']</code> — it never replays already-processed past days, so a <code>hasConfound()</code>
+      logic change carries <strong>no retroactive risk</strong> to already-reported experiment data; only future
+      days can ever contain a <code>translation_changed</code> event.</li>
+    <li><code>chapter_cache</code> is keyed <code>(translation, book, chapter)</code> — switching translations is
+      safe; each keeps its own rows, no migration needed.</li>
+    <li><code>events.type</code> is plain <code>TEXT</code> with no CHECK constraint (<code>src/log/schema.ts:14</code>)
+      — adding <code>'translation_changed'</code> to the <code>EventType</code> union is a TypeScript-only change,
+      not a schema migration.</li>
+    <li><code>ApiBibleProvider.resolveBibleId()</code> (<code>src/text/apiBible.ts:80-91</code>) caches
+      <code>niv_bible_id</code> in <code>meta</code> <strong>globally</strong>, not per key — a replaced key without
+      clearing this would inherit a stale bible id.</li>
+    <li><strong>Neither licensed provider has ever made a real network call in this codebase.</strong>
+      <code>src/text/esv.ts:11</code> says so explicitly ("UNVERIFIED AGAINST A LIVE KEY"); <code>apiBible.ts</code>
+      says nothing, so it reads as proven by omission — but every NIV test mocks <code>fetchFn</code>
+      (<code>test/text.test.ts:141,164</code>) and the file's only claim is that the base host matched
+      <em>published docs</em> (<code>apiBible.ts:13</code>), not a live call. An earlier version of that file used
+      the wrong host and "would fail silently into the WEB fallback forever" (<code>apiBible.ts:14</code>) — the
+      exact failure mode this feature exists to make visible, and it already happened here once, undetected.</li>
+    <li><code>services</code> is rebuilt via <code>useMemo(() =&gt; createServices(db), [db, onboarded])</code>
+      (<code>App.tsx:28</code>) today, already precedent for fully recreating every service (log, cue, memory,
+      notifier, backup, partner, text) on a dependency change — this plan reuses that exact mechanism rather than
+      inventing a new one.</li>
+    <li><code>Flow.tsx:66-68</code>'s <code>useEffect(() =&gt; { void session.load(db, log, text, today); }, [db, log,
+      text, today])</code> already re-fires whenever <code>text</code>'s object identity changes — so bumping
+      <code>App.tsx</code>'s services-rebuild epoch is sufficient to reload today's portion; no change to
+      <code>Flow.tsx</code> or the <code>useSession</code> store is needed.</li>
+    <li><code>session.load()</code> (<code>src/state/session.ts:89</code>) reads <code>current_sitting</code> fresh
+      from <code>meta</code> on every call and clamps to it — so writing <code>meta['current_sitting'] = '0'</code>
+      at the moment of switching, before the reload fires, is sufficient to "restart at sitting 1" with no change to
+      <code>session.ts</code> itself.</li>
+    <li><strong>Smart Review finding (integrated):</strong> <code>App.tsx</code>'s boot-sequence effect
+      (<code>App.tsx:30-53</code>) depends on <code>[onboarded, services, db]</code> — the whole <code>services</code>
+      object, not a narrower slice. A first implementation draft that bumped <code>serviceEpoch</code> to change
+      <code>services</code>'s identity would therefore re-fire this effect on <em>every</em> translation switch, not
+      just app launch, appending a spurious <code>app_open</code> event (§13.6 append-only — a permanent, wrong
+      record) and re-running <code>reconcile()</code>/<code>maybeGenerateReports()</code>. The fix (see
+      Implementation tab) reads <code>services</code> through a ref inside that effect instead of depending on it
+      directly, so it still fires exactly once per real onboarding-complete/launch transition and never on a
+      translation switch.</li>
+  </ul>
+  <p>Design tokens: no new token needed. Reuses <code>tokens.color.{ink,ink15,ink40,thread,dyeSoft,paper}</code> and
+  <code>tokens.font.display</code> exactly as <code>src/knot/BackupSection.tsx</code> and
+  <code>src/onboarding/screens/TranslationScreen.tsx</code> already use them (see Aesthetics tab).</p>
+
+  <h3>Documentation effects</h3>
+  <p><code>docs/CONTEXT.md</code> already carries the "World English Bible (WEB)" glossary entry (written during
+  <code>/grill</code>). <code>JOURNAL.md</code> already carries the decision entry — do not duplicate it in a
+  <code>/close-tab</code> or <code>/wrap-up</code> entry; reference it. This plan additionally corrects
+  <code>README.md</code> and <code>STATUS.md</code> (NIV verification status) as part of its own commits — see
+  Implementation and Commits tabs. <code>docs/plans/README.md</code> and <code>STATUS.md</code>'s Active Plans table
+  get a row added per Phase 9 step 6, once this plan is approved (not yet done — this plan is still in draft).</p>
+</div>
+
+<div id="requirements" class="panel">
+  <h2>Requirements (confirmed)</h2>
+  <h3>User stories</h3>
+  <ol class="requirements">
+    <li>As a reader who chose NIV or ESV at onboarding, I want to switch to the other licensed translation from the
+      knot, so that I can change my mind without resetting the app.</li>
+    <li>As a reader currently on WEB (skipped onboarding's translation step), I want to add a licensed translation
+      from the knot, so that <code>DoneScreen</code>'s existing promise is actually true.</li>
+    <li>As a reader on a licensed translation, I want to deliberately switch to the World English Bible, so that I
+      have an explicit, named way back to the offline text rather than only an implicit silent fallback.</li>
+    <li>As a reader pasting a new or replacement API key, I want the knot to prove the key works before saving it, so
+      that a typo or a revoked key never leaves me silently reading WEB while believing I'm reading NIV/ESV.</li>
+    <li>As a reader switching back to a translation I've used before, I want my previously entered key pre-filled, so
+      that I don't have to dig it out and retype it.</li>
+    <li>As a reader whose key fails validation, I want a clear on-screen error and my current translation left
+      untouched, so that a failed attempt never silently degrades what I'm already reading.</li>
+    <li>As a reader mid-way through an unsealed multi-sitting chapter who switches translation, I want today's
+      portion to reload and restart at the first sitting, so that I never silently skip verses the old sitting split
+      hadn't shown me yet.</li>
+    <li>As a reader who has already sealed today, I want switching translation to have no visible effect on today's
+      completed reading, so that changing my mind about translation never threatens an already-sealed streak day.</li>
+    <li>As the lab, I want a translation change logged as its own event and treated as a confound exactly like a cue
+      change, so that days around a switch are reported but excluded from experiment verdicts, per §19.</li>
+    <li>As the reader, I want onboarding to name the World English Bible explicitly wherever it offers it (the skip
+      path, the done screen), so the same translation isn't unnamed in one place and named in another.</li>
+    <li>As an existing installed reader with a translation already configured before this feature shipped, I want my
+      existing API key to keep working after the app updates, so upgrading doesn't silently revert me to WEB.</li>
+    <li>As a maintainer, I want NIV's live-untested status made as visible as ESV's already is, so a future reader
+      doesn't wrongly infer NIV is proven just because nobody documented otherwise.</li>
+    <li>As a reader, I want choosing WEB to require no network call and no key, so reverting to the offline text
+      always works exactly like it does today, even fully offline.</li>
+    <li>As a reader with no connectivity attempting to add or switch to a licensed provider, I want the validation
+      round-trip to fail clearly — not hang, not silently fall back — so I understand why the switch didn't take
+      effect.</li>
+  </ol>
+
+  <h3>Out of Scope</h3>
+  <ul class="requirements">
+    <li>Detecting or surfacing an <em>in-progress</em> silent WEB fallback — e.g. a working key that goes offline
+      later, after a successful switch. Validate-before-save only proves the key at the moment of saving; ongoing
+      fallback detection is unchanged existing <code>ChainedProvider</code> behavior and was never decided in the
+      grill.</li>
+    <li>Multi-translation side-by-side reading — explicitly cut by <code>thread-plan_3.html:226</code>.</li>
+    <li>Any partner-facing behavior — the partner hand-off has no relationship to translation choice.</li>
+    <li>Re-litigating onboarding's screen order, or adding a third onboarding card for WEB — round 4 of the grill
+      explicitly kept the skip path as the only WEB route in onboarding.</li>
+    <li>Retroactively re-splitting or backfilling already-sealed days — sealed history
+      (<code>chapter_cache</code>, <code>passages</code>, <code>events</code>) is immutable; only today's unsealed
+      portion reloads.</li>
+    <li>Encrypting or otherwise hardening backup exposure of the now-two API keys living in <code>meta</code> — a
+      pre-existing, slightly widened exposure flagged in the grill's Open Threads; backup encryption is an existing
+      opt-in toggle (<code>BackupSection.tsx</code>) untouched by this plan.</li>
+  </ul>
+
+  <h3>Testing Decisions</h3>
+  <ul class="requirements">
+    <li><code>TranslationService</code> gets its own <code>test/translationService.test.ts</code>, following the
+      <code>openTestDb()</code> + <code>migrate(db)</code> + <code>new Log({db, buildSha:'test'})</code> scaffold
+      already used in <code>test/bolt.test.ts</code> / <code>test/lab.test.ts</code>. Fake <code>fetchFn</code>
+      objects follow the exact pattern in <code>test/text.test.ts</code>'s <code>fakeApiBible()</code> and
+      <code>test/esv.test.ts</code>'s inline fakes — no real network in any automated test, per AGENTS.md's
+      Node-only Vitest environment.</li>
+    <li><code>probeEsvKey</code> gets unit tests in <code>test/esv.test.ts</code>, mirroring the existing
+      <code>resolveNivBibleId</code> describe block in <code>test/text.test.ts</code> structurally (cache-free,
+      success case + failure case).</li>
+    <li><code>hasConfound()</code>'s new branch gets one case added to the existing <code>test/confound.test.ts</code>,
+      following its exact <code>event()</code> helper pattern.</li>
+    <li>Deliberately not unit-tested: the actual live network round-trip (mocked only in Vitest) — covered instead by
+      the mandatory manual checklist in the Verification tab, using real keys.</li>
+    <li>Deliberately not unit-tested: <code>App.tsx</code>'s epoch-triggered services rebuild and
+      <code>Flow.tsx</code>'s resulting <code>session.load()</code> re-fire — there is no component-rendering test
+      harness in this repo (AGENTS.md: "No component rendering... no Testing Library"). Covered by the Verification
+      tab's owner spot-check instead.</li>
+    <li><code>TranslationSection.tsx</code> and the onboarding copy edits are UI/copy-only — no test file, consistent
+      with <code>BackupSection.tsx</code> / <code>TranslationScreen.tsx</code> having none today.</li>
+  </ul>
+</div>
+
+<div id="aesthetics" class="panel">
+  <h2>Aesthetics</h2>
+  <h3>Current-surface extraction</h3>
+  <table class="evidence-table">
+    <thead><tr><th>Layer</th><th>Current measured values/patterns</th><th>Source</th><th>Keep/change and why</th></tr></thead>
+    <tbody>
+      <tr><td>Tokens</td><td><code>ink</code>, <code>ink15</code>, <code>ink40</code>, <code>thread</code>,
+        <code>dyeSoft</code>, <code>paper</code></td><td><code>BackupSection.tsx</code> imports <code>tokens</code>
+        wholesale; <code>TranslationScreen.tsx</code> uses <code>dyeSoft</code> for its selected-option fill</td>
+        <td>Keep verbatim — no new token needed.</td></tr>
+      <tr><td>Typography</td><td><code>font.display</code> for labels/buttons/option cards;
+        <code>font.mono</code> for hints in <code>BackupSection</code></td><td><code>BackupSection.tsx:206-266</code>,
+        <code>TranslationScreen.tsx:73-74</code></td><td>Use <code>font.display</code> throughout — the section is
+        option cards + buttons, matching <code>TranslationScreen</code>'s onboarding pattern for the identical kind
+        of content, not <code>BackupSection</code>'s hint-style mono.</td></tr>
+      <tr><td>Spacing and layout</td><td>12px card radius, 999px pill buttons, 8-20px paddings, 10-12px
+        gaps</td><td><code>BackupSection.tsx</code> styles block</td><td>Copy verbatim.</td></tr>
+      <tr><td>Color and semantics</td><td><code>ink15</code> borders, <code>dyeSoft</code> selected fill,
+        <code>thread</code> selected border + link color</td><td>Both source files' existing
+        semantics</td><td>Reuse exactly — no new semantic introduced.</td></tr>
+      <tr><td>Components and states</td><td>rows↔inline-form toggle, busy spinner
+        (<code>ActivityIndicator</code>), 0.4 opacity disabled state, <code>Alert.alert</code> on
+        failure</td><td><code>BackupSection.tsx</code> (all states already built and shipped)</td><td>Copy the whole
+        component shape verbatim — this is the approved direction (see below), not a new pattern.</td></tr>
+      <tr><td>Atmosphere and depth</td><td>flat, no shadow</td><td><code>tokens.ts:10-13</code> header comment: "no
+        gradients, no shadows beyond a hairline"</td><td>N/A — nothing to add.</td></tr>
+      <tr><td>Motion and interaction</td><td>none beyond the knot sheet's existing slide-up
+        <code>Modal</code></td><td><code>Knot.tsx:98</code></td><td>N/A — no new motion.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Intent:</strong> a settings control, not a new visual moment — the knot already has one for exactly this
+  shape of decision (<code>BackupSection</code>'s passphrase form). <strong>Hygiene:</strong> every value above is an
+  existing token or an existing component's already-tested layout, reused rather than reinvented.
+  <strong>Details:</strong> pressed/selected state reuses <code>optionSelected</code>'s border+fill from
+  <code>TranslationScreen</code>; busy state reuses <code>BackupSection</code>'s spinner-in-button; error reuses its
+  <code>Alert.alert</code> path; the WEB-vs-licensed branch (no key field / key field) reuses
+  <code>TranslationScreen</code>'s conditional-key-block pattern.</p>
+  <h3>Mockups</h3>
+  <div class="mockup-grid">
+    <div class="mockup-card chosen"><h3>Extend BackupSection's pattern</h3><p>User-confirmed direction (no mockup
+      round run — the pattern is already shipped and approved in two places: <code>BackupSection.tsx</code> for the
+      knot-section shape, <code>TranslationScreen.tsx</code> for the option-card shape). See Implementation tab for
+      the built component.</p></div>
+  </div>
+  <p class="note">Chosen direction: <strong>Extend the existing knot pattern, no new mockups.</strong> Per-phase-4
+  Step 2's "reuse the settled direction" branch — a visual decision wasn't genuinely open here; both source
+  components already answer it.</p>
+</div>
+
+<div id="implementation" class="panel">
+  <h2>Implementation</h2>
+
+  <div class="file-block">
+    <div class="file-header"><span>src/log/types.ts — MODIFY (line ~13)</span><span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>  | 'cue_changed' // anchor/place/time edited — a confound marker
+  | 'translation_changed' // NIV/ESV/WEB switched from the knot — a confound marker, same class as cue_changed (§19)
+  | 'book_start'</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>src/lab/confound.ts — MODIFY (whole function, line ~13)</span><span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>export function hasConfound(events: AppEvent[], gapDays: number): boolean {
+  const cueChanged = events.some((e) => e.type === 'cue_changed');
+  const translationChanged = events.some((e) => e.type === 'translation_changed');
+  return cueChanged || translationChanged || gapDays >= 7;
+}</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>test/confound.test.ts — MODIFY (append inside the existing describe block)</span><span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>  it('flags a translation_changed event', () => {
+    expect(hasConfound([event('translation_changed')], 0)).toBe(true);
+  });</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>src/text/esv.ts — MODIFY (add export, after the EsvProvider class / before parseEsvPassage)</span><span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>/**
+ * Cache-free live check that an ESV key actually authenticates — the
+ * ESV equivalent of resolveNivBibleId's role for NIV (apiBible.ts).
+ * Deliberately does NOT go through EsvProvider.getChapter(): that
+ * method checks chapter_cache first, so a previously-cached chapter
+ * would let a revoked or rotated key "pass" validation with no live
+ * network call at all — exactly the silent-fallback failure this
+ * whole feature exists to prevent (docs/plans/knot-translation-switch).
+ */
+export async function probeEsvKey(apiKey: string, fetchFn: typeof fetch = fetch): Promise<void> {
+  const params = new URLSearchParams({
+    q: 'John 1:1',
+    'include-verse-numbers': 'false',
+    'include-footnotes': 'false',
+    'include-footnote-body': 'false',
+    'include-headings': 'false',
+    'include-passage-references': 'false',
+    'include-short-copyright': 'false',
+    'include-copyright': 'false',
+  });
+  const res = await fetchFn(`https://api.esv.org/v3/passage/text/?${params}`, {
+    headers: { Authorization: `Token ${apiKey}` },
+  });
+  if (!res.ok) throw new Error(`ESV API ${res.status} — check the key`);
+  const body = (await res.json()) as { passages?: string[] };
+  if (!body.passages?.[0]) throw new Error('ESV API returned no passage — check the key');
+}</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>test/esv.test.ts — MODIFY (new describe block, after the EsvProvider block)</span><span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>import { EsvProvider, parseEsvPassage, probeEsvKey } from '../src/text/esv'; // add probeEsvKey to the existing import
+
+describe('probeEsvKey — cache-free live check', () => {
+  it('resolves on a valid response, hitting the real endpoint', async () => {
+    let calledUrl = '';
+    const fetchFn = (async (url: string) => {
+      calledUrl = url;
+      return { ok: true, json: async () => ({ passages: ['[1] In the beginning...'] }) };
+    }) as unknown as typeof fetch;
+    await expect(probeEsvKey('k', fetchFn)).resolves.toBeUndefined();
+    expect(calledUrl).toContain('api.esv.org');
+  });
+
+  it('throws on a non-ok response', async () => {
+    const fetchFn = (async () => ({ ok: false, status: 401, json: async () => ({}) })) as unknown as typeof fetch;
+    await expect(probeEsvKey('bad', fetchFn)).rejects.toThrow(/401/);
+  });
+
+  it('throws when the response has no passage', async () => {
+    const fetchFn = (async () => ({ ok: true, json: async () => ({ passages: [] }) })) as unknown as typeof fetch;
+    await expect(probeEsvKey('k', fetchFn)).rejects.toThrow(/no passage/);
+  });
+});</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>src/text/apiBible.ts — MODIFY (comment only, insert after line 16, before API_BASE)</span><span><span class="tag effort">🟡 high-effort — the note must be corrected post-verification; see Verification tab checklist</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>//
+// VERIFICATION: like esv.ts below, this file had never been exercised
+// against a real key before docs/plans/knot-translation-switch — every
+// existing test mocks fetchFn (test/text.test.ts), and the only claim
+// ever made here was that the base host matched published docs (see
+// above), not a live call. An earlier version of this file pointed at
+// the wrong host and would have failed silently into the WEB fallback
+// forever — exactly the failure a live check would have caught.
+// Verified live as part of this plan's validate-before-save round-trip
+// — update or remove this note once that check has actually run
+// against a real api.bible key (see the plan's Verification checklist).</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>src/text/translationService.ts — NEW</span><span><span class="tag effort">🟡 high-effort — owns the confound-logging decision and the meta key scheme this whole feature depends on</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>import type { SqlDb } from '../log/db';
+import type { Log } from '../log/log';
+import { meta } from '../log/log';
+import { resolveNivBibleId } from './apiBible';
+import { probeEsvKey } from './esv';
+
+export type Provider = 'niv' | 'esv';
+
+export interface ValidatedKey {
+  /** Only set for NIV — the resolved bible id, ready to cache immediately. */
+  nivBibleId?: string;
+}
+
+/**
+ * §04/§19 knot control — owns the reader's translation choice the same
+ * way CueService (src/cue/index.ts) owns the cue: reads/writes meta,
+ * and is the one place that decides when a translation_changed
+ * confound (§13) is logged. validate() never touches chapter_cache —
+ * a cached chapter would let a revoked/rotated key "pass" with no live
+ * network call at all, defeating the point of validating before save
+ * (docs/plans/knot-translation-switch).
+ */
+export class TranslationService {
+  constructor(
+    private readonly db: SqlDb,
+    private readonly log: Log,
+  ) {}
+
+  /** Normalizes meta's raw string (absent key, or '' meaning "cleared" — same idiom as next_book in session.ts) to null. */
+  current(): Provider | null {
+    const raw = meta.get(this.db, 'text_provider');
+    return raw === 'niv' || raw === 'esv' ? raw : null;
+  }
+
+  /** The stored key for a provider, so the knot can pre-fill it on re-selection rather than asking the reader to retype it. */
+  keyFor(provider: Provider): string | null {
+    return meta.get(this.db, `text_provider_key_${provider}`) || null;
+  }
+
+  /**
+   * Live round-trip proving the key actually authenticates, before
+   * anything is saved. Throws with a message fit to show the reader.
+   */
+  async validate(provider: Provider, apiKey: string, fetchFn: typeof fetch = fetch): Promise<ValidatedKey> {
+    if (provider === 'niv') return { nivBibleId: await resolveNivBibleId(apiKey, fetchFn) };
+    await probeEsvKey(apiKey, fetchFn);
+    return {};
+  }
+
+  /**
+   * Persists an already-validated provider + key as the active
+   * translation. Never call this without a preceding validate() —
+   * same division of responsibility BackupSection already uses for
+   * its passphrase form (validate, then save; never the reverse).
+   */
+  set(provider: Provider, apiKey: string, validated: ValidatedKey): void {
+    const previous = this.current();
+    meta.set(this.db, `text_provider_key_${provider}`, apiKey);
+    meta.set(this.db, 'text_provider', provider);
+    // A replaced NIV key can resolve to a different bible id — cache
+    // the id validate() just resolved, so ApiBibleProvider never reads
+    // a stale one left over from the previous key (apiBible.ts:80-91).
+    if (provider === 'niv') meta.set(this.db, 'niv_bible_id', validated.nivBibleId ?? '');
+    // Restart today's portion at sitting 1 rather than clamping into
+    // it — session.load() (src/state/session.ts) reads this fresh, and
+    // sittings are derived from per-translation verse counts, so
+    // clamping into whatever index the OLD translation left behind can
+    // skip verses the reader never saw. Re-reading is the safe
+    // failure; skipping is not.
+    meta.set(this.db, 'current_sitting', '0');
+    if (previous !== provider) this.log.write({ type: 'translation_changed' });
+  }
+
+  /** No key, no round-trip — WEB is always present, offline, by construction. */
+  setOffline(): void {
+    const previous = this.current();
+    meta.set(this.db, 'text_provider', '');
+    meta.set(this.db, 'current_sitting', '0');
+    if (previous !== null) this.log.write({ type: 'translation_changed' });
+  }
+}
+
+/**
+ * One-time carry-forward for an install that chose a translation
+ * before this file existed: the single legacy `text_provider_key`
+ * meta row becomes `text_provider_key_&lt;provider&gt;`, so an existing
+ * reader's key survives the upgrade instead of silently reverting to
+ * WEB. Additive and idempotent — safe to call on every app open.
+ *
+ * Always clears the legacy row once it has been read, whether or not
+ * a copy actually happened — a stale, possibly-revoked copy must not
+ * survive indefinitely in `meta` (and every future unencrypted backup)
+ * once it's superseded. (Smart Review MEDIUM: the original draft never
+ * cleared it, and OnboardingFlow.tsx still wrote to the legacy row on
+ * every fresh install, not just pre-existing ones — both are fixed:
+ * this function now clears the legacy row, and OnboardingFlow.tsx
+ * below writes the per-provider key directly, so the legacy row is
+ * only ever populated by a genuinely pre-upgrade install.)
+ */
+export function migrateLegacyProviderKey(db: SqlDb): void {
+  const provider = meta.get(db, 'text_provider');
+  const legacy = meta.get(db, 'text_provider_key');
+  if (!legacy) return; // nothing to migrate — fresh per-provider install, or already migrated+cleared
+  if (provider === 'niv' || provider === 'esv') {
+    const perProviderKey = `text_provider_key_${provider}`;
+    if (!meta.get(db, perProviderKey)) meta.set(db, perProviderKey, legacy);
+  }
+  meta.set(db, 'text_provider_key', ''); // clear — must not survive as an orphaned copy
+}</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>test/translationService.test.ts — NEW</span><span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>import { describe, expect, it } from 'vitest';
+import { migrate } from '../src/log/schema';
+import { Log, meta } from '../src/log/log';
+import { migrateLegacyProviderKey, TranslationService } from '../src/text/translationService';
+import { openTestDb } from './util/testDb';
+
+function setup() {
+  const db = openTestDb();
+  migrate(db);
+  const log = new Log({ db, buildSha: 'test' });
+  return { db, log, translation: new TranslationService(db, log) };
+}
+
+describe('TranslationService', () => {
+  it('current() is null when nothing is set, and after setOffline()', () => {
+    const { translation } = setup();
+    expect(translation.current()).toBeNull();
+    translation.setOffline();
+    expect(translation.current()).toBeNull();
+  });
+
+  it('set() persists the provider and per-provider key, and keyFor() reads it back', async () => {
+    const { db, translation } = setup();
+    const fetchFn = (async () => ({ ok: true, json: async () => ({ data: [{ id: 'niv-uuid', abbreviation: 'NIV' }] }) })) as unknown as typeof fetch;
+    const validated = await translation.validate('niv', 'key-a', fetchFn);
+    translation.set('niv', 'key-a', validated);
+    expect(translation.current()).toBe('niv');
+    expect(translation.keyFor('niv')).toBe('key-a');
+    expect(meta.get(db, 'niv_bible_id')).toBe('niv-uuid');
+  });
+
+  it('switching providers keeps the old provider\'s key retrievable', async () => {
+    const { translation } = setup();
+    const nivFetch = (async () => ({ ok: true, json: async () => ({ data: [{ id: 'niv-uuid', abbreviation: 'NIV' }] }) })) as unknown as typeof fetch;
+    translation.set('niv', 'niv-key', await translation.validate('niv', 'niv-key', nivFetch));
+    const esvFetch = (async () => ({ ok: true, json: async () => ({ passages: ['[1] x'] }) })) as unknown as typeof fetch;
+    translation.set('esv', 'esv-key', await translation.validate('esv', 'esv-key', esvFetch));
+    expect(translation.current()).toBe('esv');
+    expect(translation.keyFor('niv')).toBe('niv-key'); // not lost
+    expect(translation.keyFor('esv')).toBe('esv-key');
+  });
+
+  it('logs translation_changed only when the provider actually changes', async () => {
+    const { db, translation } = setup();
+    const fetchFn = (async () => ({ ok: true, json: async () => ({ data: [{ id: 'x', abbreviation: 'NIV' }] }) })) as unknown as typeof fetch;
+    translation.set('niv', 'k', await translation.validate('niv', 'k', fetchFn));
+    translation.set('niv', 'k', await translation.validate('niv', 'k', fetchFn)); // re-save, same provider
+    const events = db.all<{ type: string }>('SELECT type FROM events');
+    expect(events.filter((e) => e.type === 'translation_changed')).toHaveLength(1);
+  });
+
+  it('resets current_sitting to 0 on switch', () => {
+    const { db, translation } = setup();
+    meta.set(db, 'current_sitting', '2');
+    translation.setOffline();
+    expect(meta.get(db, 'current_sitting')).toBe('0');
+  });
+
+  it('validate() rejects a bad key without saving anything', async () => {
+    const { translation } = setup();
+    const fetchFn = (async () => ({ ok: false, status: 401, json: async () => ({}) })) as unknown as typeof fetch;
+    await expect(translation.validate('niv', 'bad', fetchFn)).rejects.toThrow();
+    expect(translation.current()).toBeNull();
+  });
+});
+
+describe('migrateLegacyProviderKey', () => {
+  it('copies the legacy single key forward to the per-provider slot, and clears the legacy row', () => {
+    const db = openTestDb();
+    migrate(db);
+    meta.set(db, 'text_provider', 'niv');
+    meta.set(db, 'text_provider_key', 'old-key');
+    migrateLegacyProviderKey(db);
+    expect(meta.get(db, 'text_provider_key_niv')).toBe('old-key');
+    expect(meta.get(db, 'text_provider_key')).toBe(''); // must not survive as an orphaned copy
+  });
+
+  it('does not overwrite an existing per-provider key, but still clears the now-redundant legacy row', () => {
+    const db = openTestDb();
+    migrate(db);
+    meta.set(db, 'text_provider', 'niv');
+    meta.set(db, 'text_provider_key', 'old-key');
+    meta.set(db, 'text_provider_key_niv', 'already-migrated');
+    migrateLegacyProviderKey(db);
+    expect(meta.get(db, 'text_provider_key_niv')).toBe('already-migrated');
+    expect(meta.get(db, 'text_provider_key')).toBe('');
+  });
+
+  it('is a no-op when no legacy key exists — the fresh-install path after OnboardingFlow writes per-provider directly', () => {
+    const db = openTestDb();
+    migrate(db);
+    meta.set(db, 'text_provider', 'niv');
+    meta.set(db, 'text_provider_key_niv', 'onboarding-key');
+    migrateLegacyProviderKey(db);
+    expect(meta.get(db, 'text_provider_key_niv')).toBe('onboarding-key');
+    expect(meta.get(db, 'text_provider_key')).toBeNull();
+  });
+});</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>src/services/index.ts — MODIFY</span><span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>import { createTextProvider, type TextProvider } from '../text';
+import { createStudyProvider, type StudyProvider } from '../study';
+import { migrateLegacyProviderKey, TranslationService } from '../text/translationService'; // NEW import
+
+export interface Services {
+  db: SqlDb;
+  log: Log;
+  text: TextProvider;
+  translation: TranslationService; // NEW
+  study: StudyProvider;
+  cue: CueService;
+  memory: Memory;
+  notifier: Notifier;
+  backup: Backup;
+  partner: PartnerService;
+}
+
+export function createServices(db: SqlDb): Services {
+  const log = new Log({ db, buildSha: BUILD_SHA });
+  migrateLegacyProviderKey(db); // NEW — carries an existing install's key forward, once
+  const translation = new TranslationService(db, log); // NEW
+  const activeProvider = translation.current();
+  const text = createTextProvider({
+    db,
+    provider: activeProvider,
+    apiKey: activeProvider ? translation.keyFor(activeProvider) : null,
+  });
+  const study = createStudyProvider();
+  const cue = new CueService(db, log);
+  const memory = new Memory(db, log);
+  const notifier = new Notifier(db, ExpoNotifications);
+  const backup = new Backup(db, expoCrypto, nativeBackupIo);
+  const partner = new PartnerService(db, log, nativePartnerIo);
+  return { db, log, text, translation, study, cue, memory, notifier, backup, partner };
+}</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>App.tsx — MODIFY</span><span><span class="tag effort">🟡 high-effort — the services-rebuild seam every other change in this plan depends on; the boot effect below was a Smart Review HIGH finding, fixed here</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>  const [onboarded, setOnboarded] = useState(() => meta.get(db, 'onboarded') === '1');
+  // Bumped by the knot's translation switch, in addition to onboarding
+  // completing — both need every service (esp. `text`) rebuilt from
+  // meta. Flow.tsx's session-load effect keys on `text`'s identity, so
+  // this alone is enough to reload today's portion in the new
+  // translation; no change to Flow.tsx or useSession is needed.
+  const [serviceEpoch, setServiceEpoch] = useState(0);
+  const services = useMemo(() => createServices(db), [db, onboarded, serviceEpoch]);
+
+  // The boot effect below must fire exactly once per real launch /
+  // onboarding-complete transition — never on a translation switch,
+  // which also produces a new `services` identity via serviceEpoch.
+  // Reading `services` through a ref (rather than depending on it
+  // directly) keeps the effect's deps at [onboarded, db] — its
+  // original trigger set — instead of re-running reconcile(),
+  // maybeGenerateReports(), and a spurious log.write({type:'app_open'})
+  // on every switch. (Smart Review HIGH: the append-only `events` log
+  // would otherwise gain a wrong app_open row on every reader-initiated
+  // translation change.)
+  const servicesRef = useRef(services);
+  useEffect(() => {
+    servicesRef.current = services;
+  }, [services]);
+
+  useEffect(() => {
+    if (!onboarded) return;
+    const { log, backup } = servicesRef.current;
+    // §13.4 — everything the app "does at 4 AM" happens here instead,
+    // lazily, on foreground. Runs before app_open is logged so the
+    // reconciled state reflects days up to (not including) today.
+    reconcile({ db, log }, RECONCILE_STEPS);
+    maybeGenerateReports(db);
+
+    // §19 — marks deploy boundaries on the phase chart / amendment log.
+    // Never fires on the very first-ever open (nothing to compare against).
+    const lastSeenBuild = meta.get(db, 'last_seen_build_sha');
+    if (lastSeenBuild !== null && lastSeenBuild !== BUILD_SHA) {
+      log.write({ type: 'build_changed' });
+    }
+    meta.set(db, 'last_seen_build_sha', BUILD_SHA);
+
+    log.write({ type: 'app_open' });
+
+    // §19 "Weekly (auto): encrypted export. Silent unless it fails" —
+    // fire-and-forget, never blocks app open.
+    void backup.autoExportIfDue().catch((e: unknown) => {
+      logError(db, `weekly auto-export failed: ${e instanceof Error ? e.message : String(e)}`);
+    });
+  }, [onboarded, db]); // NOT `services` — see comment above; import useRef alongside the existing React imports
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: tokens.color.paper }}>
+      <ErrorBoundary db={db}>
+        {onboarded ? (
+          <>
+            <Flow services={services} />
+            <Knot services={services} onTranslationChanged={() => setServiceEpoch((e) => e + 1)} />
+          </>
+        ) : (
+          <OnboardingFlow services={services} onDone={() => setOnboarded(true)} />
+        )}
+      </ErrorBoundary>
+      <StatusBar style="dark" />
+    </GestureHandlerRootView>
+  );</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>src/knot/TranslationSection.tsx — NEW</span><span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>import { useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import type { Provider, TranslationService } from '../text/translationService';
+import { tokens } from '../ui/tokens';
+
+interface TranslationSectionProps {
+  translation: TranslationService;
+  /** Called after a successful switch — the caller (Knot -> App.tsx) rebuilds services so it takes effect. */
+  onChanged: () => void;
+}
+
+const LABEL: Record<Provider, string> = { niv: 'NIV', esv: 'ESV' };
+
+function errorMessage(e: unknown): string {
+  return e instanceof Error ? e.message : String(e);
+}
+
+/**
+ * §04/§19 — translation is a confound (logged inside
+ * TranslationService), so this mirrors BackupSection.tsx's shape
+ * (inline form, busy state, Alert on failure) rather than inventing
+ * new knot chrome. A key is proved with a live round-trip before it's
+ * ever saved (docs/plans/knot-translation-switch) — a bad key never
+ * silently lands the reader back on WEB with no signal.
+ */
+export function TranslationSection({ translation, onChanged }: TranslationSectionProps) {
+  const [current, setCurrent] = useState<Provider | null>(() => translation.current());
+  const [editing, setEditing] = useState(false);
+  const [picked, setPicked] = useState<Provider | null>(null);
+  const [apiKey, setApiKey] = useState('');
+  const [busy, setBusy] = useState(false);
+
+  const startEdit = () => {
+    setPicked(current);
+    setApiKey(current ? translation.keyFor(current) ?? '' : '');
+    setEditing(true);
+  };
+
+  const pick = (provider: Provider) => {
+    if (provider === picked) return; // re-tapping the already-selected card must not clobber in-progress typing (Smart Review LOW)
+    setPicked(provider);
+    setApiKey(translation.keyFor(provider) ?? ''); // pre-fill a key used before — round 2's "keep a key per provider"
+  };
+
+  const handleSaveLicensed = async () => {
+    if (!picked || !apiKey.trim()) return;
+    setBusy(true);
+    try {
+      const validated = await translation.validate(picked, apiKey.trim());
+      translation.set(picked, apiKey.trim(), validated);
+      setCurrent(picked);
+      setEditing(false);
+      onChanged();
+    } catch (e) {
+      Alert.alert('Could not verify that key', errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleUseWeb = () => {
+    translation.setOffline();
+    setCurrent(null);
+    setEditing(false);
+    onChanged();
+  };
+
+  return (
+    <View style={styles.wrap}>
+      {!editing ? (
+        <View style={styles.row}>
+          <Text style={styles.current}>{current ? LABEL[current] : 'World English Bible (WEB)'}</Text>
+          <Pressable onPress={startEdit}>
+            <Text style={styles.changeLabel}>Change</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <View style={styles.form}>
+          <View style={styles.options}>
+            <Pressable style={[styles.option, picked === 'niv' && styles.optionSelected]} onPress={() => pick('niv')}>
+              <Text style={styles.optionTitle}>NIV</Text>
+              <Text style={styles.optionSub}>via API.Bible</Text>
+            </Pressable>
+            <Pressable style={[styles.option, picked === 'esv' && styles.optionSelected]} onPress={() => pick('esv')}>
+              <Text style={styles.optionTitle}>ESV</Text>
+              <Text style={styles.optionSub}>via api.esv.org</Text>
+            </Pressable>
+            <Pressable style={[styles.option, picked === null && styles.optionSelected]} onPress={() => setPicked(null)}>
+              <Text style={styles.optionTitle}>World English Bible (WEB)</Text>
+              <Text style={styles.optionSub}>public domain — always offline, no key</Text>
+            </Pressable>
+          </View>
+
+          {picked !== null && (
+            <TextInput
+              style={styles.input}
+              value={apiKey}
+              onChangeText={setApiKey}
+              placeholder="Paste your API key"
+              placeholderTextColor={tokens.color.ink40}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+          )}
+
+          <View style={styles.formRow}>
+            <Pressable style={styles.secondaryBtn} onPress={() => setEditing(false)} disabled={busy}>
+              <Text style={styles.secondaryBtnLabel}>Cancel</Text>
+            </Pressable>
+            {picked === null ? (
+              <Pressable style={styles.primaryBtn} onPress={handleUseWeb} disabled={busy}>
+                <Text style={styles.primaryBtnLabel}>Use the WEB</Text>
+              </Pressable>
+            ) : (
+              <Pressable
+                style={[styles.primaryBtn, !apiKey.trim() && styles.btnDisabled]}
+                onPress={handleSaveLicensed}
+                disabled={!apiKey.trim() || busy}
+              >
+                {busy ? (
+                  <ActivityIndicator color={tokens.color.paper} />
+                ) : (
+                  <Text style={styles.primaryBtnLabel}>Verify and save</Text>
+                )}
+              </Pressable>
+            )}
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrap: { gap: 10 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  current: { fontFamily: tokens.font.display, fontWeight: '700', fontSize: 15, color: tokens.color.ink },
+  changeLabel: { fontFamily: tokens.font.display, fontWeight: '700', fontSize: 13, color: tokens.color.thread },
+  form: { gap: 10 },
+  options: { gap: 8 },
+  option: { borderWidth: 1, borderColor: tokens.color.ink15, borderRadius: 12, padding: 12 },
+  optionSelected: { borderColor: tokens.color.thread, backgroundColor: tokens.color.dyeSoft },
+  optionTitle: { fontFamily: tokens.font.display, fontWeight: '700', fontSize: 14, color: tokens.color.ink },
+  optionSub: { fontFamily: tokens.font.display, fontSize: 11.5, color: tokens.color.ink40, marginTop: 2 },
+  input: {
+    borderWidth: 1.5,
+    borderColor: tokens.color.ink15,
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    fontFamily: tokens.font.mono,
+    fontSize: 14,
+    color: tokens.color.ink,
+  },
+  formRow: { flexDirection: 'row', gap: 12 },
+  primaryBtn: {
+    backgroundColor: tokens.color.ink,
+    borderRadius: 999,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnDisabled: { opacity: 0.4 },
+  primaryBtnLabel: { fontFamily: tokens.font.display, fontWeight: '700', fontSize: 13, color: tokens.color.paper },
+  secondaryBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: tokens.color.ink15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  secondaryBtnLabel: { fontFamily: tokens.font.display, fontWeight: '700', fontSize: 13, color: tokens.color.ink },
+});</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>src/knot/Knot.tsx — MODIFY</span><span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>import { TranslationSection } from './TranslationSection'; // NEW import, alongside the other section imports
+
+interface KnotProps {
+  services: Services;
+  onTranslationChanged: () => void; // NEW
+}
+
+export function Knot({ services, onTranslationChanged }: KnotProps) {
+  const { db, log, text, translation, study, cue, backup, partner } = services; // add `translation`
+  // ...(unchanged state/handlers)...
+
+  return (
+    // ...
+              <Text style={styles.sectionLabel}>Study library</Text>
+              <DictionaryLibrary study={study} book={viewing?.entry.book ?? meta.get(db, 'current_book') ?? 'genesis'} />
+
+              <Text style={styles.sectionLabel}>Translation</Text>
+              <TranslationSection translation={translation} onChanged={onTranslationChanged} />
+
+              <Text style={styles.sectionLabel}>The cue</Text>
+              <CueEditor cue={cueState} onSave={handleCueSave} />
+    // ...(rest unchanged)...
+  );
+}</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>src/onboarding/OnboardingFlow.tsx — MODIFY (line 44)</span><span><span class="tag effort">🟡 high-effort — closes a Smart Review MEDIUM finding: without this, every fresh install still fed the legacy single-key row forever</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>    if (final.provider && final.apiKey) {
+      meta.set(db, 'text_provider', final.provider);
+      meta.set(db, `text_provider_key_${final.provider}`, final.apiKey); // was: meta.set(db, 'text_provider_key', final.apiKey)
+    }</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>src/onboarding/screens/TranslationScreen.tsx — MODIFY (lines 18, 23)</span><span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>      sub="Both need a free key from the publisher. If you'd rather not set one up now, skip — you'll still read the World English Bible, a public-domain translation, until you add one."
+      // ...
+      skipLabel="Skip for now — read the World English Bible"</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>src/onboarding/screens/DoneScreen.tsx — MODIFY (lines 44-48)</span><span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>        <Text style={styles.note}>
+          {draft.provider
+            ? `Reading in ${draft.provider.toUpperCase()} — falls back to the World English Bible automatically if a chapter can't be fetched.`
+            : 'Reading from the World English Bible — add a translation any time from the knot.'}
+        </Text></pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>README.md — MODIFY (insert before "The ESV integration..." paragraph, ~line 95)</span><span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>Until the knot's validate-before-save check (docs/plans/knot-translation-switch) runs against a real key,
+`src/text/apiBible.ts` (NIV) is exactly as unverified as `src/text/esv.ts` below — its tests all mock the network,
+and its only prior verification claim was that the base host matched api.bible's published docs, not a live call.</pre></div>
+  </div>
+
+  <div class="file-block">
+    <div class="file-header"><span>STATUS.md — MODIFY (replace the ESV-only Next actions line, ~line 42)</span><span><button class="copy-btn" onclick="copyCode(this)">Copy</button></span></div>
+    <div class="file-body"><pre>- [ ] Live-verify both `src/text/apiBible.ts` (NIV) and `src/text/esv.ts` (ESV) against real API keys — required
+      before `docs/plans/knot-translation-switch/plan.html` can merge; neither has ever made a real network call.</pre></div>
+  </div>
+</div>
+
+<div id="commits" class="panel">
+  <h2>Commits</h2>
+  <div class="commit"><span>feat(lab): translation_changed is a confound, same class as cue_changed — src/log/types.ts, src/lab/confound.ts, test/confound.test.ts</span></div>
+  <div class="commit"><span>feat(text): cache-free key validation for NIV and ESV, plus the NIV-unverified doc correction — src/text/esv.ts, src/text/apiBible.ts, test/esv.test.ts, README.md, STATUS.md</span></div>
+  <div class="commit"><span>feat(text): TranslationService owns the knot's translation state and confound logging — src/text/translationService.ts, test/translationService.test.ts</span></div>
+  <div class="commit"><span>feat(services): wire TranslationService into createServices, migrating (and clearing) a legacy single-key install forward, and stop onboarding from ever writing that legacy key — src/services/index.ts, src/onboarding/OnboardingFlow.tsx</span></div>
+  <div class="commit"><span>feat(knot): translation switch UI + services-rebuild epoch, with the boot effect kept off the epoch bump — App.tsx, src/knot/Knot.tsx, src/knot/TranslationSection.tsx</span></div>
+  <div class="commit"><span>docs(onboarding): name the World English Bible in the skip path and the done screen — src/onboarding/screens/TranslationScreen.tsx, src/onboarding/screens/DoneScreen.tsx</span></div>
+  <h3>Branching &amp; rollback</h3>
+  <p>Small, single-session, clean working tree at start (per AGENTS.md's worktree rule: a small clean single-session
+  change stays on <code>main</code> rather than a sibling worktree — this is ~17 files but zero schema migration,
+  zero PRNG/notification/backup/partner-hand-off change, and no parallel agent contention). Stays on <code>main</code>
+  directly, six ordered commits as above; the six-commit order matters (later commits depend on
+  <code>TranslationService</code> existing) but each is independently revertable — <code>git revert</code> the knot-UI
+  commit alone fully removes the reader-facing control while leaving the confound/validation plumbing inert (nothing
+  calls <code>TranslationService.set()</code> without it). Full rollback: revert all six in reverse order; no data
+  migration to undo since the new <code>meta</code> keys are purely additive and unused rows are harmless.</p>
+</div>
+
+<div id="review" class="panel">
+  <h2>Smart Review</h2>
+  <p>Independent read-only review agent, run against a live <code>npm test</code> (374 passing, 41 files) and
+  <code>npm run typecheck</code> (clean) on this worktree. It read every file this plan claims to modify in full,
+  not just the plan's quoted excerpts. All findings below are integrated into the tabs above; nothing was set aside.</p>
+
+  <h3>HIGH — 1 finding, fixed</h3>
+  <p><strong>App.tsx's reconcile/app_open boot effect would re-fire on every translation switch.</strong> The
+  original draft added <code>serviceEpoch</code> to the <code>services</code> <code>useMemo</code> without noticing
+  the boot effect's own dependency array is <code>[onboarded, services, db]</code> — the whole object, not a
+  narrower slice. Since a translation switch bumps <code>serviceEpoch</code>, which changes <code>services</code>'s
+  identity through that same memo, every switch would re-run <code>reconcile()</code>, re-run
+  <code>maybeGenerateReports()</code>, and unconditionally write a fresh <code>{ type: 'app_open' }</code> row to the
+  append-only <code>events</code> log for something that is not a launch. <code>reconcile()</code>/
+  <code>maybeGenerateReports()</code>/<code>autoExportIfDue()</code> are idempotent, so those parts were merely
+  wasteful — but the spurious <code>app_open</code> write is a permanent, wrong record in the log this project treats
+  as source of truth. <strong>Fix (Implementation tab, App.tsx):</strong> the boot effect now reads
+  <code>log</code>/<code>backup</code> through a <code>servicesRef</code> instead of depending on <code>services</code>
+  directly, keeping its trigger set at <code>[onboarded, db]</code> — its original, correct scope — so it still fires
+  exactly once per real launch and never on a translation switch.</p>
+
+  <h3>MEDIUM — 1 finding, fixed</h3>
+  <p><strong>The legacy single API key was never cleared, and onboarding kept writing it forever — not just for
+  pre-existing installs.</strong> The original draft left <code>OnboardingFlow.tsx:44</code> writing to the old
+  singular <code>text_provider_key</code> meta row unchanged, which meant <code>migrateLegacyProviderKey()</code> was
+  doing double duty as the only bridge for <em>every</em> fresh onboarding completion, not a true legacy-only path —
+  and it never deleted the row it copied from, so a superseded (possibly rotated or revoked) key would sit in
+  <code>meta</code>, and in every future unencrypted backup, forever. This materially worsens the grill's own Open
+  Threads note about the backup-exposure surface, which the original draft didn't account for. <strong>Fix
+  (Implementation tab):</strong> <code>OnboardingFlow.tsx</code> now writes directly to
+  <code>text_provider_key_&lt;provider&gt;</code>, so the legacy row is only ever populated by a genuinely
+  pre-upgrade install; <code>migrateLegacyProviderKey()</code> now unconditionally clears the legacy row once read,
+  whether or not a copy happened. Tests in <code>translationService.test.ts</code> updated to assert the row is
+  actually cleared in both the copy and already-migrated cases.</p>
+
+  <h3>LOW — 3 findings, all fixed</h3>
+  <ul class="requirements">
+    <li>Intent tab cited the wrong commit sha for "this worktree" (<code>aed0009</code> instead of the actual
+      <code>efcf041</code>, which <code>grill-summary.md</code> already had correctly) — corrected.</li>
+    <li>Verification tab's test-count numbers didn't reconcile with either the real baseline or the plan's own
+      drafted tests (said 365/+11; live run showed 374, and the drafted files add 13) — corrected.</li>
+    <li><code>TranslationSection.pick()</code> silently discarded in-progress typing when the already-selected
+      provider card was re-tapped — added an early return so re-tapping the current selection is a no-op.</li>
+  </ul>
+  <p>A fourth item (a one-line citation drift on <code>DoneScreen.tsx</code>'s line range) was also corrected in
+  passing.</p>
+
+  <h3>Verified sound — no finding</h3>
+  <p>The reviewer separately confirmed, against the real source rather than the plan's claims about it: the
+  <code>hasConfound()</code>/<code>confound.test.ts</code> diff matches current code exactly; <code>events.type</code>
+  genuinely has no CHECK constraint; <code>reconcile()</code> genuinely only advances forward from the watermark and
+  <code>closeDay()</code> only reads events for the date being closed, so the confound-logic change has no
+  retroactive effect on already-reported experiment data; <code>probeEsvKey</code>/<code>resolveNivBibleId</code>
+  genuinely never touch <code>chapter_cache</code>, closing the "cached chapter defeats validation" hole as claimed;
+  the <code>niv_bible_id</code> and sitting-restart sequencing both hold with no race, in the order claimed; the
+  drafted test files match this repo's real scaffolding conventions and would compile and run as written; no import
+  boundary is crossed; and every ticket's stated single-commit rollback holds against the real dependency graph.</p>
+</div>
+
+<div id="tickets" class="panel">
+  <h2>Tickets</h2>
+  <p class="ticket-meta">The <strong>frontier</strong> (ready to start now) is computed live from each card's
+  <code>data-blocked-by</code> against every other card's <code>data-status</code>.</p>
+
+  <div class="ticket-card" data-slice="1" data-blocked-by="" data-status="not-started">
+    <div class="ticket-head">
+      <span class="ticket-title">1. Translation is a logged confound</span>
+      <span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
+    </div>
+    <div class="ticket-meta">Blocked by: None — can start immediately</div>
+    <div class="ticket-meta">Delivers: a new <code>translation_changed</code> event type that <code>hasConfound()</code>
+      treats exactly like <code>cue_changed</code>. No UI yet — this is the lab-side foundation.</div>
+    <div class="ticket-ac">Acceptance criteria: satisfies user story #9</div>
+    <div class="ticket-meta">Rollback: revert the single commit; no other slice depends on runtime behavior yet, only
+      on the type existing.</div>
+  </div>
+
+  <div class="ticket-card" data-slice="2" data-blocked-by="" data-status="not-started">
+    <div class="ticket-head">
+      <span class="ticket-title">2. Cache-free key validation</span>
+      <span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
+    </div>
+    <div class="ticket-meta">Blocked by: None — can start immediately (independent of Slice 1)</div>
+    <div class="ticket-meta">Delivers: <code>probeEsvKey</code> plus the NIV-unverified doc correction — the pair of
+      primitives everything else validates through, and the honesty fix for the misleading asymmetry this plan
+      surfaced.</div>
+    <div class="ticket-ac">Acceptance criteria: satisfies user stories #4, #12, #14</div>
+    <div class="ticket-meta">Rollback: revert the single commit; <code>resolveNivBibleId</code> (unchanged, pre-existing)
+      still works standalone.</div>
+  </div>
+
+  <div class="ticket-card" data-slice="3" data-blocked-by="1, 2" data-status="not-started">
+    <div class="ticket-head">
+      <span class="ticket-title">3. TranslationService</span>
+      <span><span class="tag effort">🟡 high-effort</span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
+    </div>
+    <div class="ticket-meta">Blocked by: 1 (needs the event type to log), 2 (needs the validators to call)</div>
+    <div class="ticket-meta">Delivers: the service class itself — current/keyFor/validate/set/setOffline plus the
+      legacy-key migration (which now also clears the legacy row and is paired with an OnboardingFlow.tsx change so
+      onboarding never writes it again — Smart Review MEDIUM fix) — fully covered by its own test file, but not yet
+      reachable from the UI.</div>
+    <div class="ticket-ac">Acceptance criteria: satisfies user stories #5, #6, #9 (mechanism), #11, #13</div>
+    <div class="ticket-meta">Rollback: revert the two commits (service + services/index.ts wiring); createServices()
+      falls back to the pre-existing single-key read path only if services/index.ts's commit is reverted too.</div>
+  </div>
+
+  <div class="ticket-card" data-slice="4" data-blocked-by="3" data-status="not-started">
+    <div class="ticket-head">
+      <span class="ticket-title">4. Knot UI + services-rebuild epoch</span>
+      <span><span class="tag effort">🟡 high-effort</span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
+    </div>
+    <div class="ticket-meta">Blocked by: 3 (the service the UI drives)</div>
+    <div class="ticket-meta">Delivers: the end-to-end reader-facing feature — a working "Translation" section in the
+      knot that switches, validates, and reloads today's portion live, without re-running the app-launch boot
+      sequence (Smart Review HIGH fix: the reconcile/app_open effect now reads services via a ref instead of
+      depending on it).</div>
+    <div class="ticket-ac">Acceptance criteria: satisfies user stories #1, #2, #3, #7, #8</div>
+    <div class="ticket-meta">Rollback: revert the App.tsx + Knot.tsx + TranslationSection.tsx commit; the knot loses
+      the section but every earlier slice's plumbing stays inert and harmless.</div>
+  </div>
+
+  <div class="ticket-card" data-slice="5" data-blocked-by="" data-status="not-started">
+    <div class="ticket-head">
+      <span class="ticket-title">5. Name WEB in onboarding</span>
+      <span><select class="ticket-status" onchange="setStatus(this)"><option value="not-started">not started</option><option value="in-progress">in progress</option><option value="done">done</option></select></span>
+    </div>
+    <div class="ticket-meta">Blocked by: None — pure copy change, independent of every other slice</div>
+    <div class="ticket-meta">Delivers: consistent naming of the World English Bible across onboarding's skip path and
+      the done screen, closing the gap the grill's round 3/4 decided to close.</div>
+    <div class="ticket-ac">Acceptance criteria: satisfies user story #10</div>
+    <div class="ticket-meta">Rollback: revert the single copy-only commit; no functional behavior involved.</div>
+  </div>
+</div>
+
+<div id="verify" class="panel">
+  <h2>Verification</h2>
+
+  <h3>Automated</h3>
+  <ul class="checklist">
+    <li><input type="checkbox"><span><code>npx vitest run test/confound.test.ts test/translationService.test.ts test/esv.test.ts test/text.test.ts</code> → all pass</span></li>
+    <li><input type="checkbox"><span><code>npm test</code> → full suite green (currently 374, per a live run during Smart
+      Review; expect +13 new cases: 1 in confound.test.ts, 3 in esv.test.ts, 9 in translationService.test.ts)</span></li>
+    <li><input type="checkbox"><span><code>npm run typecheck</code> → clean, strict</span></li>
+    <li><input type="checkbox"><span>CI's Android production Metro export → clean (no new native dependency introduced)</span></li>
+  </ul>
+
+  <h3>Manual — mandatory, gated by this plan's own acceptance criterion (not an AGENTS.md-triggered category)</h3>
+  <p class="note">AGENTS.md's mandatory-checklist trigger list (event-log schema/migrations, PRNG determinism,
+  notification scheduling, backup crypto, partner hand-off) does not literally include "live third-party API
+  verification." This checklist exists instead because the grill session made "both providers pass a live
+  round-trip" an explicit, user-confirmed gate on merging <em>this specific plan</em> — recorded here so a future
+  reader doesn't mistake it for AGENTS.md's own standing policy.</p>
+  <ul class="checklist">
+    <li><input type="checkbox"><span>Obtain a real api.bible key. In the knot's Translation section, pick NIV, paste
+      it, tap "Verify and save." Expect: success, the section shows "NIV," and the next chapter read carries the real
+      Biblica copyright line (not the hardcoded <code>NIV_NOTICE</code> default).</span></li>
+    <li><input type="checkbox"><span>Obtain a real api.esv.org key (accepting Crossway's statement of faith). Repeat
+      for ESV. Expect: success, the Crossway attribution notice appears under the next chapter read.</span></li>
+    <li><input type="checkbox"><span>Once both succeed: update <code>src/text/apiBible.ts</code>'s verification note,
+      <code>src/text/esv.ts:11-16</code>'s header comment, and <code>test/esv.test.ts:36</code>'s describe title to
+      stop saying "unverified" — commit this as its own follow-up, referencing this plan.</span></li>
+    <li><input type="checkbox"><span>Try an intentionally wrong key against each provider from the knot. Expect: an
+      <code>Alert</code> naming the failure, the knot's Translation section still shows the previous choice
+      unchanged, and no new <code>translation_changed</code> row exists (check via
+      <code>DiagnosticsSection</code> or a direct query).</span></li>
+  </ul>
+
+  <h3>Owner spot-check (optional)</h3>
+  <ul class="checklist">
+    <li><input type="checkbox"><span>On a dev build, switch NIV→ESV→WEB→NIV from the knot mid-chapter; confirm today's
+      reading re-renders in each translation and lands on sitting 1 whenever the chapter was mid-read.</span></li>
+    <li><input type="checkbox"><span>Fresh install, skip translation at onboarding using the renamed skip label;
+      confirm the knot shows "World English Bible (WEB)" and <code>DoneScreen</code>'s copy names it too.</span></li>
+    <li><input type="checkbox"><span>Switch translation on a day already sealed; confirm no visible change to today's
+      completed reading or streak.</span></li>
+  </ul>
+</div>
+
+<script>
+function show(id){
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+}
+function copyCode(btn){
+  const pre = btn.closest('.file-block').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    const old = btn.textContent; btn.textContent = 'Copied ✓';
+    setTimeout(() => btn.textContent = old, 1200);
+  });
+}
+const KEY = 'plan-checks-' + location.pathname;
+document.querySelectorAll('.checklist input[type=checkbox]').forEach((cb, i) => {
+  cb.checked = localStorage.getItem(KEY + i) === '1';
+  cb.addEventListener('change', () => localStorage.setItem(KEY + i, cb.checked ? '1' : '0'));
+});
+function setStatus(sel){
+  const card = sel.closest('.ticket-card');
+  card.dataset.status = sel.value;
+  computeFrontier();
+}
+function computeFrontier(){
+  const cards = document.querySelectorAll('.ticket-card');
+  const statusBySlice = {};
+  cards.forEach(c => statusBySlice[c.dataset.slice] = c.dataset.status);
+  cards.forEach(c => {
+    const blockers = (c.dataset.blockedBy || '').split(',').map(s => s.trim()).filter(Boolean);
+    const unblocked = blockers.every(b => statusBySlice[b] === 'done');
+    c.classList.toggle('ready', unblocked && c.dataset.status !== 'done');
+  });
+}
+document.querySelectorAll('.ticket-card').forEach(c => {
+  const sel = c.querySelector('.ticket-status');
+  if (sel) sel.value = c.dataset.status;
+});
+computeFrontier();
+</script>
+</body>
+</html>
