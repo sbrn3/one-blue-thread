@@ -1,0 +1,77 @@
+# Builds a debug APK containing expo-dev-client, so JS and asset changes can be
+# iterated over Metro instead of through a ~20 minute release build.
+#
+# Build this ONCE and install it. After that:
+#
+#   npx expo start --dev-client     # on the laptop
+#   adb reverse tcp:8081 tcp:8081   # phone reaches Metro over USB
+#
+# Every JS/asset edit then reloads in about a second, and console.log streams
+# to the Metro terminal — no logcat filtering, no artifact download, no
+# reinstall. Only NATIVE changes (a new native module, app.json native config,
+# an SDK bump) need this rebuilt.
+#
+# This shares com.sngugi.thread with the release build, so installing it
+# REPLACES the release app (your reading data survives — same package, same
+# debug signing key). That is deliberate: reproducing a bug usually needs the
+# real data. Reinstall the release APK when you want the shipping build back.
+#
+# Caveat worth remembering: a debug build runs slower than release, so this is
+# where you FIND a performance problem, not where you confirm one is fixed.
+# Verify perf against the release APK from android-apk.yml.
+
+name: Dev client APK
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('package-lock.json', 'app.json') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: npm ci
+
+      # No test gate here on purpose: this artifact is a debugging instrument,
+      # not something that ships. android-apk.yml still gates every release.
+
+      - name: Generate native project
+        run: npx expo prebuild --platform android --no-install
+
+      # Same trailing-newline hazard as the release workflow — see its comment.
+      - name: Raise Gradle JVM memory
+        run: printf '\norg.gradle.jvmargs=-Xmx5120m -XX:MaxMetaspaceSize=1536m\n' >> android/gradle.properties
+
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+      - name: Rename APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk one-blue-thread-dev.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: one-blue-thread-dev-apk
+          path: one-blue-thread-dev.apk

@@ -30,3 +30,37 @@ browser via `npm run web`.
 6. Report whether the server was reused or started, the target, the URL, session
    ownership, and how to stop it (`/kill-node` or stopping the background
    session).
+
+## Iterating on a physical device without 20-minute builds
+
+There is no Android SDK on this machine, so `npm run android` cannot build
+locally — the device APK comes from CI. A release build takes ~20 minutes, which
+is a terrible loop for a JS-only change, and nearly everything is a JS-only
+change.
+
+Do this instead, once:
+
+1. Run the **Dev client APK** workflow (`gh workflow run "Dev client APK"`) and
+   install the artifact. It contains `expo-dev-client` and no embedded bundle.
+2. `npx expo start --dev-client` on this machine.
+3. `adb reverse tcp:8081 tcp:8081` so the phone reaches Metro over USB.
+
+After that every JS or asset edit reloads in about a second, and `console.log`
+goes straight to the Metro terminal — no logcat filtering, no artifact download,
+no reinstall. Only a **native** change (new native module, `app.json` native
+config, SDK bump) needs the dev client rebuilt.
+
+`adb` is not on PATH; fetch Google's platform-tools zip into the scratchpad if
+it is missing. The device must have USB debugging enabled and the RSA prompt
+accepted (`adb devices` shows `unauthorized` until it is).
+
+Two things this loop is NOT for:
+
+- **Confirming a performance fix.** A debug build is slower than release, so it
+  is where you find a perf bug, not where you prove one fixed. Verify against
+  the release APK.
+- **Anything reproducible off-device.** The launch hang of 2026-09-05 was pure
+  logic, and a Node benchmark caught it in seconds after three device builds had
+  failed to. Reach for a failing test or a benchmark first; go to the device
+  only for what genuinely needs one — native modules, notifications, layout,
+  fonts, accessibility, upgrade behaviour.
