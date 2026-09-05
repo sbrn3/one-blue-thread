@@ -1,25 +1,25 @@
 # Status
 
-_Last updated: 2026-09-05 (app-quality-foundations PRs opened)_
+_Last updated: 2026-09-05 (app-quality-foundations merged, tagged v0.5.0)_
 
 ## Current phase
 
-Plan work-packages W1–W13 are complete. Three subsequent releases have also
+Plan work-packages W1–W13 are complete. Four subsequent releases have also
 shipped and are on `main`: the **Tyndale Open Resources** addition (offline
 study notes, dictionary discovery/search, book introductions, passage-range
 remembering — tagged `v0.3.0`, then `v0.3.1` after a corpus-size fix), the
 **"The Loom" aesthetic rollout** (PRs #1–#8, tagged separately in the journal),
-and **account reset as "the unravel"** (PR #9). A fourth, **app-quality-
-foundations** (fonts/safe-areas/race-safe startup, 44pt controls, operable
-seal, honest on-device recovery + external backup, a quiet knot with local
-Support, searchable reading history, and a one-time study hint), is in
-progress as 7 stacked PRs (#11–#17) — see `docs/plans/README.md`.
+**account reset as "the unravel"** (PR #9), and **app-quality-foundations**
+(fonts/safe-areas/race-safe startup, 44pt controls, operable seal, honest
+on-device recovery + external backup, a quiet knot with local Support,
+searchable reading history, and a one-time study hint — 7 stacked PRs,
+#11–#17, tagged `v0.5.0`) — see `docs/plans/README.md`.
 
 ## Branch state
 
-`main` at `efcf041`, even with `origin/main`. All three releases above are
-fully merged. The 7 app-quality-foundations PRs are open, stacked in order,
-each green on `npm test`/`npm run typecheck`; none merged yet.
+`main` at `8b6c738`, even with `origin/main`. All four releases above are
+fully merged and tagged. The 7 app-quality-foundations PRs merged in order;
+their branches (local and remote) have been deleted.
 
 ## Verification (Tyndale release, historical)
 
@@ -36,14 +36,13 @@ each green on `npm test`/`npm run typecheck`; none merged yet.
 
 ## Active plans
 
-- **app-quality-foundations** — 🔨 in progress. 7 PRs (#11–#17) opened against
-  `main`, each independently focused-tested; awaiting merge in order and a
-  device pass. See `docs/plans/app-quality-foundations/plan.html`'s per-slice
-  ledger for exact gaps per PR.
+- **app-quality-foundations** — ✅ shipped. 7 PRs (#11–#17) merged to `main`
+  in order, tagged `v0.5.0`; each independently focused-tested. See
+  `docs/plans/app-quality-foundations/plan.html`'s per-slice ledger for exact
+  gaps per PR — the device pass below remains open.
 
 ## Next actions
 
-- [ ] Merge PRs #11–#17 in order (each depends on the previous).
 - [ ] Physical-device checks: Tyndale accessibility/startup profiling; loom
       Psalms/Jude widths and warp colour `#8F8779` on a real screen.
 - [ ] app-quality-foundations device pass: bundled OTF font assets (none

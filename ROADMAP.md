@@ -20,6 +20,18 @@ _(none)_
 
 ## Shipped
 
+- ✅ 2026-09-05 — **App quality foundations** (PRs #11–#17, tagged `v0.5.0`):
+  packaged fonts, portrait-safe layouts, race-safe startup with visible
+  loading/error/retry, a repository-wide 44pt interaction sweep, accessible
+  sealing with a two-tap alternative, truly terminal post-seal dismissal,
+  honest restorable recovery snapshots plus external backup confirmation, a
+  quiet accordion knot with first-class local Support diagnostics,
+  virtualized/searchable recorded reading history, and a study discovery
+  hint. Device-verification pass (bundled fonts, screen-reader matrix, real
+  launch timing, on-device recovery-snapshot exercise) remains open — see
+  `docs/plans/app-quality-foundations/plan.html`.
+  Plan: `docs/plans/app-quality-foundations/plan.html`.
+
 - ✅ 2026-09-05 — **Account reset** ("the unravel"): press and hold to erase
   everything and return to first run. Design settled by `/grill`; see the
   decision entry in `JOURNAL.md`.
