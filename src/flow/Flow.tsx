@@ -34,6 +34,7 @@ import { YearReviewZone } from './YearReviewZone';
 import { DismissalZone } from './DismissalZone';
 import { ThreadRail } from './ThreadRail';
 import { deriveBolt, type Bolt } from './bolt';
+import { isDismissalReady } from './dismissalReadiness';
 import { ErrorState } from '../ui/FeedbackState';
 import { LaunchWeave } from '../ui/LaunchWeave';
 import { VerseContextSheet } from '../study/VerseContextSheet';
@@ -100,6 +101,7 @@ export function Flow({ services }: FlowProps) {
   const handleSaveSrbai = useCallback(
     (answers: SrbaiAnswers) => {
       saveSrbai(db, today, answers);
+      setSrbaiDue(false); // §04 zone 5 — resolved, so the dismissal gate can clear
     },
     [db, today],
   );
@@ -301,6 +303,14 @@ export function Flow({ services }: FlowProps) {
     setCandidates(session.justFinishedBook ? memory.candidates(session.justFinishedBook) : []);
   }, [session.justFinishedBook, memory]);
 
+  // §04 zone 5 / §21 — the book-end promotion choice. Reset for every newly
+  // finished book so an old resolution can't silently satisfy a new one.
+  const [promotionResolved, setPromotionResolved] = useState(false);
+  useEffect(() => {
+    setPromotionResolved(false);
+  }, [session.justFinishedBook]);
+  const handleSkipPromotion = useCallback(() => setPromotionResolved(true), []);
+
   const refreshChapterCandidates = useCallback(() => {
     setChapterCandidates(memory.candidatesForChapter(session.book, session.chapter));
   }, [memory, session.book, session.chapter]);
@@ -358,6 +368,7 @@ export function Flow({ services }: FlowProps) {
     (id: number) => {
       memory.promote(id, today);
       setCandidates((prev) => prev.filter((c) => c.id !== id));
+      setPromotionResolved(true);
     },
     [memory, today],
   );
@@ -565,6 +576,7 @@ export function Flow({ services }: FlowProps) {
           onScrollLock={(locked) => setScrollEnabled(!locked)}
           sealMode={sealMode}
           canSeal={canSeal}
+          floor={floor}
         />
         {session.sealedToday && (
           <>
@@ -574,6 +586,8 @@ export function Flow({ services }: FlowProps) {
               sealed={bolt.sealed}
               streak={streak}
             />
+            {srbaiDue && <SrbaiZone eyeballDates={eyeballDates(db, today)} onSave={handleSaveSrbai} />}
+            {yearReview && <YearReviewZone report={yearReview} onDismiss={handleDismissYearReview} />}
             <DismissalZone
               book={session.book}
               chapter={session.chapter}
@@ -581,15 +595,23 @@ export function Flow({ services }: FlowProps) {
               justFinishedBook={session.justFinishedBook}
               candidates={candidates}
               onPromote={handlePromote}
+              promotionResolved={promotionResolved}
+              onSkipPromotion={handleSkipPromotion}
               needsNextBookPick={session.nextBookNeeded}
               onPickNextBook={handlePickNextBook}
               pendingReport={pendingReport}
               reportPhases={reportPhases}
               onApplyReport={handleApplyReport}
               onKeepReport={handleKeepReport}
+              terminalReady={isDismissalReady({
+                srbaiDue,
+                yearReviewDue: yearReview !== null,
+                hasPendingReport: pendingReport !== null,
+                needsNextBookPick: session.nextBookNeeded,
+                hasPromotionChoice: session.justFinishedBook !== null && candidates.length > 0,
+                promotionResolved,
+              })}
             />
-            {srbaiDue && <SrbaiZone eyeballDates={eyeballDates(db, today)} onSave={handleSaveSrbai} />}
-            {yearReview && <YearReviewZone report={yearReview} onDismiss={handleDismissYearReview} />}
           </>
         )}
       </Animated.ScrollView>
