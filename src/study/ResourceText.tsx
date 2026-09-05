@@ -7,8 +7,14 @@ function Inline({ part, onOpenArticle }: { part:ResourceInline; onOpenArticle?:(
   if (typeof part === 'string') return <>{part}</>;
   if (part.t === 'em') return <Text style={styles.em}>{part.v}</Text>;
   if (part.t === 'ref') return <Text style={styles.reference}>{part.v}</Text>;
+  // No documented 44pt alternate route to this specific article exists
+  // from inside another article's body (unlike ScriptureZone's inline
+  // terms, which always resolve via VerseContextSheet's Dictionary
+  // chips) — promoted with an explicit accessibilityLabel. Text has no
+  // typed `hitSlop` in this RN version, and wrapping it in a Pressable
+  // would break the surrounding inline prose flow.
   return onOpenArticle ? (
-    <Text accessibilityRole="link" accessibilityHint="Opens another dictionary article" style={styles.link} onPress={()=>onOpenArticle(part.id)}>{part.v}</Text>
+    <Text accessibilityRole="link" accessibilityLabel={`Open dictionary article ${part.v}`} accessibilityHint="Opens another dictionary article" style={styles.link} onPress={()=>onOpenArticle(part.id)}>{part.v}</Text>
   ) : <Text style={styles.reference}>{part.v}</Text>;
 }
 

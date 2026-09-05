@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActionButton } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 
 interface OnboardingScreenProps {
@@ -35,17 +36,19 @@ export function OnboardingScreen({
         {children}
       </ScrollView>
       <View style={styles.footer}>
-        <Pressable
-          style={[styles.primaryBtn, primaryDisabled && styles.primaryBtnDisabled]}
+        <ActionButton
+          label={primaryLabel}
           onPress={onPrimary}
           disabled={primaryDisabled}
-        >
-          <Text style={[styles.primaryLabel, primaryDisabled && styles.primaryLabelDisabled]}>{primaryLabel}</Text>
-        </Pressable>
+          style={styles.primaryBtn}
+        />
         {onSkip ? (
-          <Pressable onPress={onSkip} style={styles.skipBtn}>
-            <Text style={styles.skipLabel}>{skipLabel ?? 'Skip'}</Text>
-          </Pressable>
+          <ActionButton
+            label={skipLabel ?? 'Skip'}
+            variant="link"
+            onPress={onSkip}
+            style={styles.skipBtn}
+          />
         ) : null}
       </View>
     </View>
@@ -86,25 +89,8 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   primaryBtn: {
-    backgroundColor: tokens.color.ink,
     borderRadius: 12,
     paddingVertical: 16,
-    alignItems: 'center',
   },
-  primaryBtnDisabled: { backgroundColor: tokens.color.ink15 },
-  primaryLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 14,
-    letterSpacing: 0.5,
-    color: tokens.color.paper,
-  },
-  primaryLabelDisabled: { color: tokens.color.ink40 },
-  skipBtn: { alignItems: 'center', marginTop: 14 },
-  skipLabel: {
-    fontFamily: tokens.font.display,
-    fontSize: 12.5,
-    color: tokens.color.ink40,
-    textDecorationLine: 'underline',
-  },
+  skipBtn: { marginTop: 14 },
 });

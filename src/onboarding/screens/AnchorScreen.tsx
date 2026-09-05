@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { ChoiceChip } from '../../ui/controls';
 import { tokens } from '../../ui/tokens';
 import { AnchorValidation } from '../AnchorValidation';
 import { OnboardingScreen } from '../OnboardingScreen';
@@ -59,16 +60,15 @@ export function AnchorScreen({ anchor: initialAnchor, onNext }: AnchorScreenProp
       />
       <View style={styles.chips}>
         {SUGGESTIONS.map((s) => (
-          <Pressable
+          <ChoiceChip
             key={s}
-            style={styles.chip}
+            label={s}
+            selected={anchor === s}
             onPress={() => {
               setAnchor(s);
               setValidated(null);
             }}
-          >
-            <Text style={styles.chipLabel}>{s}</Text>
-          </Pressable>
+          />
         ))}
       </View>
 
@@ -100,12 +100,4 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
-  chip: {
-    borderWidth: 1,
-    borderColor: tokens.color.ink15,
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 13,
-  },
-  chipLabel: { fontFamily: tokens.font.display, fontSize: 12.5, color: tokens.color.ink40 },
 });

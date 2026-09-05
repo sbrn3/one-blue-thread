@@ -5,6 +5,7 @@ import type { PhaseMetric } from '../lab/analysis/reversal';
 import type { Passage } from '../log/types';
 import { bookName } from '../text/canon';
 import { BookPicker } from '../ui/BookPicker';
+import { ActionButton } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 import { ReportPrompt } from './ReportPrompt';
 
@@ -70,7 +71,12 @@ export function DismissalZone({
         <View style={styles.promoteBlock}>
           <Text style={styles.promoteLabel}>Carry one passage forward to memorise?</Text>
           {candidates.map((p) => (
-            <Pressable key={p.id} style={styles.candidateRow} onPress={() => onPromote(p.id)}>
+            <Pressable
+              key={p.id}
+              style={styles.candidateRow}
+              onPress={() => onPromote(p.id)}
+              accessibilityRole="button"
+            >
               <Text style={styles.candidateText}>{reference(justFinishedBook, p)}</Text>
             </Pressable>
           ))}
@@ -82,9 +88,11 @@ export function DismissalZone({
           <Text style={styles.promoteLabel}>What&apos;s next, after {bookName(book)}?</Text>
           <BookPicker excludeId={book} selected={pending} onSelect={setPending} />
           {pending && (
-            <Pressable style={styles.queueBtn} onPress={() => onPickNextBook(pending)}>
-              <Text style={styles.queueBtnLabel}>Queue {bookName(pending)}</Text>
-            </Pressable>
+            <ActionButton
+              label={`Queue ${bookName(pending)}`}
+              onPress={() => onPickNextBook(pending)}
+              style={styles.queueBtn}
+            />
           )}
         </View>
       )}
@@ -138,6 +146,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   candidateRow: {
+    minHeight: 48,
+    justifyContent: 'center',
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 999,
@@ -156,16 +166,6 @@ const styles = StyleSheet.create({
   queueBtn: {
     marginTop: 8,
     alignSelf: 'center',
-    backgroundColor: tokens.color.ink,
-    borderRadius: 999,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-  },
-  queueBtnLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 13,
-    color: tokens.color.paper,
   },
   close: {
     fontFamily: tokens.font.scripture,

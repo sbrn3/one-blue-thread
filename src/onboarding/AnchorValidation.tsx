@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { ChoiceChip } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 
 interface AnchorValidationProps {
@@ -37,18 +38,13 @@ export function AnchorValidation({ onResult }: AnchorValidationProps) {
         <View key={q} style={styles.row}>
           <Text style={styles.question}>{q}</Text>
           <View style={styles.yn}>
-            <Pressable
-              style={[styles.ynBtn, answers[i] === true && styles.ynBtnYes]}
-              onPress={() => answer(i, true)}
-            >
-              <Text style={[styles.ynLabel, answers[i] === true && styles.ynLabelPicked]}>Yes</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.ynBtn, answers[i] === false && styles.ynBtnNo]}
+            <ChoiceChip label="Yes" selected={answers[i] === true} onPress={() => answer(i, true)} />
+            <ChoiceChip
+              label="No"
+              selected={answers[i] === false}
               onPress={() => answer(i, false)}
-            >
-              <Text style={[styles.ynLabel, answers[i] === false && styles.ynLabelPicked]}>No</Text>
-            </Pressable>
+              style={answers[i] === false ? styles.ynNoSelected : undefined}
+            />
           </View>
         </View>
       ))}
@@ -81,9 +77,11 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 6,
+    gap: 6,
   },
   question: {
     fontFamily: tokens.font.display,
@@ -91,24 +89,8 @@ const styles = StyleSheet.create({
     color: tokens.color.ink,
     flexShrink: 1,
   },
-  yn: { flexDirection: 'row', gap: 6 },
-  ynBtn: {
-    paddingVertical: 5,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: tokens.color.ink15,
-    backgroundColor: '#fff',
-  },
-  ynBtnYes: { borderColor: tokens.color.thread, backgroundColor: tokens.color.thread },
-  ynBtnNo: { borderColor: tokens.color.madder, backgroundColor: tokens.color.madder },
-  ynLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 11,
-    color: tokens.color.ink40,
-  },
-  ynLabelPicked: { color: '#fff' },
+  yn: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  ynNoSelected: { backgroundColor: tokens.color.madder },
   verdict: {
     marginTop: 8,
     fontFamily: tokens.font.display,

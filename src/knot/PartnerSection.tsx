@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 import type { Partner } from '../partner';
+import { ActionButton, ChoiceChip } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 
 interface PartnerSectionProps {
@@ -80,20 +81,12 @@ export function PartnerSection({ partner }: PartnerSectionProps) {
       />
       <View style={styles.dayRow}>
         {DAY_LABELS.map((label, i) => (
-          <Pressable key={label} style={[styles.dayBtn, convoDay === i && styles.dayBtnActive]} onPress={() => setConvoDay(i)}>
-            <Text style={[styles.dayLabel, convoDay === i && styles.dayLabelActive]}>{label}</Text>
-          </Pressable>
+          <ChoiceChip key={label} label={label} selected={convoDay === i} onPress={() => setConvoDay(i)} />
         ))}
       </View>
       <View style={styles.formRow}>
-        <Pressable style={styles.primaryBtn} onPress={handleSave}>
-          <Text style={styles.primaryBtnLabel}>{saved ? 'Update' : 'Save'}</Text>
-        </Pressable>
-        {saved && (
-          <Pressable style={styles.secondaryBtn} onPress={handleClear}>
-            <Text style={styles.secondaryBtnLabel}>Remove</Text>
-          </Pressable>
-        )}
+        <ActionButton label={saved ? 'Update' : 'Save'} onPress={handleSave} />
+        {saved && <ActionButton label="Remove" variant="secondary" onPress={handleClear} />}
       </View>
     </View>
   );
@@ -117,55 +110,13 @@ const styles = StyleSheet.create({
   },
   dayRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 6,
-  },
-  dayBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: tokens.color.ink15,
-  },
-  dayBtnActive: {
-    backgroundColor: tokens.color.ink,
-    borderColor: tokens.color.ink,
-  },
-  dayLabel: {
-    fontFamily: tokens.font.mono,
-    fontSize: 11,
-    color: tokens.color.ink,
-  },
-  dayLabelActive: {
-    color: tokens.color.paper,
   },
   formRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
     marginTop: 4,
-  },
-  primaryBtn: {
-    backgroundColor: tokens.color.ink,
-    borderRadius: 999,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-  },
-  primaryBtnLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 13,
-    color: tokens.color.paper,
-  },
-  secondaryBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: tokens.color.ink15,
-  },
-  secondaryBtnLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 13,
-    color: tokens.color.ink,
   },
 });

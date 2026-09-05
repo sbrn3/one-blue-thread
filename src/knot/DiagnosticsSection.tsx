@@ -1,7 +1,8 @@
 import * as Clipboard from 'expo-clipboard';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import type { AmendmentEntry } from '../lab/analysis/amendments';
+import { ActionButton } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 
 interface DiagnosticsSectionProps {
@@ -27,9 +28,12 @@ export function DiagnosticsSection({ diagnosticsText, amendments }: DiagnosticsS
 
   return (
     <View style={styles.wrap}>
-      <Pressable style={styles.copyBtn} onPress={handleCopy}>
-        <Text style={styles.copyBtnLabel}>{copied ? 'Copied' : 'Copy diagnostics'}</Text>
-      </Pressable>
+      <ActionButton
+        label={copied ? 'Copied' : 'Copy diagnostics'}
+        variant="secondary"
+        onPress={handleCopy}
+        style={styles.copyBtn}
+      />
 
       {amendments.length > 0 && (
         <View style={styles.log}>
@@ -51,17 +55,6 @@ const styles = StyleSheet.create({
   wrap: { gap: 12 },
   copyBtn: {
     alignSelf: 'flex-start',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: tokens.color.ink15,
-  },
-  copyBtnLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 13,
-    color: tokens.color.ink,
   },
   log: { gap: 4 },
   logEntry: {

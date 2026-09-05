@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { computeBucket, computeContext, describePolicy, isAdaptiveActive } from '../lab/bandit';
 import type { SqlDb } from '../log/db';
 import { getProfile, setProfile } from '../lab/profile';
+import { ActionButton } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 
 interface AdaptiveSectionProps {
@@ -36,9 +37,12 @@ export function AdaptiveSection({ db, today }: AdaptiveSectionProps) {
             : "Not active yet. It only starts learning once you've been through a full year, and never touches which day you read or how much — only whether and when it nudges."}
         </Text>
         {!frozen && (
-          <Pressable style={styles.freezeBtn} onPress={handleToggleFreeze}>
-            <Text style={styles.freezeBtnLabel}>Freeze it now</Text>
-          </Pressable>
+          <ActionButton
+            label="Freeze it now"
+            variant="secondary"
+            onPress={handleToggleFreeze}
+            style={styles.freezeBtn}
+          />
         )}
       </View>
     );
@@ -51,9 +55,12 @@ export function AdaptiveSection({ db, today }: AdaptiveSectionProps) {
   return (
     <View style={styles.wrap}>
       <Text style={styles.hint}>{policy}</Text>
-      <Pressable style={styles.freezeBtn} onPress={handleToggleFreeze}>
-        <Text style={styles.freezeBtnLabel}>{frozen ? 'Unfreeze' : 'Freeze'}</Text>
-      </Pressable>
+      <ActionButton
+        label={frozen ? 'Unfreeze' : 'Freeze'}
+        variant="secondary"
+        onPress={handleToggleFreeze}
+        style={styles.freezeBtn}
+      />
     </View>
   );
 }
@@ -68,16 +75,5 @@ const styles = StyleSheet.create({
   },
   freezeBtn: {
     alignSelf: 'flex-start',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: tokens.color.ink15,
-  },
-  freezeBtnLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 13,
-    color: tokens.color.ink,
   },
 });

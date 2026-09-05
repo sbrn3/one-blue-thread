@@ -17,7 +17,12 @@ const DEFAULT_RECOMMENDED = ['philippians', 'mark', 'james', 'psalms'];
 function BookRow({ book, selected, onPress }: { book: Book; selected: boolean; onPress: () => void }) {
   const chapters = bundledChapterCount(book.id);
   return (
-    <Pressable style={styles.row} onPress={onPress}>
+    <Pressable
+      style={styles.row}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+    >
       <View>
         <Text style={styles.rowTitle}>{book.name}</Text>
         <Text style={styles.rowSub}>
@@ -65,7 +70,12 @@ export function BookPicker({ excludeId, selected, onSelect, recommended = DEFAUL
         </>
       )}
 
-      <Pressable style={styles.browseToggle} onPress={() => setBrowseOpen((o) => !o)}>
+      <Pressable
+        style={styles.browseToggle}
+        onPress={() => setBrowseOpen((o) => !o)}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: browseOpen || !!query }}
+      >
         <Text style={styles.browseLabel}>Browse all 66 books</Text>
         <Text style={styles.browseArrow}>{browseOpen || query ? '↑' : '↓'}</Text>
       </Pressable>
@@ -103,6 +113,7 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   row: {
+    minHeight: 48,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -121,8 +132,10 @@ const styles = StyleSheet.create({
   },
   pickSelected: { borderColor: tokens.color.thread, backgroundColor: tokens.color.thread },
   browseToggle: {
+    minHeight: 44,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: tokens.color.ink15,

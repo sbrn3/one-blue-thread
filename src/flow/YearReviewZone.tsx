@@ -1,5 +1,6 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import type { YearReviewReport } from '../lab/analysis/yearReview';
+import { ActionButton } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 
 interface YearReviewZoneProps {
@@ -48,9 +49,7 @@ export function YearReviewZone({ report, onDismiss }: YearReviewZoneProps) {
         </View>
       )}
 
-      <Pressable style={styles.dismissBtn} onPress={onDismiss}>
-        <Text style={styles.dismissLabel}>Got it</Text>
-      </Pressable>
+      <ActionButton label="Got it" onPress={onDismiss} style={styles.dismissBtn} />
     </View>
   );
 }
@@ -90,15 +89,5 @@ const styles = StyleSheet.create({
   },
   dismissBtn: {
     alignSelf: 'flex-start',
-    backgroundColor: tokens.color.ink,
-    borderRadius: 999,
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-  },
-  dismissLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 13,
-    color: tokens.color.paper,
   },
 });

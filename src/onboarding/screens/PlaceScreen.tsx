@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
+import { ChoiceChip } from '../../ui/controls';
 import { tokens } from '../../ui/tokens';
 import { OnboardingScreen } from '../OnboardingScreen';
 
@@ -31,9 +32,7 @@ export function PlaceScreen({ place: initialPlace, onNext }: PlaceScreenProps) {
       />
       <View style={styles.chips}>
         {SUGGESTIONS.map((s) => (
-          <Pressable key={s} style={styles.chip} onPress={() => setPlace(s)}>
-            <Text style={styles.chipLabel}>{s}</Text>
-          </Pressable>
+          <ChoiceChip key={s} label={s} selected={place === s} onPress={() => setPlace(s)} />
         ))}
       </View>
     </OnboardingScreen>
@@ -53,12 +52,4 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    borderWidth: 1,
-    borderColor: tokens.color.ink15,
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 13,
-  },
-  chipLabel: { fontFamily: tokens.font.display, fontSize: 12.5, color: tokens.color.ink40 },
 });

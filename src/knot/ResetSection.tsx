@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import {
   cancelAnimation,
@@ -16,6 +16,7 @@ import { logicalToday } from '../log/time';
 import { nativeResetEnv } from '../reset/nativeEnv';
 import { performReset } from '../reset/perform';
 import { bundledChapterCount } from '../text';
+import { ActionButton } from '../ui/controls';
 import { dyeFor } from '../ui/dye';
 import { tokens } from '../ui/tokens';
 import { Unravel } from '../ui/Unravel';
@@ -120,14 +121,7 @@ export function ResetSection({ db, log, onReset }: ResetSectionProps) {
       ) : !confirming ? (
         <>
           <Text style={styles.body}>Erase everything and return to the beginning.</Text>
-          <Pressable
-            style={styles.btn}
-            onPress={() => setConfirming(true)}
-            accessibilityRole="button"
-            accessibilityLabel="Start over"
-          >
-            <Text style={styles.btnLabel}>Start over</Text>
-          </Pressable>
+          <ActionButton label="Start over" variant="secondary" onPress={() => setConfirming(true)} style={styles.btn} />
         </>
       ) : (
         <>
@@ -139,17 +133,8 @@ export function ResetSection({ db, log, onReset }: ResetSectionProps) {
 
           {reducedMotion || screenReaderEnabled ? (
             <View style={styles.confirmRow}>
-              <Pressable
-                style={[styles.btn, styles.btnDanger]}
-                onPress={run}
-                accessibilityRole="button"
-                accessibilityLabel="Erase everything and start over"
-              >
-                <Text style={[styles.btnLabel, styles.btnDangerLabel]}>Erase and start over</Text>
-              </Pressable>
-              <Pressable style={styles.btn} onPress={() => setConfirming(false)}>
-                <Text style={styles.btnLabel}>Cancel</Text>
-              </Pressable>
+              <ActionButton label="Erase and start over" onPress={run} />
+              <ActionButton label="Cancel" variant="secondary" onPress={() => setConfirming(false)} style={styles.btn} />
             </View>
           ) : (
             <>
@@ -169,9 +154,7 @@ export function ResetSection({ db, log, onReset }: ResetSectionProps) {
               </GestureDetector>
               <View style={styles.confirmRow}>
                 <Text style={styles.holdLabel}>Hold to unravel</Text>
-                <Pressable style={styles.btn} onPress={() => setConfirming(false)}>
-                  <Text style={styles.btnLabel}>Cancel</Text>
-                </Pressable>
+                <ActionButton label="Cancel" variant="secondary" onPress={() => setConfirming(false)} style={styles.btn} />
               </View>
             </>
           )}
@@ -221,18 +204,6 @@ const styles = StyleSheet.create({
   confirmRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, alignItems: 'center' },
   btn: {
     alignSelf: 'flex-start',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 999,
-    borderWidth: 1,
     borderColor: tokens.color.ink15,
   },
-  btnDanger: { borderColor: tokens.color.ink, backgroundColor: tokens.color.ink },
-  btnLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 13,
-    color: tokens.color.ink,
-  },
-  btnDangerLabel: { color: tokens.color.paper },
 });

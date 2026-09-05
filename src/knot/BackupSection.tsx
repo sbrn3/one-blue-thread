@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import type { Backup } from '../backup';
+import { ActionButton } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 
 interface BackupSectionProps {
@@ -133,16 +134,13 @@ export function BackupSection({ backup }: BackupSectionProps) {
             autoFocus
           />
           <View style={styles.formRow}>
-            <Pressable style={styles.secondaryBtn} onPress={() => setNewPassphrase(null)}>
-              <Text style={styles.secondaryBtnLabel}>Cancel</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.primaryBtn, !newPassphrase && styles.btnDisabled]}
+            <ActionButton label="Cancel" variant="secondary" onPress={() => setNewPassphrase(null)} />
+            <ActionButton
+              label="Save"
               onPress={handleSavePassphrase}
-              disabled={!newPassphrase || busy}
-            >
-              <Text style={styles.primaryBtnLabel}>Save</Text>
-            </Pressable>
+              disabled={!newPassphrase}
+              busy={busy}
+            />
           </View>
         </View>
       )}
@@ -161,16 +159,13 @@ export function BackupSection({ backup }: BackupSectionProps) {
             autoFocus
           />
           <View style={styles.formRow}>
-            <Pressable style={styles.secondaryBtn} onPress={() => setRestoreTarget(null)}>
-              <Text style={styles.secondaryBtnLabel}>Cancel</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.primaryBtn, !restorePassphrase && styles.btnDisabled]}
+            <ActionButton label="Cancel" variant="secondary" onPress={() => setRestoreTarget(null)} />
+            <ActionButton
+              label="Restore"
               onPress={() => confirmAndRestore(restoreTarget, restorePassphrase)}
-              disabled={!restorePassphrase || busy}
-            >
-              <Text style={styles.primaryBtnLabel}>Restore</Text>
-            </Pressable>
+              disabled={!restorePassphrase}
+              busy={busy}
+            />
           </View>
         </View>
       )}
@@ -180,16 +175,8 @@ export function BackupSection({ backup }: BackupSectionProps) {
       </Text>
 
       <View style={styles.formRow}>
-        <Pressable style={styles.primaryBtn} onPress={handleExport} disabled={busy}>
-          {busy ? (
-            <ActivityIndicator color={tokens.color.paper} />
-          ) : (
-            <Text style={styles.primaryBtnLabel}>Export now</Text>
-          )}
-        </Pressable>
-        <Pressable style={styles.secondaryBtn} onPress={handleRestore} disabled={busy}>
-          <Text style={styles.secondaryBtnLabel}>Restore from file</Text>
-        </Pressable>
+        <ActionButton label="Export now" onPress={handleExport} busy={busy} />
+        <ActionButton label="Restore from file" variant="secondary" onPress={handleRestore} disabled={busy} />
       </View>
     </View>
   );
@@ -229,38 +216,7 @@ const styles = StyleSheet.create({
   },
   formRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
-  },
-  primaryBtn: {
-    backgroundColor: tokens.color.ink,
-    borderRadius: 999,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  btnDisabled: {
-    opacity: 0.4,
-  },
-  primaryBtnLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 13,
-    color: tokens.color.paper,
-  },
-  secondaryBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: tokens.color.ink15,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  secondaryBtnLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 13,
-    color: tokens.color.ink,
   },
 });

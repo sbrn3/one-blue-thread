@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import type { Grade, Passage } from '../log/types';
 import { bookName } from '../text/canon';
+import { ActionButton, ChoiceChip } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 
 interface RecallZoneProps {
@@ -60,30 +61,26 @@ export function RecallZone({ passages, getVerseText, onGrade, onSkip }: RecallZo
         <View key={p.id} style={styles.card}>
           <Text style={styles.reference}>{reference(p)}</Text>
           {revealedText[p.id] === undefined ? (
-            <Pressable style={styles.revealBtn} onPress={() => void reveal(p)}>
-              <Text style={styles.revealLabel}>Reveal</Text>
-            </Pressable>
+            <ActionButton label="Reveal" variant="secondary" onPress={() => void reveal(p)} style={styles.revealBtn} />
           ) : (
             <>
               <Text style={styles.revealed}>{revealedText[p.id]}</Text>
               <View style={styles.gradeRow}>
-                <Pressable style={styles.gradeBtn} onPress={() => grade(p, 'held')}>
-                  <Text style={styles.gradeLabel}>Held it</Text>
-                </Pressable>
-                <Pressable style={styles.gradeBtn} onPress={() => grade(p, 'partial')}>
-                  <Text style={styles.gradeLabel}>Partly</Text>
-                </Pressable>
-                <Pressable style={styles.gradeBtn} onPress={() => grade(p, 'lost')}>
-                  <Text style={styles.gradeLabel}>Lost it</Text>
-                </Pressable>
+                <ChoiceChip label="Held it" onPress={() => grade(p, 'held')} />
+                <ChoiceChip label="Partly" onPress={() => grade(p, 'partial')} />
+                <ChoiceChip label="Lost it" onPress={() => grade(p, 'lost')} />
               </View>
             </>
           )}
         </View>
       ))}
-      <Pressable style={styles.skipBtn} onPress={skipAll} accessibilityLabel="Skip recall for today">
-        <Text style={styles.skipLabel}>Skip</Text>
-      </Pressable>
+      <ActionButton
+        label="Skip"
+        variant="link"
+        onPress={skipAll}
+        accessibilityHint="Skip recall for today"
+        style={styles.skipBtn}
+      />
     </View>
   );
 }
@@ -108,17 +105,6 @@ const styles = StyleSheet.create({
   },
   revealBtn: {
     alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: 18,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: tokens.color.ink,
-  },
-  revealLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 13,
-    color: tokens.color.ink,
   },
   revealed: {
     fontFamily: tokens.font.scripture,
@@ -129,28 +115,11 @@ const styles = StyleSheet.create({
   },
   gradeRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
-  },
-  gradeBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    backgroundColor: tokens.color.ink15,
-  },
-  gradeLabel: {
-    fontFamily: tokens.font.display,
-    fontSize: 12,
-    fontWeight: '600',
-    color: tokens.color.ink,
   },
   skipBtn: {
     alignSelf: 'flex-start',
-  },
-  skipLabel: {
-    fontFamily: tokens.font.mono,
-    fontSize: 12,
-    color: tokens.color.ink40,
-    textDecorationLine: 'underline',
   },
   done: {
     fontFamily: tokens.font.mono,

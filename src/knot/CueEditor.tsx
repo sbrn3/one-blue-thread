@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 import type { Cue } from '../cue';
+import { ActionButton } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 
 interface CueEditorProps {
@@ -98,12 +99,18 @@ export function CueEditor({ cue, onSave }: CueEditorProps) {
       </Text>
 
       <View style={styles.stepper}>
-        <Pressable onPress={() => adjustHour(-1)} style={styles.stepBtn} accessibilityLabel="Move nudge hour earlier">
-          <Text style={styles.stepLabel}>− 1h</Text>
-        </Pressable>
-        <Pressable onPress={() => adjustHour(1)} style={styles.stepBtn} accessibilityLabel="Move nudge hour later">
-          <Text style={styles.stepLabel}>+ 1h</Text>
-        </Pressable>
+        <ActionButton
+          label="− 1h"
+          variant="secondary"
+          onPress={() => adjustHour(-1)}
+          accessibilityHint="Moves the reminder time an hour earlier"
+        />
+        <ActionButton
+          label="+ 1h"
+          variant="secondary"
+          onPress={() => adjustHour(1)}
+          accessibilityHint="Moves the reminder time an hour later"
+        />
       </View>
     </View>
   );
@@ -138,18 +145,7 @@ const styles = StyleSheet.create({
   },
   stepper: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
-  },
-  stepBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: tokens.color.ink15,
-  },
-  stepLabel: {
-    fontFamily: tokens.font.mono,
-    fontSize: 13,
-    color: tokens.color.ink,
   },
 });
