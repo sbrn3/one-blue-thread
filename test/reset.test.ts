@@ -76,6 +76,12 @@ describe('performReset', () => {
       cancelAllNotifications: vi.fn(async () => {
         calls.push('notifications');
       }),
+      clearRecoverySnapshots: vi.fn(async () => {
+        calls.push('recovery-snapshots');
+      }),
+      clearTemporaryShareFiles: vi.fn(async () => {
+        calls.push('share-files');
+      }),
       clearBackupPassphrase: vi.fn(async () => {
         calls.push('keychain');
       }),
@@ -87,8 +93,30 @@ describe('performReset', () => {
 
     await performReset(db, env);
 
-    expect(calls).toEqual(['notifications', 'keychain', 'reload']);
+    expect(calls).toEqual(['notifications', 'recovery-snapshots', 'share-files', 'keychain', 'reload']);
     expect(db.all('SELECT * FROM meta')).toHaveLength(0);
+  });
+
+  it('propagates a snapshot/share cleanup failure rather than claiming a complete reset', async () => {
+    const db = openTestDb();
+    migrate(db);
+    seed(db);
+
+    const reloadApp = vi.fn(async () => {});
+    const env: ResetEnv = {
+      cancelAllNotifications: vi.fn(async () => {}),
+      clearRecoverySnapshots: vi.fn(async () => {
+        throw new Error('recovery directory busy');
+      }),
+      clearTemporaryShareFiles: vi.fn(async () => {}),
+      clearBackupPassphrase: vi.fn(async () => {}),
+      reloadApp,
+    };
+
+    await expect(performReset(db, env)).rejects.toThrow('recovery directory busy');
+    // Nothing destroyed yet — the failure happened before the db wipe.
+    expect(db.all('SELECT * FROM events').length).toBeGreaterThan(0);
+    expect(reloadApp).not.toHaveBeenCalled();
   });
 });
 
@@ -96,6 +124,8 @@ describe('performReset — the wipe boundary', () => {
   function env(overrides: Partial<ResetEnv> = {}): ResetEnv {
     return {
       cancelAllNotifications: vi.fn(async () => {}),
+      clearRecoverySnapshots: vi.fn(async () => {}),
+      clearTemporaryShareFiles: vi.fn(async () => {}),
       clearBackupPassphrase: vi.fn(async () => {}),
       reloadApp: vi.fn(async () => {}),
       ...overrides,
