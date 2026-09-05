@@ -26,7 +26,8 @@
       "expo-sqlite",
       "expo-notifications",
       "expo-sharing",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-status-bar"
     ]
   }
 }
