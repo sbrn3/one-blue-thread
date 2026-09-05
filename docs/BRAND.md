@@ -79,15 +79,23 @@ identifiers across the rebrand:
 
 ## Ownership gate
 
-Public launch waits for a dated exact-name web/app-store search, relevant
-trademark-register searches in intended jurisdictions (research, not legal
-clearance), the canonical domain and key handle being secured, and a named
-renewal owner. Availability snapshots are not ownership.
+Public launch waits for a dated exact-name web/app-store search and relevant
+trademark-register research in intended jurisdictions (research, not legal
+clearance). Availability snapshots are not ownership.
+
+**Scope decision — 2026-09-05.** No domain will be registered. This is a
+personal, single-reader app distributed as a GitHub release APK, not a brand
+being defended commercially, so the domain and renewal-owner requirements are
+dropped as disproportionate. The canonical URL is permanently the GitHub Pages
+address, and there is no second canonical URL coming.
 
 ### Decision record — 2026-09-05
 
 The exact phrase has unrelated descriptive and literary search results, but the
 search found no competing Bible app or active software brand. The user accepted
 those unrelated results and confirmed continuation with **One Blue Thread**.
-This is a product decision, not trademark clearance. The canonical domain and
-renewal owner remain unresolved and still block public launch.
+This is a product decision, not trademark clearance. With the domain
+requirement dropped, the ownership gate is closed: the canonical URL is
+<https://sbrn3.github.io/one-blue-thread/> and the repository is
+`sbrn3/one-blue-thread`. Cultural content review of the origin context line
+remains open, as does the Android upgrade device matrix.

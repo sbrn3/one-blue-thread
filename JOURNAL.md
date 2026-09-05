@@ -5,6 +5,36 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## Decision 2026-09-05 — no domain; the repo carries the canonical URL
+
+**Decision:** One Blue Thread will not register a domain. The repository is
+renamed `sbrn3/thread` → `sbrn3/one-blue-thread`, and
+<https://sbrn3.github.io/one-blue-thread/> is the permanent canonical URL.
+
+**Why:** the ownership gate existed to stop a naming conflict surfacing at
+public launch. The exact-name search already found no competing Bible app or
+active software brand, so the substantive half was satisfied; the domain and
+renewal-owner half is disproportionate for a personal single-reader app
+distributed as a GitHub release APK, not a commercially defended brand.
+
+The plan named a repo rename as a non-goal, and the objection to doing one was
+timing rather than principle: an unresolved domain meant the canonical URL
+would move twice, burning the social-preview cache twice. Ruling the domain out
+removes the second move, so the rename became a one-time, cheap change and
+landed while the PR was still open.
+
+**Consequences:** nine hardcoded URLs (canonical, `og:url`, `og:image`,
+`SoftwareApplication` `url`/`downloadUrl`/`image`/`license`, sitemap, and the
+README demo and release links) now point at the new address, and both worktree
+remotes are updated. GitHub redirects the old repository and Pages URLs, so
+existing links keep working. The repo slug was the last identifier still
+reading "thread" that is genuinely public; `slug: "thread"`,
+`com.sngugi.thread`, `thread.db`, and the SecureStore keys stay exactly as they
+are, because those govern whether Android treats the release as an upgrade.
+
+Ticket 0 is closed. Cultural content review of the origin context line and the
+Android upgrade device matrix remain the only open gates.
+
 ## 2026-09-05 — The rebrand semantic audit is closed
 
 Ticket 6's scoped name search over current surfaces (excluding `JOURNAL.md`,

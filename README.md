@@ -12,11 +12,11 @@ bundled, so it works fully offline; spaced repetition brings passages back for
 recall; and there is no account, no feed, no ads, and no telemetry — nothing
 leaves your phone.
 
-**[Try the demo →](https://sbrn3.github.io/thread/)**
+**[Try the demo →](https://sbrn3.github.io/one-blue-thread/)**
 a browser preview of the daily flow — arrival, recall, scripture, seal,
 weave. Nothing to install.
 
-**[Get the app →](https://github.com/sbrn3/thread/releases/latest)**
+**[Get the app →](https://github.com/sbrn3/one-blue-thread/releases/latest)**
 download `one-blue-thread.apk`, allow "install unknown apps," done. Android, free,
 no account, nothing leaves your phone.
 

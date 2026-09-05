@@ -67,9 +67,12 @@ their branches (local and remote) have been deleted.
 
 - [ ] Build and install a fresh APK from the aligned SDK 57 dependency set;
       confirm cold launch on the affected Android device before tagging a patch release.
-- [ ] One Blue Thread ticket 0: secure the canonical domain/search position and
-      complete trademark/content review. The local WEB implementation is
-      complete; NIV remains gated on written, surface-complete permission.
+- [ ] One Blue Thread: cultural content review of the origin context line by
+      someone competent in Jewish biblical practice. Ticket 0 is otherwise
+      closed - no domain will be registered, and the repo is now
+      `sbrn3/one-blue-thread` with the GitHub Pages URL as the permanent
+      canonical address. NIV stays gated on written, surface-complete
+      permission; the bundled WEB passage ships.
 - [ ] One Blue Thread ticket 6 device matrix: install the renamed APK over a
       populated current build and confirm local state survives; check the
       launcher name, the pending-notification title refresh, and the origin
