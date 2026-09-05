@@ -25,6 +25,25 @@ export function bundledChapterCount(book: string): number {
 }
 
 /**
+ * A small, exact passage from the bundled public-domain floor. Brand and
+ * other fixed offline surfaces use this instead of maintaining copied Bible
+ * text that can drift from the reading surface.
+ */
+export function bundledPassage(book: string, chapter: number, fromVerse: number, toVerse: number) {
+  const rows = WEB.books[book]?.[chapter - 1];
+  if (!rows) throw new Error(`No such chapter: ${book} ${chapter}`);
+
+  const verses = rows
+    .filter(({ v }) => v >= fromVerse && v <= toVerse)
+    .map(({ v, t }) => ({ verse: v, text: t }));
+  const expectedLength = toVerse - fromVerse + 1;
+  if (verses.length !== expectedLength) {
+    throw new Error(`Incomplete bundled passage: ${book} ${chapter}:${fromVerse}-${toVerse}`);
+  }
+  return verses;
+}
+
+/**
  * Licensed provider (NIV or ESV, whichever was chosen at onboarding)
  * when a key is present; bundled WEB as the offline floor always.
  * §05: "Skip for now" at onboarding leaves provider/apiKey null and

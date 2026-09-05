@@ -1,11 +1,11 @@
 ---
 name: dev
-description: Start or reuse the Thread Expo/Metro dev server, or build to a device, when the user asks to run, preview, or screenshot the app.
+description: Start or reuse the One Blue Thread Expo/Metro dev server, or build to a device, when the user asks to run, preview, or screenshot the app.
 ---
 
 # Dev server
 
-Thread is an Expo React Native app — there is no localhost web port to poll. The
+One Blue Thread is an Expo React Native app — there is no localhost web port to poll. The
 dev server is Metro; the app runs on a device/emulator or (roughly) in the
 browser via `npm run web`.
 

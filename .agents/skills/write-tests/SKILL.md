@@ -1,11 +1,11 @@
 ---
 name: write-tests
-description: Add or update focused Thread tests for a module, algorithm, or planned ticket using the existing Vitest simulation/invariant patterns and verifying behavior through the public seam.
+description: Add or update focused One Blue Thread tests for a module, algorithm, or planned ticket using the existing Vitest simulation/invariant patterns and verifying behavior through the public seam.
 ---
 
 # Write tests
 
-Thread's suite is pure-logic Vitest in a `node` environment — no component
+One Blue Thread's suite is pure-logic Vitest in a `node` environment — no component
 rendering. Tests exercise algorithms, the event log, the lab engine, schedulers,
 and the §13.6 invariants. `better-sqlite3` stands in for `expo-sqlite`.
 

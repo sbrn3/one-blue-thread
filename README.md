@@ -1,17 +1,23 @@
-# Thread
+# One Blue Thread
 
-_A Bible reading app for one person._
+_A quiet place to read Scripture._
 
-Bible reading fails at the cue, not at motivation. Thread is a cue delivery
-system with a reading surface attached — one flow, no navigation, no streaks
-to defend, no plans to browse.
+One Blue Thread helps one reader arrive, read, remember, and return. Scripture
+is the voice: no generated devotionals, summaries, or takeaways; one flow, no
+feed, and no streak to defend. See [`docs/BRAND.md`](docs/BRAND.md) for the
+origin of the name and the product's editorial rule.
 
-**[Try the demo →](https://sbrn3.github.io/thread/)**
+It is a free, open-source **Bible reading app for Android**. The translation is
+bundled, so it works fully offline; spaced repetition brings passages back for
+recall; and there is no account, no feed, no ads, and no telemetry — nothing
+leaves your phone.
+
+**[Try the demo →](https://sbrn3.github.io/one-blue-thread/)**
 a browser preview of the daily flow — arrival, recall, scripture, seal,
 weave. Nothing to install.
 
-**[Get the app →](https://github.com/sbrn3/thread/releases/latest)**
-download `thread.apk`, allow "install unknown apps," done. Android, free,
+**[Get the app →](https://github.com/sbrn3/one-blue-thread/releases/latest)**
+download `one-blue-thread.apk`, allow "install unknown apps," done. Android, free,
 no account, nothing leaves your phone.
 
 The app itself is still early — the demo shows where it's headed. Building
@@ -21,8 +27,10 @@ it yourself, or curious how it works? Read on.
 
 ## Building it
 
-The full specification is `../thread-plan.html` (v3.0). This section covers
-only what the plan doesn't: how to run this repo.
+The full v3.0 specification lives outside this repository. What is tracked here
+is [`AGENTS.md`](AGENTS.md), the working contract, and
+[`docs/plans/`](docs/plans/), one folder per planned change. This section covers
+only what those don't: how to run this repo.
 
 ```sh
 npm start          # Expo dev server
@@ -65,7 +73,7 @@ npm run typecheck  # tsc --noEmit, strict
 
 ### Cutting a release
 
-Every push to `main` builds `thread.apk` in GitHub Actions (Actions → latest
+Every push to `main` builds `one-blue-thread.apk` in GitHub Actions (Actions → latest
 run → Artifacts). Tagging a version publishes it under **Releases** — the
 link the app's own README points people to:
 
@@ -115,5 +123,5 @@ npm run build:tyndale -- --notes path/to/tyndale_open-studynotes.zip --dictionar
 ```
 
 The transformed resource data is CC BY-SA 4.0 and separately attributed in
-`assets/tyndale/LICENSE.md` and `THIRD_PARTY_NOTICES.md`; Thread's application
+`assets/tyndale/LICENSE.md` and `THIRD_PARTY_NOTICES.md`; One Blue Thread's application
 code retains its existing licence.

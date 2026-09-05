@@ -7,7 +7,7 @@ skill and to this file on any conflict.
 
 ## What this is
 
-**Thread** — a Bible reading app for one person. Expo / React Native, offline,
+**One Blue Thread** — a quiet place to read Scripture. Expo / React Native, offline,
 no account, nothing leaves the device. The full product spec is
 `../thread-plan_3.html` (v3.0), outside this repo. `README.md` covers only how to
 run the repo. Work packages W1–W13 from the plan's table are all landed; current
@@ -34,7 +34,7 @@ npm run typecheck  # tsc --noEmit, strict
 ```
 
 **The gate is `npm test` && `npm run typecheck`.** There is no lint or `ship`
-script. Every push to `main` builds `thread.apk` in GitHub Actions; tagging
+script. Every push to `main` builds `one-blue-thread.apk` in GitHub Actions; tagging
 `vX.Y.Z` publishes it under Releases.
 
 ## Source layout (README "Repository shape", plan §05)
@@ -82,7 +82,7 @@ Reanimated and must honour the OS reduce-motion setting.
 | `JOURNAL.md` | One short entry per working session, newest first. Durable decisions and completed-work history. |
 | `README.md` | Public pitch + how to run the repo + hard rules. |
 | `docs/CONTEXT.md` | Glossary of canonical project terms. Created on first use by `/grill`; absent until then. |
-| `docs/plans/<slug>/` | One folder per planned change: `plan.html` (authoritative), plus `grill-summary.md` / `level-up.md` / `mockup.html` scratch. |
+| `docs/plans/<slug>/` | One folder per C2-C4 change: `plan.html` owns approved intent/scope; `exec.md` owns recipes; `PROGRESS.md` owns live status; C4 adds `OUTCOME.md` after completion. `grill-summary.md` / `level-up.md` / `mockup.html` remain evidence/scratch. |
 | `docs/plans/README.md` | Index / triage ledger of all plans. Created with the first saved plan. |
 
 ## Working rules

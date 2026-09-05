@@ -1,6 +1,6 @@
 ---
 name: improve-codebase-architecture
-description: Inspect Thread for high-leverage module-deepening opportunities, present verified candidates, and hand the selected architectural decision to grill and plan without implementing it.
+description: Inspect One Blue Thread for high-leverage module-deepening opportunities, present verified candidates, and hand the selected architectural decision to grill and plan without implementing it.
 ---
 
 # Improve codebase architecture
@@ -15,7 +15,7 @@ unit of interface), **leverage**, and **locality**.
 
 1. Read `AGENTS.md`, `docs/CONTEXT.md` if present, relevant recent `JOURNAL.md`
    decisions, `git log`, source, and tests. Weight repeatedly-changed areas
-   unless the user named a scope. Thread's natural seams already exist
+   unless the user named a scope. One Blue Thread's natural seams already exist
    (`TextProvider`, the log driver, the PRNG, the notifier) — look at how well
    they hold, not just where to add more.
 2. Look for shallow pass-through modules, leaking seams (e.g. `local_date` logic

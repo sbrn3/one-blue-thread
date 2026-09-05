@@ -1,6 +1,6 @@
 ---
 name: visual-surgery
-description: Restyle an existing working Thread screen that looks flat, inconsistent, or under-designed while protecting React Native behavior, data flow, gestures, and the tokens.ts visual system.
+description: Restyle an existing working One Blue Thread screen that looks flat, inconsistent, or under-designed while protecting React Native behavior, data flow, gestures, and the tokens.ts visual system.
 ---
 
 # Visual surgery
@@ -11,7 +11,7 @@ features or a product redesign.
 
 1. Read the screen, its area's tests, `src/ui/tokens.ts`, the `StyleSheet`
    blocks it uses, the reference palette/type in `docs/index.html`, and nearby
-   shipped screens. Thread has one visual register and no theme switcher —
+   shipped screens. One Blue Thread has one visual register and no theme switcher —
    consistency is measured against `tokens.ts` and the existing flow screens.
 2. Capture the current composition in seven layers: tokens, typography, spacing,
    color, components, atmosphere, and motion. Record concrete defects:

@@ -121,7 +121,7 @@ export function BackupSection({ backup }: BackupSectionProps) {
             try {
               await backup.restoreFrom(uri, passphrase);
               setRestoreTarget(null);
-              Alert.alert('Restore complete', 'Close and reopen Thread to see the restored data.');
+              Alert.alert('Restore complete', 'Close and reopen One Blue Thread to see the restored data.');
             } catch (e) {
               Alert.alert('Restore failed', errorMessage(e));
             } finally {
@@ -147,7 +147,7 @@ export function BackupSection({ backup }: BackupSectionProps) {
             try {
               await backup.restoreRecoverySnapshot(handle, passphrase);
               setRestoreSnapshot(null);
-              Alert.alert('Restore complete', 'Close and reopen Thread to see the restored data.');
+              Alert.alert('Restore complete', 'Close and reopen One Blue Thread to see the restored data.');
             } catch (e) {
               Alert.alert('Restore failed', errorMessage(e));
             } finally {
@@ -197,7 +197,7 @@ export function BackupSection({ backup }: BackupSectionProps) {
       {newPassphrase !== null && (
         <View style={styles.form}>
           <Text style={styles.hint}>
-            Choose a passphrase. You&apos;ll need it to restore an encrypted backup — Thread cannot recover it if you
+            Choose a passphrase. You&apos;ll need it to restore an encrypted backup — One Blue Thread cannot recover it if you
             lose it.
           </Text>
           <TextInput

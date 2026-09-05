@@ -40,7 +40,7 @@ Adapted from nextlevelbuilder/ui-ux-pro-max (`ux-guidelines.csv`, 119 rules) and
 - Only synthetic data in mockups, screenshots, and fixtures — never the user's real reading history, verse notes, cue times, or partner contact.
 - Where the user is in the flow is always legible; nothing dead-ends without a way forward or out.
 
-## Project-specific (Thread)
+## Project-specific (One Blue Thread)
 
 - Values come from `src/ui/tokens.ts`, not hard-coded in a `StyleSheet`.
 - Reads correctly at the OS's small and large font-scale settings; respects safe-area insets.

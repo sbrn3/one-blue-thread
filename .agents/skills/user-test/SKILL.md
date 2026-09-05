@@ -1,11 +1,11 @@
 ---
 name: user-test
-description: Run iterative manual Thread test batches, carrying pass, fail, feedback, and regression history across rounds while skipping already-verified cases unless the user asks for a full retest.
+description: Run iterative manual One Blue Thread test batches, carrying pass, fail, feedback, and regression history across rounds while skipping already-verified cases unless the user asks for a full retest.
 ---
 
 # User test
 
-Thread's automated suite can't exercise the on-device flow (notifications,
+One Blue Thread's automated suite can't exercise the on-device flow (notifications,
 haptics, gestures, SQLite, the seal). This skill drives manual rounds of that.
 Use **synthetic data only** — never put the user's real reading history, verse
 notes, cue times, or partner contact into a batch, its history, the HTML runner,

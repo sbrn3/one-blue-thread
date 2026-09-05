@@ -120,7 +120,7 @@ export class Backup {
    */
   async exportNow(now: () => number = Date.now): Promise<void> {
     const { json } = await this.buildStoredFile(now);
-    const filename = `thread-backup-${new Date(now()).toISOString().slice(0, 10)}.json`;
+    const filename = `one-blue-thread-backup-${new Date(now()).toISOString().slice(0, 10)}.json`;
     const uri = await this.io.writeShareFile(filename, json);
     try {
       await this.io.shareFile(uri);

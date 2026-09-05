@@ -11,6 +11,7 @@ import { meta } from '../log/log';
 import { addDays, logicalToday } from '../log/time';
 import { getProfile } from '../lab/profile';
 import { planSyncWindow } from './schedule';
+import { DISPLAY_NAME } from '../brand';
 
 /**
  * §14 E7 arm B ("5 days/week, any 5") — changes what counts as a
@@ -41,6 +42,7 @@ function weeklyQuotaMet(sealedDatesSorted: readonly string[], date: string): boo
 export interface NotificationsLike {
   getPermissionsAsync(): Promise<{ status: string; canAskAgain: boolean }>;
   requestPermissionsAsync(): Promise<{ status: string }>;
+  getAllScheduledNotificationsAsync(): Promise<ExpoNotifications.NotificationRequest[]>;
   scheduleNotificationAsync(request: ExpoNotifications.NotificationRequestInput): Promise<string>;
   cancelScheduledNotificationAsync(identifier: string): Promise<void>;
 }
@@ -51,8 +53,8 @@ const NUDGE_WEIGHTS: Record<NudgeArm, number> = { anchor_echo: 0.4, neutral: 0.4
 
 function copyFor(arm: NudgeArm, cue: Cue): { title: string; body: string } {
   return arm === 'anchor_echo'
-    ? { title: 'Thread', body: `Haven't read after ${cue.anchor} yet today.` }
-    : { title: 'Thread', body: "Haven't read yet today." };
+    ? { title: DISPLAY_NAME, body: `Haven't read after ${cue.anchor} yet today.` }
+    : { title: DISPLAY_NAME, body: "Haven't read yet today." };
 }
 
 function identifierFor(date: string): string {
@@ -92,11 +94,60 @@ export class Notifier {
   }
 
   /**
+   * One-time display-name migration for local requests scheduled by an older
+   * build. Decision rows are deliberately untouched: the experiment chose the
+   * body/trigger, while this migration changes only OS-visible attribution.
+   *
+   * Expo has no update-in-place API for a scheduled request, so each matching
+   * request is cancelled and recreated with the same identifier. If recreation
+   * fails, the old request is restored before the error is rethrown. The marker
+   * is written only after the whole batch succeeds, making a partial run safe
+   * to retry on the next app open.
+   */
+  async refreshDisplayName(): Promise<void> {
+    const marker = 'brand_notification_title_v1';
+    if (meta.get(this.db, marker) === '1') return;
+
+    const pending = await this.notifications.getAllScheduledNotificationsAsync();
+    for (const request of pending) {
+      if (!request.identifier.startsWith('nudge-') || request.content.title !== 'Thread') continue;
+
+      const original = {
+        identifier: request.identifier,
+        // These nudges were created with title/body/data only. Expo's pending
+        // request output also contains normalized, output-only fields (often
+        // null); do not pass those back into NotificationContentInput.
+        content: {
+          title: request.content.title,
+          body: request.content.body,
+          ...(request.content.data ? { data: request.content.data } : {}),
+        },
+        trigger: request.trigger as ExpoNotifications.NotificationTriggerInput,
+      };
+      const replacement = {
+        ...original,
+        content: { ...original.content, title: DISPLAY_NAME },
+      };
+
+      await this.notifications.cancelScheduledNotificationAsync(request.identifier);
+      try {
+        await this.notifications.scheduleNotificationAsync(replacement);
+      } catch (error) {
+        await this.notifications.scheduleNotificationAsync(original);
+        throw error;
+      }
+    }
+
+    meta.set(this.db, marker, '1');
+  }
+
+  /**
    * Maintains the rolling 30-day schedule. No-ops silently if
    * permission isn't granted, or if the cue has no nudge hour at all
    * ("No nudge at all" is a valid onboarding choice — §05).
    */
   async syncWindow(cue: Cue, today: string = logicalToday()): Promise<void> {
+    await this.refreshDisplayName();
     if (cue.nudgeHour === null) return;
     if (meta.get(this.db, 'paused') === '1') return; // §11 offramp — "pause," chosen from the lapse ladder's offer
     if (guardrailsSilence(this.db, today)) return; // §18 — dormancy or life_disruption vetoes the policy entirely

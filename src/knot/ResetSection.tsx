@@ -35,7 +35,7 @@ interface ResetSectionProps {
 /**
  * §20 "a clean start" — returning the app to first run.
  *
- * Not headed "Danger zone": Thread avoids alarm language everywhere else, and
+ * Not headed "Danger zone": One Blue Thread avoids alarm language everywhere else, and
  * this section is not exempt from its own register. The guard is the gesture,
  * not the shouting. Holding unravels the cloth of the book you are reading —
  * the deliberate inverse of the seal (docs/CONTEXT.md) — and the hold is

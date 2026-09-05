@@ -1,6 +1,6 @@
 ---
 name: level-up-ui
-description: Force a Thread surface past "fine" toward a distinctive direction when the user says it feels generic or safe. Diverges deliberately with lateral-thinking techniques, breaks AI-convergence at construction level, rejects slop, and hands one committed direction to a build skill. Not for routine restyles or new feature behavior.
+description: Force a One Blue Thread surface past "fine" toward a distinctive direction when the user says it feels generic or safe. Diverges deliberately with lateral-thinking techniques, breaks AI-convergence at construction level, rejects slop, and hands one committed direction to a build skill. Not for routine restyles or new feature behavior.
 ---
 
 # Level up UI
@@ -66,7 +66,7 @@ extraction is the core mechanic, not idea listing.
 
 For the survivors fix three axes explicitly — **aesthetic family**, **layout
 discipline**, **signature move** — then critique on distinctiveness, register fit
-(Thread is quiet, scripture-forward, one reader — not a dashboard), and a tells
+(One Blue Thread is quiet, scripture-forward, one reader — not a dashboard), and a tells
 scan before choosing. Method in
 [`references/aesthetic-families.md`](references/aesthetic-families.md). Anything
 the user has stated about taste is a pin that locks an axis.

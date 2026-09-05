@@ -46,5 +46,5 @@ Tells evolve. Yesterday's anti-slop pick (Space Grotesk, then; whatever is trend
 ## This project's own tells
 
 - Reaching for a font, icon set, gradient, or dependency the app does not already use, purely to feel designed. The token system and existing primitives come first.
-- A "dashboard aesthetic" (KPI tiles, sparklines, streak counters, accent-color chips) imported onto a surface that is a quiet daily reading, not an analytics product. Thread has one reader and deliberately no streaks to defend.
+- A "dashboard aesthetic" (KPI tiles, sparklines, streak counters, accent-color chips) imported onto a surface that is a quiet daily reading, not an analytics product. One Blue Thread has one reader and deliberately no streaks to defend.
 - Values hard-coded in a `StyleSheet` instead of pulled from `src/ui/tokens.ts`.

@@ -1,6 +1,6 @@
 ---
 name: close-tab
-description: Close a focused Thread side task with a concise journal handoff and Git-state check, without the full verification and documentation reconciliation of wrap-up.
+description: Close a focused One Blue Thread side task with a concise journal handoff and Git-state check, without the full verification and documentation reconciliation of wrap-up.
 ---
 
 # Close tab
