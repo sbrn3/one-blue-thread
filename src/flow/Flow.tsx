@@ -75,6 +75,7 @@ export function Flow({ services }: FlowProps) {
   const scrollEndLogged = useRef(false);
 
   useEffect(() => {
+    console.log('[boot] effect 1 enter');
     void session.load(db, log, text, today);
   }, [db, log, text, today]);
 
@@ -83,6 +84,7 @@ export function Flow({ services }: FlowProps) {
   }, [db, log, today]);
 
   useEffect(() => {
+    console.log('[boot] effect 2 enter');
     if (session.sealedToday) refreshBolt();
   }, [session.sealedToday, refreshBolt]);
 
@@ -91,6 +93,7 @@ export function Flow({ services }: FlowProps) {
   const [pendingReport, setPendingReport] = useState<PendingReport | null>(null);
   const [reportPhases, setReportPhases] = useState<PhaseMetric[]>([]);
   useEffect(() => {
+    console.log('[boot] effect 3 enter');
     if (!session.sealedToday) return;
     const report = getPendingReport(db);
     setPendingReport(report);
@@ -100,6 +103,7 @@ export function Flow({ services }: FlowProps) {
   // §09/§19 — SRBAI + the monthly eyeball, once a month, after a seal.
   const [srbaiDue, setSrbaiDue] = useState(false);
   useEffect(() => {
+    console.log('[boot] effect 4 enter');
     if (session.sealedToday) setSrbaiDue(isSrbaiDue(db, today));
   }, [session.sealedToday, db, today]);
 
@@ -114,6 +118,7 @@ export function Flow({ services }: FlowProps) {
   // §12 R6 "the year" — due exactly once, day 365+.
   const [yearReview, setYearReview] = useState<YearReviewReport | null>(null);
   useEffect(() => {
+    console.log('[boot] effect 5 enter');
     if (!session.sealedToday) return;
     const trialStart = meta.get(db, 'trial_start');
     if (!trialStart) return;
@@ -149,12 +154,14 @@ export function Flow({ services }: FlowProps) {
   const [partnerName, setPartnerName] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log('[boot] effect 6 enter');
     if (session.status !== 'ready') return;
     console.log('[boot] ready-effect 1 enter');
     setPendingLapse(getPendingLadderResponse(db, today));
   }, [session.status, db, today]);
 
   useEffect(() => {
+    console.log('[boot] effect 7 enter');
     void partner.get().then((p) => setPartnerName(p?.name ?? null));
   }, [partner]);
 
@@ -195,6 +202,7 @@ export function Flow({ services }: FlowProps) {
   }, [db, today]);
 
   useEffect(() => {
+    console.log('[boot] effect 8 enter');
     if (session.status !== 'ready') return;
     console.log('[boot] ready-effect 2 enter');
     // Known simplification: runs once per app open against whatever
@@ -315,6 +323,7 @@ export function Flow({ services }: FlowProps) {
   }, [contextVerse, sittingVerses, study]);
 
   useEffect(() => {
+    console.log('[boot] effect 9 enter');
     setCandidates(session.justFinishedBook ? memory.candidates(session.justFinishedBook) : []);
   }, [session.justFinishedBook, memory]);
 
@@ -322,6 +331,7 @@ export function Flow({ services }: FlowProps) {
   // finished book so an old resolution can't silently satisfy a new one.
   const [promotionResolved, setPromotionResolved] = useState(false);
   useEffect(() => {
+    console.log('[boot] effect 10 enter');
     setPromotionResolved(false);
   }, [session.justFinishedBook]);
   const handleSkipPromotion = useCallback(() => setPromotionResolved(true), []);
@@ -331,6 +341,7 @@ export function Flow({ services }: FlowProps) {
   }, [memory, session.book, session.chapter]);
 
   useEffect(() => {
+    console.log('[boot] effect 11 enter');
     refreshChapterCandidates();
     setContextVerse(null);
     setActiveArticleId(null);
@@ -400,6 +411,7 @@ export function Flow({ services }: FlowProps) {
   const recallShownLogged = useRef(false);
 
   useEffect(() => {
+    console.log('[boot] effect 12 enter');
     if (session.status !== 'ready') return;
     console.log('[boot] ready-effect 3 enter');
     const due = memory.due(today).slice(0, DAILY_RECALL_CAP);
@@ -439,6 +451,7 @@ export function Flow({ services }: FlowProps) {
   const probeFiredLogged = useRef(false);
 
   useEffect(() => {
+    console.log('[boot] effect 13 enter');
     if (session.status !== 'ready') return;
     console.log('[boot] ready-effect 4 enter');
     const trialSeed = meta.get(db, 'trial_seed') ?? 'thread-default-seed';
@@ -486,6 +499,7 @@ export function Flow({ services }: FlowProps) {
     );
   }
 
+  console.log(`[boot] render tail reached showLaunch=${showLaunch} status=${session.status}`);
   if (showLaunch) {
     return (
       <LaunchWeave
