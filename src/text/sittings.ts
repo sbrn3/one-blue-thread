@@ -21,7 +21,6 @@ export function splitSittings(verses: Verse[], target = 40): Sitting[] {
   // the app has already rendered by then, this presents as a hang, not a
   // crash. Treat any unusable target as the default rather than trust it.
   const safeTarget = Number.isFinite(target) && target > 0 ? target : 40;
-  console.log(`[boot] splitSittings verses=${verses.length} target=${JSON.stringify(target)} safe=${safeTarget}`);
   if (verses.length <= safeTarget * 1.5) return [verses];
 
   const n = Math.ceil(verses.length / safeTarget);
@@ -87,9 +86,7 @@ export async function buildDailyPortion(
   totalChapters: number,
   target: number | null,
 ): Promise<DailyPortion> {
-  console.log(`[boot] buildDailyPortion book=${book} ch=${chapter} total=${totalChapters} target=${JSON.stringify(target)}`);
   const first = await text.getChapter(book, chapter);
-  console.log(`[boot] buildDailyPortion got ${first.length} verses`);
   // `?? 40` only catches null/undefined, so a stored 0 used to reach
   // splitSittings and hang the JS thread. Normalise anything unusable to
   // null here, which means seed mode: no fixed target, just this chapter.

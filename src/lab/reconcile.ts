@@ -23,11 +23,8 @@ export interface ReconcileSteps {
 
 export function reconcile(ctx: ReconcileContext, steps: ReconcileSteps, today: string = logicalToday()): void {
   const watermark = meta.get(ctx.db, 'watermark');
-  console.log(`[boot] reconcile watermark=${JSON.stringify(watermark)} today=${JSON.stringify(today)}`);
   if (watermark === null) return; // not initialised until onboarding completes
-  const days = datesBetween(watermark, today);
-  console.log(`[boot] reconcile days=${days.length}`);
-  for (const d of days) {
+  for (const d of datesBetween(watermark, today)) {
     ctx.db.tx(() => {
       steps.closeDay(ctx, d);
       steps.attributeRewards(ctx, d);

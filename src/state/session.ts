@@ -71,7 +71,6 @@ export const useSession = create<SessionState>((set, get) => ({
   nextBookNeeded: false,
 
   async load(db, log, text, today) {
-    console.log(`[boot] session.load today=${JSON.stringify(today)}`);
     const generation = ++loadGeneration;
     set({ status: 'loading', error: null });
 
@@ -108,7 +107,6 @@ export const useSession = create<SessionState>((set, get) => ({
     const days = log.daysBetween(today, today);
     const sealedToday = days[0]?.sealed === 1;
 
-    console.log('[boot] session.load setting status=ready');
     set({
       status: 'ready',
       error: null,
@@ -123,7 +121,6 @@ export const useSession = create<SessionState>((set, get) => ({
       justFinishedBook: null,
       nextBookNeeded: !meta.get(db, 'next_book'),
     });
-    console.log('[boot] session.load done');
   },
 
   async seal(db, log, text, today) {
