@@ -35,7 +35,7 @@ last 2–3 entries of `JOURNAL.md` (newest first) — only entries directly rele
 `ROADMAP.md` gets a full read in step 4.
 
 Open issues:
-`gh issue list --state open --repo sbrn3/thread --limit 30` (via
+`gh issue list --state open --repo sbrn3/one-blue-thread --limit 30` (via
 `"C:\Program Files\GitHub CLI\gh.exe"` if `gh` is not on PATH).
 
 ## 2. Reconcile stale docs (writes allowed)
