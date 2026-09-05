@@ -76,8 +76,17 @@ function normalizedWithOffsets(original: string): { value:string; offsets:number
   return {value:value.slice(start,end),offsets:offsets.slice(start,end)};
 }
 
-function locateCandidates(original: string, candidate: CueCandidate): LocatedCue[] {
-  const haystack=normalizedWithOffsets(original);
+/**
+ * `haystack` is passed in because every candidate scans the SAME verse text:
+ * normalising it per candidate meant ~7,900 redundant NFD passes per verse,
+ * which on Hermes blocked the render thread for minutes and froze the launch
+ * screen. Normalise once per verse, in cueTerms, and reuse it here.
+ */
+function locateCandidates(
+  original: string,
+  candidate: CueCandidate,
+  haystack: { value: string; offsets: number[] } = normalizedWithOffsets(original),
+): LocatedCue[] {
   const needle = candidate.normalized;
   const located: LocatedCue[] = [];
   let from = 0;
@@ -104,8 +113,9 @@ export function cueTerms(verses: Verse[], index: DictionaryIndexEntry[], limit =
   const cues: TermCue[] = [];
 
   for (const verse of verses) {
+    const haystack = normalizedWithOffsets(verse.text);
     const located = candidates
-      .flatMap((candidate) => locateCandidates(verse.text, candidate))
+      .flatMap((candidate) => locateCandidates(verse.text, candidate, haystack))
       .sort(
         (a, b) =>
           a.start - b.start ||
