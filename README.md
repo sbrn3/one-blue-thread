@@ -37,7 +37,7 @@ npm run typecheck  # tsc --noEmit, strict
 /src
   /onboarding  Premise·anchor·place·net·translation·books·safekeeping  (§05 ✓)
   /flow      Arrival · Recall · Scripture · Seal · Weave · Dismissal   (W3–W6a)
-  /knot      Sheet: weave, chapter strip, cue editor, backup           (W5)
+  /knot      Sheet: weave, reading history, cue editor, safekeeping    (W5)
   /cue       Cue model, cue_strength metric, anchor validation         (W1 ✓ / §05)
   /notify    Rolling 30d window, cancel-on-seal + decision voiding     (W7 ✓)
   /text      TextProvider (WEB/NIV/ESV), sitting splitter              (W2 ✓ / §08)
@@ -47,7 +47,7 @@ npm run typecheck  # tsc --noEmit, strict
              analysis (NAP/randomization/MRT/reports)                  (W1 ✓ / W8 ✓ / W9 (engine only) / W10 ✓)
   /memory    Leitner scheduler                                         (W1 ✓ / W6a)
   /partner   Hand-off only. No network, by construction                (W12 ✓)
-  /backup    Encrypted export/restore                                  (W11 ✓)
+  /backup    On-device recovery snapshots + external export/restore    (W11 ✓)
   /ui        Design tokens                                             (W1 ✓)
 /test        vitest suite incl. §13.6 import-boundary invariants
 /assets/bible  Bundled public-domain translation (W2 ✓)
