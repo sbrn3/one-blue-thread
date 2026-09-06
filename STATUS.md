@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-09-06 (One Blue Thread rebrand + launch-hang fix, tagged v0.6.0)_
+_Last updated: 2026-09-06 (v0.6.0 shipped; docs, render guard and plan ledger closed out)_
 
 ## Current phase
 
@@ -17,11 +17,16 @@ searchable reading history, and a one-time study hint — 7 stacked PRs,
 
 ## Branch state
 
-`main` at `46a6d93`, tagged `v0.6.0`. PR #18 (the One Blue Thread rebrand) and
-PR #19 (the launch-hang fix, bundled fonts, and CI changes) are both merged.
-The `thread-aesthetic-loom` worktree sits on the merged `fix/launch-hang`; the
+`main` at `25a3faf`, tagged `v0.6.0` and released with the APK attached.
+Merged today: #18 (rebrand), #19 (launch-hang fix, bundled fonts, CI), #20
+(docs), #21 (render-path guard), #22 (plan ledger). The `v0.4.0`, `v0.5.0` and
+`v0.5.1` release notes now carry a warning that those builds do not open.
+
+The `thread-aesthetic-loom` worktree sits on the merged `fix/launch-hang` and
+holds another session's uncommitted `apple-web-pwa` work (`docs/CONTEXT.md`,
+`docs/plans/README.md`, three untracked plan directories) - leave it alone. The
 `thread/` worktree is still on the long-merged `feat/account-reset` at
-`baddf2f` and is badly stale - check `git worktree list` before trusting it.
+`baddf2f` and is badly stale; check `git worktree list` before trusting it.
 
 ## The app opens again
 
@@ -87,9 +92,13 @@ all three bundled typefaces, and sat idle instead of pinning a core.
 - [x] ~~Build and install a fresh APK; confirm cold launch on the Android
       device.~~ Done 2026-09-06 on `v0.6.0` - and it found the launch hang that
       had been shipping since `v0.4.0`.
-- [ ] Give the suite a component renderer. A render-path hang survived four
-      releases because the logic-only suite never renders `Flow`; until
-      something renders it in CI, the next one hides in exactly the same place.
+- [ ] Give the suite a real component renderer. PR #21 added a stand-in -
+      `test/render-path-cost.test.ts` calls what one `Flow` render calls, in
+      render order, against Psalm 119 (176 verses, the canon's worst case), and
+      was verified to fail: reintroducing the defect takes it to ~30s against a
+      2s bound. That guards this bug class, not the gap itself - nothing still
+      renders `Flow`. The obvious route to a renderer adds `react-native-web`,
+      which `apple-web-pwa` S02 already owns, so sequence it with that plan.
 - [ ] Install the dev-client APK (`Dev client APK` workflow) to retire the
       ~20-minute build loop for JS-only changes. Note it needs Metro running to
       start at all, so do not leave it as the only build on the phone.
@@ -99,14 +108,16 @@ all three bundled typefaces, and sat idle instead of pinning a core.
       `sbrn3/one-blue-thread` with the GitHub Pages URL as the permanent
       canonical address. NIV stays gated on written, surface-complete
       permission; the bundled WEB passage ships.
-- [ ] One Blue Thread ticket 6 device matrix: install the renamed APK over a
-      populated current build and confirm local state survives; check the
-      launcher name, the pending-notification title refresh, and the origin
-      passage at 200% type with a screen reader.
+- [ ] One Blue Thread ticket 6 device matrix - partly done on 2026-09-06.
+      Confirmed: installs over a populated build with reading history intact,
+      and `refreshDisplayName()` ran (the boot trace logged it completing).
+      Still unchecked: the launcher name and notification shade by eye, and the
+      origin passage under Knot -> App at 200% type with a screen reader.
 - [ ] Physical-device checks: Tyndale accessibility/startup profiling; loom
       Psalms/Jude widths and warp colour `#8F8779` on a real screen.
-- [ ] app-quality-foundations device pass: bundled OTF font assets (none
-      exist yet — PR #11 shipped without them, flagged), TalkBack/VoiceOver/
+- [ ] app-quality-foundations device pass: ~~bundled font assets~~ (done in
+      `v0.6.0` - three OFL variable fonts bundled and confirmed rendering on
+      device), TalkBack/VoiceOver/
       Switch Control + 200% text matrix, real launch timing (fast/400ms/13s/
       14s/rejected), and an on-device exercise of the real `expo-file-system`
       recovery-snapshot move/rotation calls (PR #14 is fake-IO tested only).
