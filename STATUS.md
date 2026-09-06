@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-09-05 (app-quality-foundations merged, tagged v0.5.0)_
+_Last updated: 2026-09-06 (One Blue Thread rebrand + launch-hang fix, tagged v0.6.0)_
 
 ## Current phase
 
@@ -17,20 +17,28 @@ searchable reading history, and a one-time study hint — 7 stacked PRs,
 
 ## Branch state
 
-`main` at `8b6c738`, even with `origin/main`. All four releases above are
-fully merged and tagged. The 7 app-quality-foundations PRs merged in order;
-their branches (local and remote) have been deleted.
+`main` at `46a6d93`, tagged `v0.6.0`. PR #18 (the One Blue Thread rebrand) and
+PR #19 (the launch-hang fix, bundled fonts, and CI changes) are both merged.
+The `thread-aesthetic-loom` worktree sits on the merged `fix/launch-hang`; the
+`thread/` worktree is still on the long-merged `feat/account-reset` at
+`baddf2f` and is badly stale - check `git worktree list` before trusting it.
 
-## Critical startup repair (uncommitted)
+## The app opens again
 
-- Expo SDK 57's native dependency set has been aligned with the current SDK 57
-  compatibility matrix after the released early patch versions were found to
-  be out of sync across Expo core, React Native, SQLite, Notifications,
-  Reanimated, Worklets, and related modules.
-- `expo install --check`, the 426-test suite, strict TypeScript, Expo public
-  config resolution, and an Android production Metro export are clean.
-- A freshly built APK still needs one physical-device launch before this can be
-  called shipped; no Android device or emulator is available in this environment.
+`v0.4.0` through `v0.5.1` all shipped an app that froze on its launch screen.
+`cueTerms` re-normalised each verse once per dictionary candidate (~7,900 per
+verse); with no early return a 21-verse sitting scanned the lot, blocking the
+JS thread inside a `useMemo` during `Flow`'s render. Normalising once per
+verse took that from 6222ms to 35ms. The weave kept animating throughout
+because Reanimated runs on the UI thread, and `LaunchWeave`'s stall timeout
+could never fire because `setTimeout` needs the blocked thread - so the Retry
+button that would have escaped it never appeared.
+
+The SDK 57 dependency alignment (tagged `v0.5.1`) was never the cause, but its
+device-launch gate is now satisfied along with everything else: the `v0.6.0`
+build was installed over a populated build on a Motorola edge 50 neo
+(Android 16), kept its reading history, reached the reading screen, rendered
+all three bundled typefaces, and sat idle instead of pinning a core.
 
 ## Verification (Tyndale release, historical)
 
@@ -47,16 +55,27 @@ their branches (local and remote) have been deleted.
 
 ## Active plans
 
-- **one-blue-thread-rebrand** — 🔨 in progress. User-approved Scripture-centred
-  rename that preserves the Android package and all local data. Public launch is
-  gated on name/domain ownership; NIV wording is gated on permission covering
-  every publication surface, with the bundled WEB passage as the safe fallback.
-  Slices 1-5 are implemented and ticket 6's semantic rename audit is closed: all 99
-  residual name hits on current surfaces are classified as brand, compatibility,
-  technical, or historical, and the one defect found (24 internal
-  `.agents/skills/` docs still calling the product "Thread") is fixed. What is
-  left is external or device-bound, not code.
+- **one-blue-thread-rebrand** — ✅ shipped in `v0.6.0` (PR #18, `2118227`).
+  Public name, notification title, backup filenames, onboarding, knot, website
+  and release artifact all renamed; the Android package, Expo slug, database,
+  keys and deterministic seeds are untouched, so it installs as an upgrade. The
+  repository is now `sbrn3/one-blue-thread` and the GitHub Pages URL is the
+  permanent canonical address - no domain will be registered. Numbers 15:37-41
+  ships in full from the bundled WEB text wherever the name is explained; NIV
+  remains gated on surface-complete written permission. Still open: cultural
+  review of the origin context line.
   See `docs/plans/one-blue-thread-rebrand/plan.html`.
+
+- **apple-web-pwa** — 📋 planned, **not approved, nothing implemented**. Reaching
+  Apple readers as an installable offline-first PWA compiled from the existing
+  React Native source through `react-native-web`, hosted from `docs/`. C4:
+  12 slices, ~42 files, ~12 sessions. Smart Review complete (4 HIGH, 5 MEDIUM,
+  all resolved); aesthetics Direction A chosen; all 7 gates resolved.
+  Two risks accepted knowingly by the owner: **no backup on web**, and **no Apple
+  hardware exists to verify any of it** — including all seven steps of the
+  mandatory calendar checklist. Begins with S01, a throwaway spike whose stop
+  conditions can still invalidate the route.
+  See `docs/plans/apple-web-pwa/plan.html`.
 
 - **app-quality-foundations** — ✅ shipped. 7 PRs (#11–#17) merged to `main`
   in order, tagged `v0.5.0`; each independently focused-tested. See
@@ -65,8 +84,15 @@ their branches (local and remote) have been deleted.
 
 ## Next actions
 
-- [ ] Build and install a fresh APK from the aligned SDK 57 dependency set;
-      confirm cold launch on the affected Android device before tagging a patch release.
+- [x] ~~Build and install a fresh APK; confirm cold launch on the Android
+      device.~~ Done 2026-09-06 on `v0.6.0` - and it found the launch hang that
+      had been shipping since `v0.4.0`.
+- [ ] Give the suite a component renderer. A render-path hang survived four
+      releases because the logic-only suite never renders `Flow`; until
+      something renders it in CI, the next one hides in exactly the same place.
+- [ ] Install the dev-client APK (`Dev client APK` workflow) to retire the
+      ~20-minute build loop for JS-only changes. Note it needs Metro running to
+      start at all, so do not leave it as the only build on the phone.
 - [ ] One Blue Thread: cultural content review of the origin context line by
       someone competent in Jewish biblical practice. Ticket 0 is otherwise
       closed - no domain will be registered, and the repo is now
@@ -84,4 +110,12 @@ their branches (local and remote) have been deleted.
       Switch Control + 200% text matrix, real launch timing (fast/400ms/13s/
       14s/rejected), and an on-device exercise of the real `expo-file-system`
       recovery-snapshot move/rotation calls (PR #14 is fake-IO tested only).
-- [ ] Smoke-test `src/text/esv.ts` against a real ESV API key.
+- [ ] Smoke-test `src/text/esv.ts` against a real ESV API key. This also answers
+      `apple-web-pwa` S01 question 5 (whether `api.esv.org` and `rest.api.bible`
+      send browser CORS headers), which decides that plan's S09 branch.
+- [ ] `apple-web-pwa`: decide whether to approve. **Sequence it after the APK
+      confirmation above** — its S02 adds `react-native-web` / `react-dom` /
+      `@expo/metro-runtime` to the same dependency tree the SDK 57 alignment just
+      stabilised, and disturbing that before the Android build is confirmed would
+      confound the two. Its S11 also edits `README.md`, `AGENTS.md` and the
+      landing page, which `one-blue-thread-rebrand` still owns.
