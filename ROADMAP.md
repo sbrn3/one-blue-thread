@@ -8,10 +8,24 @@ Status key: 📋 planned · 🔨 in progress · ✅ shipped · ❄️ parked
 
 ## Planned
 
-- 🔨 **One Blue Thread rebrand** — local implementation complete; public launch
-  remains gated on domain/trademark/content/device review. Scripture-centred
-  identity and the full Numbers 15:37–41 origin preserve all reader data. Plan:
-  `docs/plans/one-blue-thread-rebrand/plan.html`.
+- 📋 **Apple support via web/PWA** *(plan ready, not approved)* — reach Apple
+  readers as an installable offline-first PWA compiled from the existing React
+  Native source, since iOS has no sideloading equivalent to the APK. Plan:
+  `docs/plans/apple-web-pwa/plan.html`.
+
+## Shipped
+
+- ✅ **One Blue Thread rebrand** — shipped in `v0.6.0` (PR #18, `2118227`,
+  2026-09-06). Public identity, Numbers 15:37–41 in full from the bundled WEB
+  text, the renamed repo and its canonical Pages URL. Package, slug, database
+  and keys unchanged, so it upgrades in place. Cultural review of the origin
+  context line is still open; NIV still needs surface-complete permission.
+
+- ✅ **The app opens again** — shipped in `v0.6.0` (PR #19, 2026-09-06).
+  `cueTerms` re-normalised each verse once per dictionary candidate, freezing
+  the JS thread during `Flow`'s render: 6222ms → 35ms. Every release from
+  `v0.4.0` to `v0.5.1` was unusable on a device. Also bundles the three
+  typefaces the tokens have always named, and guards two latent hangs.
 
 ## Under consideration
 

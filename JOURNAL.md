@@ -5,6 +5,49 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## 2026-09-06 — the app had not opened since v0.4.0
+
+Every release from `v0.4.0` to `v0.5.1` froze on the launch screen. `cueTerms`
+scans ~7,900 dictionary candidates against every verse, and `locateCandidates`
+re-normalised the whole verse text on each call - the same text, ~7,900 times
+per verse. When a sitting yields fewer than the 4 cues it wants there is no
+early return, so a 21-verse sitting scanned the lot: 6222ms on desktop V8, and
+far worse on Hermes, where NFD normalisation goes out to ICU. It runs
+synchronously in a `useMemo` during `Flow`'s render and only bites once
+`session.sittings` is populated. Normalising once per verse: **6222ms → 35ms**,
+byte-identical cues.
+
+**Why it stayed hidden for four releases.** The weave kept animating, because
+Reanimated runs on the UI thread - the app looked alive while it was dead.
+`LaunchWeave`'s 14s stall timeout never fired, because `setTimeout` needs the
+JS thread, so the Retry button that would have escaped it could never appear.
+And the suite is logic-only with no component renderer: nothing has ever
+rendered `Flow`, which is exactly where this lived.
+
+**How it was found, and the lesson.** Three device builds were spent on wrong
+guesses - `splitSittings` with a zero target, `datesBetween` walking a
+malformed bound, `deriveBolt` sizing an array from a bad date. The first two
+are real defects and are now guarded; none was this bug. What actually found
+it was numbering every effect and the render tail, then a seven-second Node
+benchmark. Instrument before theorising, and prefer a benchmark to a device
+build for anything reproducible off-device.
+
+**Also shipped here:** the three typefaces `tokens.font` has always named were
+never bundled and `expo-font` was never called, so Android logged
+`Build font failed` and silently drew everything in the system fallback - the
+app had never once looked the way the design system specifies. Bundled as
+upstream OFL variable builds, whose weight axes cover the 400-900 range in
+use, so no style needed renaming. `useFonts` is deliberately not a render
+gate: blocking the tree on an async load is how the launch screen froze.
+
+**Verified** on a Motorola edge 50 neo (Android 16): installed over a
+populated build, reading history intact, reaches the reading screen, all three
+fonts render, JS thread idle instead of pinning a core. Tagged `v0.6.0`.
+
+**Loop cost.** Five release builds, ~100 minutes, and every change in them was
+JS or an asset. A `Dev client APK` workflow and Gradle caching now exist so
+that never has to be the loop again.
+
 ## Decision 2026-09-05 — no domain; the repo carries the canonical URL
 
 **Decision:** One Blue Thread will not register a domain. The repository is
