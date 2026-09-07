@@ -119,4 +119,50 @@ describe('ui-contracts (docs/plans/app-quality-foundations, Slice 7)', () => {
   // environment, so there is nothing under assets/fonts to assert against
   // yet. Tracked here rather than faked as a passing (vacuous) check.
   it.todo('bundled OTF font assets exist for every tokens.font family (blocked on Slice 1s flagged font gap)');
+
+  // docs/plans/knot-declutter — HistoryModal and ChapterViewer used to render
+  // as siblings AFTER the knot's own </Modal>, i.e. a second <Modal> opened
+  // from inside an already-open one. React Native never presents that second
+  // modal, so "Reading history" and chapter rows silently did nothing. This
+  // is a source-walking approximation of "no modal-opening child renders
+  // outside its parent's own modal tree", not a render test — the suite has
+  // no component renderer (AGENTS.md) to prove presentation directly.
+  function componentsThatRenderAModal(): Set<string> {
+    const names = new Set<string>();
+    for (const f of walk(SRC)) {
+      const code = codeOf(f);
+      if (!/<Modal[\s>]/.test(code)) continue;
+      const match = code.match(/export function (\w+)/);
+      if (match) names.add(match[1]);
+    }
+    return names;
+  }
+
+  it('sanity: at least one component rendering a <Modal> is discoverable, HistoryModal and ChapterViewer included', () => {
+    // Guards the invariant below against silently matching nothing — a
+    // regex that finds no modal-rendering components would make the next
+    // test vacuously pass no matter what Knot.tsx does.
+    const names = componentsThatRenderAModal();
+    expect(names.has('HistoryModal')).toBe(true);
+    expect(names.has('ChapterViewer')).toBe(true);
+  });
+
+  it('no component renders a modal-opening child after its own last </Modal>', () => {
+    const modalComponents = componentsThatRenderAModal();
+    for (const f of walk(SRC)) {
+      const code = codeOf(f);
+      const lastClose = code.lastIndexOf('</Modal>');
+      if (lastClose === -1) continue;
+      const after = code.slice(lastClose + '</Modal>'.length);
+      for (const name of modalComponents) {
+        const opensAfter = new RegExp(`<${name}[\\s/>]`).test(after);
+        expect(
+          opensAfter,
+          `${toRepoPath(f)} renders <${name}> (which opens its own <Modal>) after this file's own last </Modal> — ` +
+            `that stacks a second modal on top of an already-open one and React Native will not present it. ` +
+            `Move <${name}> inside the open modal's own tree.`,
+        ).toBe(false);
+      }
+    }
+  });
 });

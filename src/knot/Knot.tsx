@@ -256,19 +256,23 @@ export function Knot({ services }: KnotProps) {
                 <ResetSection db={db} log={log} />
               </DisclosureSection>
             </ScrollView>
+
+            {/* Siblings of the ScrollView, not children of it — rendered inside the
+                knot's own modal tree so opening either is never a second Modal
+                stacked on top of an already-open one (the "taps open nothing"
+                failure; see test/ui-contracts.test.ts). */}
+            <HistoryModal
+              visible={historyOpen}
+              db={db}
+              reducedMotion={reducedMotion}
+              onClose={() => setHistoryOpen(false)}
+              onSelectEntry={handleSelectHistoryEntry}
+            />
+
+            <ChapterViewer entry={viewingEntry} text={text} reducedMotion={reducedMotion} onClose={() => setViewingEntry(null)} />
           </View>
         </KeyboardAvoidingView>
       </Modal>
-
-      <HistoryModal
-        visible={historyOpen}
-        db={db}
-        reducedMotion={reducedMotion}
-        onClose={() => setHistoryOpen(false)}
-        onSelectEntry={handleSelectHistoryEntry}
-      />
-
-      <ChapterViewer entry={viewingEntry} text={text} reducedMotion={reducedMotion} onClose={() => setViewingEntry(null)} />
     </>
   );
 }
