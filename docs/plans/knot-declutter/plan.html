@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — the knot declutter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&display=swap" rel="stylesheet">
+<style>
+/* ── One Blue Thread identity — mirrors docs/index.html / src/ui/tokens.ts. Do not swap for generic styles ── */
+:root {
+  --bg:            #FBFAF7;
+  --surface:       #ffffff;
+  --card-bg:       #ffffff;
+  --border:        #E6E5E1;
+  --border-strong: #d8d7d2;
+  --text:          #16161A;
+  --text-2:        #5E5D66;
+  --text-muted:    #9C9BA3;
+  --primary:       #1F3FFF;
+  --primary-dark:  #1732cc;
+  --primary-tint:  #EEF0FF;
+  --success:       #155724;
+  --success-bg:    #d4edda;
+  --warning:       #856404;
+  --warning-bg:    #fff3cd;
+  --danger:        #c0392b;
+  --danger-bg:     #fde8e8;
+  --font-head:     'Newsreader', Georgia, serif;
+  --font-body:     'Schibsted Grotesk', system-ui, -apple-system, sans-serif;
+  --radius:        12px;
+  --shadow:        0 4px 6px rgba(0,0,0,0.08);
+  --shadow-lg:     0 8px 32px rgba(0,0,0,0.16);
+}
+* { box-sizing: border-box; }
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(600px 400px at 0% -5%, rgba(26,58,92,0.06), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2.2rem 1.6rem 4rem;
+}
+h1 { font-family: var(--font-head); font-size: 2rem; font-weight: 400; margin: 0 0 .3rem; letter-spacing: .01em; }
+h2 { font-family: var(--font-head); font-size: 1.25rem; font-weight: 400; color: var(--primary); margin: 1.8rem 0 .8rem; }
+h3 { font-size: .95rem; font-weight: 600; color: var(--text); margin: 1.3rem 0 .4rem; }
+a { color: var(--primary); }
+code { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: .85em; color: var(--primary-dark); background: var(--primary-tint); padding: .1em .4em; border-radius: 5px; }
+.meta { font-size: .82rem; color: var(--text-muted); margin-bottom: 1.6rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.badge { display: inline-block; padding: .25em .7em; border-radius: 999px; font-size: .74rem; font-weight: 600; border: 1px solid var(--border); background: var(--surface); }
+.badge.navy   { color: var(--primary); border-color: var(--primary); background: var(--primary-tint); }
+.badge.green  { color: var(--success); background: var(--success-bg); border-color: #c3e6cb; }
+.badge.yellow { color: var(--warning); background: var(--warning-bg); border-color: #ffeeba; }
+.badge.red    { color: var(--danger);  background: var(--danger-bg);  border-color: #f5c6cb; }
+/* Stat row */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: .8rem; margin-bottom: 2rem; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .9rem 1.1rem; box-shadow: var(--shadow); }
+.stat-value { font-family: var(--font-head); font-size: 1.7rem; color: var(--primary); font-variant-numeric: tabular-nums; }
+.stat-label { font-size: .72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+/* Tabs */
+.tabs { display: flex; gap: .4rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 1.6rem; }
+.tab { padding: .5rem 1rem; border: none; background: none; cursor: pointer; font-family: var(--font-body); font-size: .87rem; color: var(--text-2); border-radius: 8px 8px 0 0; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: var(--text); background: var(--primary-tint); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; background: var(--primary-tint); }
+.panel { display: none; animation: fade .25s ease; }
+.panel.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+/* Checklist */
+.checklist { list-style: none; padding: 0; margin: .5rem 0; }
+.checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; font-size: .9rem; border-bottom: 1px solid var(--border); }
+.checklist li:last-child { border-bottom: none; }
+.checklist input { margin-top: .3rem; flex-shrink: 0; accent-color: var(--primary); width: 16px; height: 16px; }
+.checklist input:checked + span { color: var(--text-muted); text-decoration: line-through; }
+/* Notes / callouts */
+.note { background: var(--warning-bg); border: 1px solid #ffeeba; border-radius: var(--radius); padding: .7rem 1rem; font-size: .86rem; margin: .8rem 0; color: var(--text); }
+.mockup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: .9rem; margin: 1rem 0; }
+.mockup-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); }
+.mockup-card.chosen { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary), var(--shadow-lg); }
+.mockup-card h3 { margin-top: 0; }
+.requirements { font-size: .92rem; line-height: 2; padding-left: 1.3rem; }
+.evidence-table { width: 100%; border-collapse: collapse; margin: .8rem 0 1.2rem; font-size: .84rem; }
+.evidence-table th, .evidence-table td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: left; vertical-align: top; }
+.evidence-table th { background: var(--primary-tint); color: var(--primary); }
+</style>
+</head>
+<body>
+
+<h1>the knot — declutter</h1>
+<div class="meta">
+  2026-09-07
+  <span class="badge navy">C2 Structured</span>
+  <span class="badge navy">9 files</span>
+  <span class="badge navy">3 commits</span>
+  <span class="badge yellow">~3 sessions</span>
+  <span class="badge navy">✓ Direction chosen — A · Quiet list + opener iii</span>
+</div>
+
+<div class="stat-row">
+  <div class="stat"><div class="stat-value">9</div><div class="stat-label">Files</div></div>
+  <div class="stat"><div class="stat-value">3</div><div class="stat-label">Commits</div></div>
+  <div class="stat"><div class="stat-value">2</div><div class="stat-label">Test files</div></div>
+  <div class="stat"><div class="stat-value">~3</div><div class="stat-label">Sessions</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="intent" onclick="show('intent')">Intent</button>
+  <button class="tab" data-tab="requirements" onclick="show('requirements')">Requirements</button>
+  <button class="tab" data-tab="aesthetics" onclick="show('aesthetics')">Aesthetics</button>
+  <button class="tab" data-tab="execution" onclick="show('execution')">Execution</button>
+  <button class="tab" data-tab="verify" onclick="show('verify')">Verification</button>
+</div>
+
+<div id="intent" class="panel active">
+  <h2>Problem &amp; Intent</h2>
+  <h3>Status, owner &amp; next action</h3>
+  <p><strong>📋 Planned — awaiting approval.</strong> Triggered by the owner: “the knot is a
+  mess. Things seem disorganised, the buttons don't work, it seems cluttered.”
+  Direction settled through <code>/grill</code> (4 rounds) and the Phase 4 mockup gate.
+  <strong>Next action:</strong> resolve the worktree gate below, then run S01 from
+  <a href="exec.md">exec.md</a> in a fresh session.</p>
+
+  <h3>Outcome and constraints</h3>
+  <p>Two distinct faults sit behind one complaint. <strong>The buttons:</strong>
+  <code>HistoryModal</code> and <code>ChapterViewer</code> render as siblings <em>after</em>
+  the knot's own <code>&lt;/Modal&gt;</code> (<code>Knot.tsx:250-257</code>) — a second modal
+  opened from inside an already-open one, React Native's classic “nothing happens” failure.
+  <strong>The clutter:</strong> the knot carries ~60 interactive controls across 11
+  components with six sections at identical visual weight, so the one thing touched daily
+  (the cue) looks exactly like the thing touched once a year (account reset).
+  Desired outcome: reading history opens, the way in looks like a control, and the sheet's
+  first screen holds only what belongs to the daily ritual.</p>
+  <p>Constraints: offline, single-user, nothing leaves the device. No new dependency —
+  everything here is React Native <code>StyleSheet</code> and existing primitives.
+  §13.6 hard rules are untouched: no event written, no migration, no PRNG, no notification
+  scheduling, no backup crypto, no partner hand-off. The existing
+  <code>log.write({ type: 'knot_open' })</code> keeps its exact semantics — it fires when the
+  knot opens, never when a tier or group expands.</p>
+
+  <h3>Scope and non-goals</h3>
+  <p><strong>In scope:</strong> nesting the two child modals and gating the pattern; the
+  opener's resting affordance and live attention dot; the everyday/rare tier split with the
+  rare tier grouped Your data · Practice · About; promoting an attention-needing section into
+  the everyday tier; two glossary terms.</p>
+  <p><strong>Non-goals:</strong> no change to what any section <em>does</em> — Safekeeping,
+  Partner, Support, Adaptive and Reset are relocated, not rewritten. Reset keeps its
+  hold-to-unravel gesture and 2500ms threshold exactly; moving a destructive control is not
+  licence to touch its guard. No in-sheet drill-down rewrite (mockup option B/C, declined).
+  No React Native Testing Library. Translation state/provider/copy stays out, owned by the
+  parked <code>knot-translation-switch</code> plan.</p>
+
+  <h3>Dependencies and unresolved gates</h3>
+  <p><strong>Gate 1 — the working tree (blocking).</strong> This worktree
+  (<code>thread-aesthetic-loom</code>, on the merged <code>fix/launch-hang</code>) carries
+  another session's uncommitted <code>apple-web-pwa</code> work plus two other sessions'
+  untracked plan folders and a modified <code>.agents/skills/grill/SKILL.md</code>.
+  Committing here risks sweeping them in. Plan: a new sibling worktree
+  <code>../thread-knot-declutter</code> on <code>fix/knot-declutter</code> cut from
+  <code>main</code> (<code>997a618</code>), merged by PR. <strong>Creating that worktree and
+  every commit/push/PR needs explicit authorization</strong> — approving this plan does not
+  grant it.</p>
+  <p><strong>Gate 2 — <code>docs/CONTEXT.md</code> (non-blocking).</strong> The two glossary
+  terms are deliberately unwritten because that file is dirty with Gate 1's work. S03 writes
+  them once the tree is clean, or records the gap.</p>
+  <p><strong>Accepted risk — verification.</strong> The owner chose to merge on the automated
+  gate and check on device at release, not before merge. Stated plainly because it is the
+  weak point: this is the same blind spot (logic-only suite, nothing renders a component)
+  that let the launch freeze ship through four releases, and the modal diagnosis is inferred
+  from source, never reproduced. Named fallback if history rows are still dead after S01: the
+  <code>KeyboardAvoidingView</code> (<code>behavior="height"</code> on Android) wrapping the
+  transparent sheet.</p>
+
+  <h3>Evidence and decisions</h3>
+  <p><strong>Source:</strong> <code>src/knot/</code> (11 components, 1,985 lines),
+  <code>src/ui/controls.tsx</code>, <code>src/ui/tokens.ts</code>,
+  <code>src/lab/diagnostics.ts</code>, <code>test/ui-contracts.test.ts</code>,
+  <code>App.tsx:85-86</code>. <strong>Prior artifacts:</strong>
+  <code>grill-summary.md</code> (4 rounds, superseded by this file),
+  <code>mockup.html</code> (3 structural directions + 4 opener treatments).</p>
+  <p><strong>Design tokens</strong> read from <code>src/ui/tokens.ts</code> (“The Loom”):
+  <code>paper #F4F1E9</code> · <code>ink #1A1A17</code> · <code>thread #2E3A8C</code> ·
+  <code>warp #8F8779</code> · <code>madder #B5482F</code> · <code>ink40 #726D5C</code> (4.59:1) ·
+  <code>ink15 #E0DACB</code> · <code>dyeSoft #E7E9F4</code> · <code>markSoft rgba(46,58,140,.08)</code>;
+  fonts Schibsted Grotesk / Newsreader / JetBrains Mono; <code>radius.sheet 20</code>,
+  <code>radius.pill 999</code>, <code>control.minTarget 44</code>.
+  <strong>Note:</strong> the skill's own <code>mockup-template.html</code> still carries the
+  pre-Loom palette (<code>--thread:#1F3FFF</code>, <code>--paper:#FBFAF7</code>,
+  <code>--ink40:#9C9BA3</code>). It was not used; the mockup reads <code>tokens.ts</code>
+  directly, per AGENTS.md. That template is stale and worth fixing separately.</p>
+  <p><strong>Corrected during planning:</strong> an early read counted three sibling modals.
+  <code>DictionaryLibrary</code>'s modal is already correctly nested inside the accordion
+  body — only two are in the failure class, which narrows the bug to reading history and
+  chapter rows and matches the reported symptom.</p>
+
+  <h3>Documentation effects</h3>
+  <p><code>docs/CONTEXT.md</code> — two terms (Gate 2). <code>docs/plans/README.md</code> and
+  <code>STATUS.md</code> — only once approved, per the skill. <code>JOURNAL.md</code> — one
+  entry at implementation, recording the accepted verification gap. <code>ROADMAP.md</code> —
+  no entry; this is polish on shipped work, not a future feature.</p>
+</div>
+
+<div id="requirements" class="panel">
+  <h2>Requirements (confirmed)</h2>
+  <h3>User stories</h3>
+  <p class="note"><strong>S01 — the repair</strong> (stories 1-2, 15) ·
+  <strong>S02 — the opener</strong> (3-4, 16-17) ·
+  <strong>S03 — the declutter</strong> (5-14, 18-21).</p>
+  <ol class="requirements">
+    <li>As a reader with sealed days behind me, I want tapping “Reading history” to actually open the history list, so that I can revisit what I have read.</li>
+    <li>As a reader browsing that history, I want tapping a chapter row to open the chapter, so that the list leads somewhere.</li>
+    <li>As a reader on the reading screen, I want the way into the knot to look like a control, so that I do not have to guess that the faint text top-right is tappable.</li>
+    <li>As a reader whose backup or support state needs attention, I want to see that on the reading screen, so that a problem with my data is not invisible until I happen to open the knot.</li>
+    <li>As a reader opening the knot, I want the first screen to hold only the weave, my cue, and reading history, so that the thing I touch daily is not buried among things I touch once a year.</li>
+    <li>As a reader wanting anything else, I want one clearly-labelled “More” row, so that there is exactly one place the rest lives.</li>
+    <li>As a reader inside More, I want Safekeeping and Starting over grouped under “Your data”, so that the two things that can destroy or preserve my reading sit together.</li>
+    <li>As a reader inside More, I want Partner and Adaptive policy grouped under “Practice”, so that the things shaping how I read sit together.</li>
+    <li>As a reader inside More, I want the origin story and Support grouped under “About”, so that reference material is not mixed in with controls that change my data.</li>
+    <li>As a reader who used to find the origin story, adaptive policy and account reset jumbled in one “App” section, I want each to have an obvious home, so that I stop hunting.</li>
+    <li>As a reader whose Safekeeping needs attention, I want that section promoted into the everyday tier already open, so that a real problem is not hidden one level down.</li>
+    <li>As a reader in that promoted state, I want the section to appear exactly once, so that I am not looking at the same controls in two places.</li>
+    <li>As a reader whose attention state clears, I want the section to return to its group, so that the knot settles back to its short shape.</li>
+    <li>As a reader who studies, I want the study library still reachable from the knot, so that moving it out of the everyday tier does not mean losing it.</li>
+    <li>As a maintainer, I want a test that fails when any component opens a modal from inside its own open modal, so that this class of dead control cannot ship again.</li>
+    <li>As a maintainer, I want the opener's attention check to be cheap and bounded, so that a control on the reading screen cannot repeat the launch-hang pattern.</li>
+    <li>As a maintainer, I want the cheap probe pinned to the existing full check by test, so that two functions answering one question cannot drift apart.</li>
+    <li>As a reader using a screen reader, I want each disclosure to keep announcing its expanded state and each promoted section its attention state in words, so that the dot is never the only carrier of meaning.</li>
+    <li>As a reader with reduced motion on, I want the knot to keep honouring that setting, so that the tier split introduces no new animation I did not ask for.</li>
+    <li>As a reader with a large OS font scale, I want group labels and rows to wrap rather than truncate, so that the deeper hierarchy stays readable.</li>
+    <li>As a reader who reaches “Starting over” in its new home, I want the hold-to-unravel guard unchanged, so that relocating it has not made an irreversible action easier to trigger.</li>
+  </ol>
+  <h3>Out of Scope</h3>
+  <ul class="requirements">
+    <li><strong>Changing what any section does.</strong> Safekeeping, Partner, Support, Adaptive and Reset are relocated and regrouped, never rewritten — that keeps the diff reviewable and the blast radius at layout.</li>
+    <li><strong>Reset's guard.</strong> The 2500ms hold, the reduced-motion/screen-reader two-tap fallback, and the <code>Unravel</code> animation are untouched. Moving a destructive control is not licence to touch its safety.</li>
+    <li><strong>In-sheet drill-down and tabs</strong> (mockup options B and C). Both were live directions; A was chosen because it adds no navigation concept the app does not already have.</li>
+    <li><strong>React Native Testing Library.</strong> Considered and declined by the owner — it would be real ongoing value but a new dependency and a chunk of work before any fix lands.</li>
+    <li><strong>Translation controls.</strong> Owned by the parked <code>knot-translation-switch</code> plan; its carve-out is preserved.</li>
+    <li><strong>The stale <code>mockup-template.html</code> palette.</strong> A real defect, but in the skill assets, not this feature. Noted for separate fixing.</li>
+  </ul>
+  <h3>Testing Decisions</h3>
+  <ul class="requirements">
+    <li><strong>Seam 1 — source invariants</strong> (<code>test/ui-contracts.test.ts</code>). New case: no component renders a modal-opening child after its own last <code>&lt;/Modal&gt;</code>. Follows the file's established source-walking pattern (<code>walk(SRC)</code> + regex + named <code>it</code>), the same approach as <code>test/boundaries.test.ts</code>. It must be written to <strong>fail on the pre-fix tree first</strong> — a check that never went red proves nothing — and must assert its own component set is non-empty, since a regex matching nothing is how this rots into a vacuous pass.</li>
+    <li><strong>Seam 2 — the diagnostics probe</strong> (<code>test/diagnostics.test.ts</code>). <code>hasSupportAttention(db)</code> must agree with <code>needsAttention(getSupportSummary(db))</code> across clean, invariant-failed, snapshot-error, and recent-error-in/out-of-window fixtures. Follow that file's existing <code>better-sqlite3</code> fake and injected-<code>now</code> patterns. The equivalence <em>is</em> the contract — it is the only thing stopping the cheap path from drifting from the real one.</li>
+    <li><strong>Deliberately not tested:</strong> the tier layout, group ordering, promotion rendering, and the opener's appearance. The suite is Node-only with no component renderer (AGENTS.md), so any “test” of these would assert on source text, not behaviour. Named as an accepted gap rather than faked — the same honesty the existing <code>it.todo</code> font gap shows.</li>
+    <li><strong>Not provable by Vitest at all:</strong> that the nested modals actually present on a device. By the owner's decision this is checked at release, not before merge.</li>
+  </ul>
+</div>
+
+<div id="aesthetics" class="panel">
+  <h2>Aesthetics</h2>
+  <h3>Current-surface extraction</h3>
+  <table class="evidence-table">
+    <thead><tr><th>Layer</th><th>Current measured values/patterns</th><th>Source</th><th>Keep/change and why</th></tr></thead>
+    <tbody>
+      <tr><td>Tokens</td><td>All colour/space/radius from <code>tokens.ts</code>; no literals in the knot except <code>backdrop rgba(22,22,26,.4)</code> and the opener's <code>top:56 / right:20 / borderRadius:22</code>. <code>tokens.color.scrim</code> exists and is <em>not</em> used by the knot backdrop.</td><td><code>src/ui/tokens.ts</code>; <code>Knot.tsx:275-300</code></td><td><strong>Change (small):</strong> the backdrop should use <code>tokens.color.scrim</code> — that token was added precisely to replace ad-hoc rgba literals. Everything else keeps its token source.</td></tr>
+      <tr><td>Typography</td><td>Three registers, strictly separated: <code>display</code> Schibsted Grotesk 700 @15px for section summaries; <code>scripture</code> Newsreader 19px/30 for the cue sentence; <code>mono</code> JetBrains Mono 11-13px for status, labels, warnings. Group labels: mono 11px, 1.5 letter-spacing, uppercase, <code>ink40</code>.</td><td><code>Knot.tsx</code> styles; <code>DisclosureSection.tsx:60-80</code>; <code>CueEditor.tsx</code></td><td><strong>Keep entirely.</strong> The register separation is the app's strongest visual asset and needs no change — the new group labels reuse the existing <code>sectionLabel</code> style verbatim.</td></tr>
+      <tr><td>Spacing and layout</td><td>Sheet <code>maxHeight 85%</code>, <code>paddingTop 12</code>, content <code>paddingHorizontal 24 / paddingBottom 40</code>, <code>gap 4</code>. Disclosure header <code>minHeight 48</code> (<code>minTarget+4</code>), <code>paddingVertical 10</code>. Six sections at one indent level.</td><td><code>Knot.tsx:301-316</code>; <code>DisclosureSection.tsx:47-55</code></td><td><strong>Change:</strong> one indent level is the clutter's root cause. Add a second level inside More, marked by <code>space[3]</code> indent + the group label, so subordination is visible without new colour.</td></tr>
+      <tr><td>Color and semantics</td><td><code>ink</code> summaries, <code>ink40</code> status/chevron, <code>ink15</code> section rules, <code>madder</code> attention dot (8px), <code>thread</code> for the cue's editable blanks and the Resume action. Attention is one restrained dot — never alarmist copy, and Reset is deliberately not headed “Danger zone”.</td><td><code>DisclosureSection.tsx:83-95</code>; <code>ResetSection.tsx</code> doc comment</td><td><strong>Keep the semantics exactly.</strong> Extend only the dot's <em>reach</em>: same 8px <code>madder</code> dot, now also on the opener. No new colour and no new alarm language enter the system.</td></tr>
+      <tr><td>Components and states</td><td><code>DisclosureSection</code> (parent-owned <code>expanded</code>, <code>pressed</code> → opacity .7, optional status line + attention dot, ▾/▸ chevron). <code>ActionButton</code> 4 variants, <code>ChoiceChip</code>, <code>IconButton</code> — all with 44pt floor and full <code>accessibilityState</code>.</td><td><code>src/ui/controls.tsx</code>; <code>DisclosureSection.tsx</code></td><td><strong>Keep and extend.</strong> One additive <code>nested?: boolean</code> prop on <code>DisclosureSection</code>; <code>ChapterStrip</code> changes from an <code>ActionButton</code> to a chevron row so the everyday tier reads as one list. No new primitive.</td></tr>
+      <tr><td>Atmosphere and depth</td><td>Deliberately flat — the tokens file states depth comes from genuine over/under occlusion, “no gradients, no shadows beyond a hairline”. The sheet's only depth cue is its 20px top radius over a 40%-opacity scrim.</td><td><code>tokens.ts</code> header comment; <code>Knot.tsx:294-307</code></td><td><strong>Keep — and this constrains the solution.</strong> A tier split cannot be signalled by elevation or shadow in this system, which is exactly why the second level is carried by indent and a mono group label instead.</td></tr>
+      <tr><td>Motion and interaction</td><td>Modal <code>animationType</code> slide, switched to <code>'none'</code> under <code>useReducedMotion()</code>. Disclosure expansion is instant — no layout animation today. A11y focus is moved to Close on show and restored to the opener on close.</td><td><code>Knot.tsx:157-160, 116-127</code></td><td><strong>Keep, and add nothing.</strong> Instant expansion is honest and cheap; animating a nested accordion would be the first place this design could feel sluggish. Focus restore must keep working when the opener becomes a pill.</td></tr>
+    </tbody>
+  </table>
+  <h3>Direction questions</h3>
+  <p><strong>Intent.</strong> The knot should feel like <em>a short list with one door at the
+  end</em>, not a control panel. This is an <strong>extension</strong> of an existing pattern,
+  not a new one: the same <code>DisclosureSection</code>, one level deeper, plus a group label
+  the file already defines.</p>
+  <p><strong>Hygiene.</strong> Exact values used: <code>ink15 #E0DACB</code> (opener border,
+  rules), <code>paper #F4F1E9</code> at ~72% (opener fill), <code>ink40 #726D5C</code> (resting
+  dot, group labels, chevrons), <code>madder #B5482F</code> (lit dot),
+  <code>markSoft rgba(46,58,140,.08)</code> (promoted-section ground),
+  <code>radius.pill 999</code>, <code>radius.panel 12</code>,
+  <code>control.minTarget 44</code>, <code>space[3] 12</code> (nested indent).
+  No theme switcher exists — one visual register only.</p>
+  <p><strong>Details.</strong> Pressed → existing opacity .7. Empty → “Nothing sealed yet.”
+  retained on the history row. Attention → dot plus “, needs attention” appended to the
+  opener's accessible name, so the dot is never the sole carrier. Reduced motion → unchanged.
+  Large font scale → group labels and row summaries wrap, never truncate. Focus → Close on
+  open, opener on close, preserved through the opener restyle.</p>
+  <h3>Mockups</h3>
+  <div class="mockup-grid">
+    <div class="mockup-card chosen"><h3>A · Quiet list <span class="badge green">chosen</span></h3><p>“More” is a final row expanding in place into three labelled groups. No new navigation concept; reuses <code>DisclosureSection</code> nested one deep.</p><a href="mockup.html#option-a">Open approved mockup ↗</a></div>
+    <div class="mockup-card"><h3>B · Pushed panel</h3><p>Declined. “More” slides a second panel across the sheet, keeping the everyday tier permanently short — but a back affordance is a second navigation concept inside a sheet that already has Close, and Android hardware-back needs disambiguating.</p><a href="mockup.html#option-b">Open option ↗</a></div>
+    <div class="mockup-card"><h3>C · Selvedge tabs</h3><p>Declined. A hairline tab strip makes the three groups the navigation and frees the cue from its disclosure — but tabs are an idiom the app uses nowhere else and the strip is the least quiet element in the loom register.</p><a href="mockup.html#option-c">Open option ↗</a></div>
+    <div class="mockup-card chosen"><h3>Opener iii <span class="badge green">chosen</span></h3><p>Hairline pill at rest; the decorative leading “•” becomes a real <code>madder</code> attention dot when Safekeeping or Support needs the reader. A superset of treatment i at no extra resting weight.</p><a href="mockup.html#openers">Open opener treatments ↗</a></div>
+  </div>
+  <p class="note">Chosen direction: <strong>A · Quiet list, with opener treatment iii</strong>.
+  A wins on adding no navigation concept the app lacks; its known weakness — a disclosure
+  inside a disclosure — is answered by the <code>nested</code> prop and the group label rather
+  than by elevation, which the flat atmosphere layer forbids. Opener iii is the only treatment
+  that carries the attention signal out to the reading screen, which is what forces the cheap
+  <code>hasSupportAttention</code> probe in S02. The information architecture behind all four
+  cards was settled in <code>/grill</code> and was not re-opened at the mockup gate.</p>
+</div>
+
+<div id="execution" class="panel">
+  <h2>Execution</h2>
+  <p><strong>Grade C2 Structured:</strong> 9 files, two layers (<code>src/knot</code> UI plus a
+  bounded <code>src/lab/diagnostics</code> probe), one settled UI direction requiring mockups,
+  and 3 shippable slices. This sits at the <em>top</em> of the C2 band — C3 begins at 10 files —
+  so if S03 grows past 12 files, stop and re-grade rather than pushing through. No protected
+  mechanism is touched, so nothing forces the C4 floor: reset is relocated but its guard is
+  explicitly out of scope.</p>
+  <p>The authoritative file recipes, slice dependencies, commands, budgets,
+  branching strategy, delegation decisions, and rollback steps are in
+  <a href="exec.md">exec.md</a>. Live status is recorded only in
+  <a href="PROGRESS.md">PROGRESS.md</a>.</p>
+  <p>Three serial slices, one commit each, each independently revertable:</p>
+  <ul class="requirements">
+    <li><strong>S01 — Nest the child modals, and gate the pattern.</strong> Moves
+    <code>HistoryModal</code> and <code>ChapterViewer</code> inside the knot's own
+    <code>&lt;Modal&gt;</code>, and adds the source invariant that fails if any component
+    reopens this pattern. <strong>Shippable alone</strong> — it is the whole fix for the dead
+    buttons, and worth landing on its own if you want the repair before the reshuffle.</li>
+    <li><strong>S02 — The opener earns an affordance, and a meaning for its dot.</strong>
+    Hairline pill, plus a cheap bounded <code>hasSupportAttention</code> probe so the dot can
+    light on the reading screen without the knot open.</li>
+    <li><strong>S03 — Everyday tier over a grouped rare tier.</strong> The split, the three
+    groups, the new <code>MoreSection</code>, promotion-on-attention, and the two glossary
+    terms.</li>
+  </ul>
+  <p>No delegation: C2 runs inline, one serial task per wave. Reverting S03 restores the flat
+  accordion <em>with</em> the modal fix and the new opener still in place.</p>
+</div>
+
+<div id="verify" class="panel">
+  <h2>Verification</h2>
+  <!-- This is the approved whole-feature verification contract. Per-slice commands live in exec.md. -->
+  <!-- Automated (npm test + npm run typecheck + CI) is the real gate. Add a Manual/Visual block ONLY for event-log schema/migration, PRNG determinism, notification scheduling, backup crypto, or partner hand-off changes, or visually load-bearing UI (see AGENTS.md verification policy); otherwise a 1-3 bullet optional owner spot-check is enough. Do not write a checklist no one will run. -->
+  <p><strong>Automated + CI is the real ship gate</strong> (AGENTS.md). No mandatory manual
+  checklist is warranted: this change touches no event-log schema, no PRNG determinism, no
+  notification scheduling, no backup crypto and no partner hand-off.</p>
+  <h3>Automated</h3>
+  <ul class="checklist">
+    <li><input type="checkbox"><span><code>npx vitest run test/ui-contracts.test.ts</code> → the new modal invariant passes, and was observed <strong>failing on the pre-S01 tree</strong></span></li>
+    <li><input type="checkbox"><span><code>npx vitest run test/diagnostics.test.ts</code> → <code>hasSupportAttention</code> agrees with <code>needsAttention(getSupportSummary(db))</code> on every fixture</span></li>
+    <li><input type="checkbox"><span><code>npm test</code> → full suite green (365 at baseline, +N new)</span></li>
+    <li><input type="checkbox"><span><code>npm run typecheck</code> → clean under strict</span></li>
+    <li><input type="checkbox"><span><code>npx vitest run test/boundaries.test.ts</code> → import rules still hold (<code>src/knot</code> reaching into <code>src/lab</code> is the one new edge)</span></li>
+    <li><input type="checkbox"><span>CI builds <code>one-blue-thread.apk</code> on push</span></li>
+  </ul>
+  <h3>Visual — compare against the approved mockup</h3>
+  <p class="note">Fuller matrix rather than the default single check: this is a new layout
+  system for the sheet plus a restyled persistent control, which AGENTS.md classes as visually
+  load-bearing.</p>
+  <ul class="checklist">
+    <li><input type="checkbox"><span>Built knot matches <code>mockup.html#option-a</code> — everyday tier, then More expanding into three labelled groups</span></li>
+    <li><input type="checkbox"><span>Opener matches treatment iii at rest, and lights <code>madder</code> when attention is needed</span></li>
+    <li><input type="checkbox"><span>Narrow phone and tablet width → group labels and rows wrap, never truncate</span></li>
+    <li><input type="checkbox"><span>Large OS font scale → nested rows stay legible and keep their 44pt targets</span></li>
+    <li><input type="checkbox"><span>Reduced motion on → no new animation; modal still uses <code>'none'</code></span></li>
+    <li><input type="checkbox"><span>Screen reader → each disclosure announces expanded state; opener announces “needs attention” when lit</span></li>
+    <li><input type="checkbox"><span>Focus order → Close focused on open, opener re-focused on close (through the pill restyle)</span></li>
+  </ul>
+  <h3>Owner spot-check on a dev build — at release, by decision</h3>
+  <p class="note">Deliberately deferred past merge. Listed so the release check is not
+  improvised, and so the accepted risk stays visible rather than quietly forgotten.</p>
+  <ul class="checklist">
+    <li><input type="checkbox"><span>Open the knot → tap “Reading history” → <strong>the list actually appears</strong> (the reported bug)</span></li>
+    <li><input type="checkbox"><span>Tap a chapter row → the chapter opens; back returns to the history list, not out of the knot</span></li>
+    <li><input type="checkbox"><span>With Safekeeping needing attention → the dot shows on the opener <em>before</em> opening, and the section appears once, promoted and open, not twice</span></li>
+    <li><input type="checkbox"><span>“Starting over” in its new home still requires the full 2500ms hold and still re-weaves on early release</span></li>
+  </ul>
+  <p class="note"><strong>If reading history is still dead after S01</strong>, the sibling-modal
+  theory was wrong: next suspect is the <code>KeyboardAvoidingView</code>
+  (<code>behavior="height"</code> on Android) wrapping the transparent sheet in
+  <code>Knot.tsx</code>.</p>
+</div>
+
+<script>
+function show(id){
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+}
+// Persist checklist state per plan file
+const KEY = 'plan-checks-' + location.pathname;
+document.querySelectorAll('.checklist input[type=checkbox]').forEach((cb, i) => {
+  cb.checked = localStorage.getItem(KEY + i) === '1';
+  cb.addEventListener('change', () => localStorage.setItem(KEY + i, cb.checked ? '1' : '0'));
+});
+</script>
+</body>
+</html>

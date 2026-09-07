@@ -115,6 +115,34 @@ export function needsAttention(summary: SupportSummary): boolean {
 }
 
 /**
+ * docs/plans/knot-declutter — a cheap, bounded equivalent of
+ * `needsAttention(getSupportSummary(db))`, for the knot's opener, which must
+ * be able to light its attention dot on the reading screen without the knot
+ * ever opening. `getSupportSummary` builds the full amendment log
+ * (`getAmendmentLog`), which scans every `build_changed` event with no
+ * bound — fine once, on knot open, but the same shape of risk as the
+ * `cueTerms` launch hang (JOURNAL 2026-09-06) if run on every reading-screen
+ * mount. This reads only the three `meta` values and the single newest
+ * error row (`LIMIT 1`), and answers the identical question.
+ *
+ * The two functions answering one question is itself the risk this
+ * introduces — see test/diagnostics.test.ts's equivalence coverage, which
+ * pins them together across every existing attention fixture.
+ */
+export function hasSupportAttention(db: SqlDb, now: () => number = Date.now): boolean {
+  if (meta.get(db, 'invariant_failed') !== null) return true;
+
+  // Mirrors numOrNull(meta.get(...)) above exactly: a falsy raw value
+  // (missing, or cleared to '') counts as "no successful snapshot yet".
+  const snapshotLastOk = meta.get(db, 'recovery_snapshot_last_ok');
+  const snapshotLastError = meta.get(db, 'recovery_snapshot_last_error') || null;
+  if (!snapshotLastOk || snapshotLastError !== null) return true;
+
+  const [latest] = getRecentErrors(db, 1);
+  return latest !== undefined && now() - latest.ts <= RECENT_ERROR_WINDOW_MS;
+}
+
+/**
  * The EXACT string Copy diagnostics places on the clipboard — also what
  * DiagnosticsSection previews before the reader taps Copy, so there is
  * never a gap between what is shown and what is actually shared.

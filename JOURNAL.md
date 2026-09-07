@@ -5,6 +5,48 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## 2026-09-07 — the knot declutter
+
+Two faults behind one complaint ("the knot is a mess, buttons don't work,
+it's cluttered"): `HistoryModal` and `ChapterViewer` opened as a second
+`<Modal>` stacked on an already-open one — React Native never presents that,
+so "Reading history" and chapter rows did nothing — and the knot had grown
+into a flat six-section accordion of ~60 controls at equal weight. Plan:
+`docs/plans/knot-declutter/plan.html`, grade C2, direction A confirmed
+through `/grill` and a mockup gate.
+
+Fixed by nesting both modals inside the knot's own modal tree (matching what
+`DictionaryLibrary` already did correctly), and split the sheet into an
+everyday tier (weave, cue, reading history) over one "More" disclosure
+grouped Your data / Practice / About — dissolving the old "App" grab bag.
+Safekeeping or Support promotes into the everyday tier, already open, when
+either needs attention. The opener gained a hairline pill affordance and a
+live attention dot, backed by a new `hasSupportAttention(db)` — a cheap,
+bounded stand-in for `needsAttention(getSupportSummary(db))` so the opener
+can light its dot on the reading screen without repeating the unbounded
+amendment-log read that caused the `cueTerms` launch hang. Added a
+source-walking invariant (`test/ui-contracts.test.ts`) so no component can
+ship a modal-opening child rendered outside its own modal tree again.
+
+**Accepted risk, decided by the owner:** merged on the automated gate
+(`npm test` + `npm run typecheck`, 461 passed/1 todo) with the device check
+(reading history actually opens) deferred to release rather than gating the
+merge. The modal diagnosis is inferred from source, not reproduced — no
+Android device or emulator exists in this environment. Named fallback if
+history is still dead after this ships: the `KeyboardAvoidingView`
+(`behavior="height"` on Android) wrapping the sheet.
+
+**Also found and fixed in-flight:** `fix/knot-declutter` had been branched
+from a stale local `main`, 24 commits behind `origin/main` (missing the
+whole One Blue Thread rebrand and font bundling — `BrandOrigin` didn't exist
+on the branch). Caught before merge by re-checking `main`..`origin/main`;
+fast-forwarded and rebased cleanly, no conflicts. Worth the reminder: `git
+fetch` updates remote-tracking refs, not local branch refs — cutting a new
+branch from a local `main` that hasn't itself been fast-forwarded silently
+drops everything merged since.
+
+Branch: `fix/knot-declutter`, PR #24.
+
 ## 2026-09-06 — the app had not opened since v0.4.0
 
 Every release from `v0.4.0` to `v0.5.1` froze on the launch screen. `cueTerms`

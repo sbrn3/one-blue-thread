@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-09-06 (v0.6.0 shipped; docs, render guard and plan ledger closed out)_
+_Last updated: 2026-09-07 (knot-declutter implementation complete, PR #24 open)_
 
 ## Current phase
 
@@ -21,6 +21,15 @@ searchable reading history, and a one-time study hint — 7 stacked PRs,
 Merged today: #18 (rebrand), #19 (launch-hang fix, bundled fonts, CI), #20
 (docs), #21 (render-path guard), #22 (plan ledger). The `v0.4.0`, `v0.5.0` and
 `v0.5.1` release notes now carry a warning that those builds do not open.
+
+**2026-09-07 correction:** `origin/main` had already moved to `9461a66`
+(PR #23, `fix/launch-hang` — a render-path guard test) by the time this was
+read for `knot-declutter`; this section's `25a3faf` was stale on the remote
+even though it hadn't been touched locally. Caught only because
+`fix/knot-declutter` had been branched from a local `main` that itself
+hadn't been fast-forwarded past `25a3faf` — 24 commits behind `origin/main`,
+missing the whole rebrand and font bundling. See `JOURNAL.md`'s
+2026-09-07 entry.
 
 The `thread-aesthetic-loom` worktree sits on the merged `fix/launch-hang` and
 holds another session's uncommitted `apple-web-pwa` work (`docs/CONTEXT.md`,
@@ -86,6 +95,17 @@ all three bundled typefaces, and sat idle instead of pinning a core.
   in order, tagged `v0.5.0`; each independently focused-tested. See
   `docs/plans/app-quality-foundations/plan.html`'s per-slice ledger for exact
   gaps per PR — the device pass below remains open.
+
+- **knot-declutter** — 🔨 implementation complete; PR open. The knot's
+  "Reading history" and chapter rows opened nothing (a second `<Modal>`
+  stacked on an already-open one); fixed by nesting both inside the knot's
+  own modal tree. Also splits the flat six-section accordion into an
+  everyday tier (weave, cue, reading history) over a "More" disclosure
+  grouped Your data · Practice · About, with attention-promotion preserved.
+  All 3 slices landed on `fix/knot-declutter` (461 passed/1 todo, typecheck
+  clean); PR #24 is MERGEABLE against `main`. Owner device check (reading
+  history actually opens) deferred to release, by decision.
+  See `docs/plans/knot-declutter/plan.html`.
 
 ## Next actions
 

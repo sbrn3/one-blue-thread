@@ -60,5 +60,12 @@ held, and re-weaves if released early.
 
 **The knot** — the settings sheet, and the app's only persistent control.
 
+**The everyday tier** — the part of the knot visible the moment it opens: the
+weave, the cue, and reading history. Holds only what is touched daily.
+
+**The rare tier** — everything else in the knot, one "More" disclosure deep,
+grouped Your data, Practice, and About. A section needing attention is
+promoted out of it into the everyday tier for that open.
+
 **The cue** — the one if-then sentence ("After X, I read in Y") that the whole
 product is built to deliver.

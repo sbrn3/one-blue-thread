@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   findNodeHandle,
@@ -17,14 +17,12 @@ import type { Cue } from '../cue';
 import { WeaveZone } from '../flow/WeaveZone';
 import { deriveBolt } from '../flow/bolt';
 import { bundledChapterCount } from '../text';
-import { getSupportSummary, needsAttention } from '../lab/diagnostics';
+import { getSupportSummary, hasSupportAttention, needsAttention } from '../lab/diagnostics';
 import { getProfile } from '../lab/profile';
 import { computeStreak, meta } from '../log/log';
 import { logicalToday } from '../log/time';
 import type { Services } from '../services';
 import { tokens } from '../ui/tokens';
-import { AdaptiveSection } from './AdaptiveSection';
-import { BackupSection } from './BackupSection';
 import { ChapterStrip } from './ChapterStrip';
 import { ChapterViewer } from './ChapterViewer';
 import { CueEditor } from './CueEditor';
@@ -32,28 +30,30 @@ import { DiagnosticsSection } from './DiagnosticsSection';
 import { DisclosureSection } from './DisclosureSection';
 import { type HistoryEntry } from './history';
 import { HistoryModal } from './HistoryModal';
-import { PartnerSection } from './PartnerSection';
-import { ResetSection } from './ResetSection';
-import { DictionaryLibrary } from '../study/DictionaryLibrary';
-import { BrandOrigin } from '../brand/BrandOrigin';
+import { BackupSection } from './BackupSection';
+import { MoreSection, type MoreSectionKey } from './MoreSection';
 
 interface KnotProps {
   services: Services;
 }
 
-type SectionKey = 'practice' | 'reading' | 'safekeeping' | 'partner' | 'support' | 'app';
+type SectionKey = 'practice' | 'more';
 
 /**
  * §04 — the knot: the app's sole persistent control, present on every
- * screen. Direction A's quiet accordion (docs/plans/app-quality-foundations):
- * today's compact weave, then Practice (open by default), Reading & Study,
- * Safekeeping, Partner, Support, and App disclosures — Safekeeping and
- * Support open themselves when they need attention, re-evaluated every time
- * the knot opens. Translation state/provider/copy is untouched here — owned
- * by the separate, parked knot-translation-switch plan.
+ * screen. docs/plans/knot-declutter, direction A: an everyday tier (the
+ * compact weave, Practice — open by default — and reading history) over
+ * one "More" disclosure holding the rare tier, grouped as Your data
+ * (Safekeeping, Starting over), Practice (Partner, Adaptive policy), and
+ * About (Origin story, Study library, Support). When Safekeeping or
+ * Support needs attention, that section is promoted into the everyday
+ * tier already open — re-evaluated every time the knot opens — rather
+ * than left one level down inside More. Translation state/provider/copy
+ * is untouched here — owned by the separate, parked
+ * knot-translation-switch plan.
  */
 export function Knot({ services }: KnotProps) {
-  const { db, log, text, study, cue, backup, partner } = services;
+  const { db, log, text, cue, backup } = services;
   const today = useRef(logicalToday()).current;
   const reducedMotion = useReducedMotion();
   const insets = useSafeAreaInsets();
@@ -64,20 +64,59 @@ export function Knot({ services }: KnotProps) {
   const [viewingEntry, setViewingEntry] = useState<HistoryEntry | null>(null);
   const [paused, setPaused] = useState(() => meta.get(db, 'paused') === '1');
 
+  // The everyday tier's own two disclosures: Practice, and the "More" door
+  // into the rare tier below.
   const [openSections, setOpenSections] = useState<Record<SectionKey, boolean>>({
     practice: true,
-    reading: false,
-    safekeeping: false,
-    partner: false,
-    support: false,
-    app: false,
+    more: false,
   });
   const toggleSection = useCallback((key: SectionKey) => {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
+  // The rare tier's seven items, all closed by default — MoreSection owns
+  // rendering them; this is only the open/closed record, same contract as
+  // DisclosureSection everywhere else in the knot.
+  const [moreSections, setMoreSections] = useState<Record<MoreSectionKey, boolean>>({
+    safekeeping: false,
+    reset: false,
+    partner: false,
+    adaptive: false,
+    origin: false,
+    study: false,
+    support: false,
+  });
+  const toggleMoreSection = useCallback((key: MoreSectionKey) => {
+    setMoreSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  }, []);
+
+  // Safekeeping or Support needing attention is promoted into the everyday
+  // tier, already open — re-evaluated every time the knot opens, exactly
+  // like the flat accordion did before. MoreSection is told which one (if
+  // any) so it can leave that item out of its own group and never render
+  // it twice. Support takes priority when both need attention: a support
+  // item generally means something the reader cannot act on from
+  // Safekeeping alone (an invariant failure, a recent local error).
+  const [promoted, setPromoted] = useState<'safekeeping' | 'support' | null>(null);
+
   const openerRef = useRef<View>(null);
   const closeRef = useRef<View>(null);
+
+  // docs/plans/knot-declutter — the opener's dot, readable on the reading
+  // screen with the knot closed. Deliberately NOT backup.status()/
+  // getSupportSummary(db) run unconditionally here: those are read again,
+  // in full, once the knot is actually open (below). This is the cheap
+  // hasSupportAttention() probe plus the same backup.status() the knot
+  // already calls on open — status() is itself a bounded meta read, so it
+  // is not the risk; getSupportSummary()'s unbounded amendment log is.
+  const [openerAttention, setOpenerAttention] = useState(false);
+  const refreshOpenerAttention = useCallback(() => {
+    const status = backup.status();
+    setOpenerAttention(
+      status.snapshotAttentionNeeded || status.externalAttentionNeeded || hasSupportAttention(db),
+    );
+  }, [backup, db]);
+  useEffect(refreshOpenerAttention, [refreshOpenerAttention]);
 
   // Same derivation the flow uses. The knot reaches the weave independently of
   // today's seal, so this must be correct on an unsealed day too.
@@ -126,10 +165,16 @@ export function Knot({ services }: KnotProps) {
     log.write({ type: 'knot_open' });
     const status = backup.status();
     const support = getSupportSummary(db);
-    setOpenSections((prev) => ({
+    const safekeepingAttention = status.snapshotAttentionNeeded || status.externalAttentionNeeded;
+    const supportAttention = needsAttention(support);
+    // Support takes priority when both need attention — see the state's
+    // own comment above for why.
+    const next = supportAttention ? 'support' : safekeepingAttention ? 'safekeeping' : null;
+    setPromoted(next);
+    setMoreSections((prev) => ({
       ...prev,
-      safekeeping: status.snapshotAttentionNeeded || status.externalAttentionNeeded,
-      support: needsAttention(support),
+      safekeeping: safekeepingAttention,
+      support: supportAttention,
     }));
     setOpen(true);
   };
@@ -137,6 +182,10 @@ export function Knot({ services }: KnotProps) {
   const handleClose = () => {
     setOpen(false);
     restoreOpenerFocus();
+    // Whatever needed attention may have just been resolved (or a new
+    // thing may have surfaced) while the knot was open — re-read for the
+    // opener's dot rather than leaving it showing a stale answer.
+    refreshOpenerAttention();
   };
 
   const handleResume = () => {
@@ -151,9 +200,18 @@ export function Knot({ services }: KnotProps) {
         style={styles.button}
         onPress={handleOpen}
         accessibilityRole="button"
-        accessibilityLabel="Open the knot: weave, practice, and settings"
+        accessibilityLabel={
+          openerAttention
+            ? 'Open the knot: weave, practice, and settings — needs attention'
+            : 'Open the knot: weave, practice, and settings'
+        }
       >
-        <Text style={styles.buttonLabel}>• Knot</Text>
+        {/* The dot is decorative at rest (ink40) and becomes the real
+            madder attention signal when openerAttention is true — but the
+            accessible name above always carries the same information in
+            words, so the dot is never the sole carrier of meaning. */}
+        <View style={[styles.buttonDot, openerAttention && styles.buttonDotAttention]} />
+        <Text style={styles.buttonLabel}>Knot</Text>
       </Pressable>
 
       <Modal
@@ -187,6 +245,33 @@ export function Knot({ services }: KnotProps) {
                 </View>
               )}
 
+              {/* Promoted out of the rare tier for this open only, already
+                  expanded — never also rendered inside More (see its
+                  `promoted` prop below). Not `nested`: this is the everyday
+                  tier now, not a group item. */}
+              {promoted === 'safekeeping' && (
+                <DisclosureSection
+                  summary="Safekeeping"
+                  status="Needs attention"
+                  attention
+                  expanded={moreSections.safekeeping}
+                  onToggle={() => toggleMoreSection('safekeeping')}
+                >
+                  <BackupSection backup={backup} />
+                </DisclosureSection>
+              )}
+              {promoted === 'support' && supportSummary && (
+                <DisclosureSection
+                  summary="Support"
+                  status="Needs attention"
+                  attention
+                  expanded={moreSections.support}
+                  onToggle={() => toggleMoreSection('support')}
+                >
+                  <DiagnosticsSection summary={supportSummary} />
+                </DisclosureSection>
+              )}
+
               <WeaveZone
                 book={bolt.book}
                 chapterCount={bundledChapterCount(bolt.book)}
@@ -203,72 +288,45 @@ export function Knot({ services }: KnotProps) {
                 <CueEditor cue={cueState} onSave={handleCueSave} />
               </DisclosureSection>
 
+              <ChapterStrip hasHistory={hasHistory} onOpen={() => setHistoryOpen(true)} />
+
               <DisclosureSection
-                summary="Reading & Study"
-                expanded={openSections.reading}
-                onToggle={() => toggleSection('reading')}
+                summary="More"
+                status="Safekeeping, partner, support, starting over"
+                expanded={openSections.more}
+                onToggle={() => toggleSection('more')}
               >
-                <Text style={styles.sectionLabel}>Chapters read</Text>
-                <ChapterStrip hasHistory={hasHistory} onOpen={() => setHistoryOpen(true)} />
-                <Text style={styles.sectionLabel}>Study library</Text>
-                <DictionaryLibrary
-                  study={study}
-                  book={viewingEntry?.book ?? meta.get(db, 'current_book') ?? 'genesis'}
+                <MoreSection
+                  services={services}
+                  db={db}
+                  log={log}
+                  today={today}
+                  openSections={moreSections}
+                  onToggle={toggleMoreSection}
+                  backupStatus={backupStatus}
+                  supportSummary={supportSummary}
+                  viewingEntry={viewingEntry}
+                  promoted={promoted}
                 />
               </DisclosureSection>
-
-              <DisclosureSection
-                summary="Safekeeping"
-                status={
-                  backupStatus?.snapshotAttentionNeeded || backupStatus?.externalAttentionNeeded
-                    ? 'Needs attention'
-                    : undefined
-                }
-                attention={backupStatus?.snapshotAttentionNeeded || backupStatus?.externalAttentionNeeded}
-                expanded={openSections.safekeeping}
-                onToggle={() => toggleSection('safekeeping')}
-              >
-                <BackupSection backup={backup} />
-              </DisclosureSection>
-
-              <DisclosureSection
-                summary="Partner"
-                expanded={openSections.partner}
-                onToggle={() => toggleSection('partner')}
-              >
-                <PartnerSection partner={partner} />
-              </DisclosureSection>
-
-              <DisclosureSection
-                summary="Support"
-                status={supportSummary && needsAttention(supportSummary) ? 'Needs attention' : undefined}
-                attention={supportSummary ? needsAttention(supportSummary) : false}
-                expanded={openSections.support}
-                onToggle={() => toggleSection('support')}
-              >
-                {supportSummary && <DiagnosticsSection summary={supportSummary} />}
-              </DisclosureSection>
-
-              <DisclosureSection summary="App" expanded={openSections.app} onToggle={() => toggleSection('app')}>
-                <BrandOrigin />
-                <Text style={styles.sectionLabel}>Adaptive policy</Text>
-                <AdaptiveSection db={db} today={today} />
-                <ResetSection db={db} log={log} />
-              </DisclosureSection>
             </ScrollView>
+
+            {/* Siblings of the ScrollView, not children of it — rendered inside the
+                knot's own modal tree so opening either is never a second Modal
+                stacked on top of an already-open one (the "taps open nothing"
+                failure; see test/ui-contracts.test.ts). */}
+            <HistoryModal
+              visible={historyOpen}
+              db={db}
+              reducedMotion={reducedMotion}
+              onClose={() => setHistoryOpen(false)}
+              onSelectEntry={handleSelectHistoryEntry}
+            />
+
+            <ChapterViewer entry={viewingEntry} text={text} reducedMotion={reducedMotion} onClose={() => setViewingEntry(null)} />
           </View>
         </KeyboardAvoidingView>
       </Modal>
-
-      <HistoryModal
-        visible={historyOpen}
-        db={db}
-        reducedMotion={reducedMotion}
-        onClose={() => setHistoryOpen(false)}
-        onSelectEntry={handleSelectHistoryEntry}
-      />
-
-      <ChapterViewer entry={viewingEntry} text={text} reducedMotion={reducedMotion} onClose={() => setViewingEntry(null)} />
     </>
   );
 }
@@ -280,11 +338,27 @@ const styles = StyleSheet.create({
     right: 20,
     minHeight: 44,
     minWidth: 44,
-    paddingHorizontal: 12,
-    borderRadius: 22,
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    borderRadius: tokens.radius.pill,
+    borderWidth: 1,
+    borderColor: tokens.color.ink15,
+    // Translucent, not opaque paper, so the pill still holds its shape
+    // over scripture without becoming a solid card on the reading screen.
+    backgroundColor: 'rgba(244, 241, 233, 0.72)',
     justifyContent: 'center',
     zIndex: 200,
+  },
+  buttonDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: tokens.color.ink40,
+  },
+  buttonDotAttention: {
+    backgroundColor: tokens.color.madder,
   },
   buttonLabel: {
     fontFamily: tokens.font.mono,
@@ -294,7 +368,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(22, 22, 26, 0.4)',
+    backgroundColor: tokens.color.scrim,
     justifyContent: 'flex-end',
   },
   sheet: {
@@ -341,14 +415,5 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 13,
     color: tokens.color.thread,
-  },
-  sectionLabel: {
-    fontFamily: tokens.font.mono,
-    fontSize: 11,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    color: tokens.color.ink40,
-    marginTop: 12,
-    marginBottom: 4,
   },
 });

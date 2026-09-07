@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>the knot — declutter directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;600;700;900&family=Newsreader:opsz,wght@6..72,400;6..72,500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Palette and type read from src/ui/tokens.ts ("The Loom"), NOT from the stale
+   mockup-template :root, which still carries the pre-Loom electric blue
+   (#1F3FFF) and the old paper/ink40 values. */
+:root {
+  --paper:#F4F1E9; --ink:#1A1A17; --thread:#2E3A8C; --warp:#8F8779;
+  --madder:#B5482F; --dye-soft:#E7E9F4; --ink60:#5B584F; --ink40:#726D5C;
+  --ink15:#E0DACB; --scrim:rgba(26,26,23,.45); --mark-soft:rgba(46,58,140,.08);
+  --display:'Schibsted Grotesk',system-ui,sans-serif;
+  --scripture:'Newsreader',Georgia,serif;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --r-input:10px; --r-panel:12px; --r-sheet:20px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#2A2823;color:var(--ink);font-family:var(--display)}
+header.mk{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:1rem;align-items:center;justify-content:space-between;padding:.75rem 1.25rem;background:var(--ink);color:var(--paper);font-family:var(--mono);font-size:.78rem}
+header.mk strong{font-family:var(--display);font-weight:700;letter-spacing:.02em}
+.mk-options{display:flex;flex-wrap:wrap;gap:.35rem}
+.mk-options a{color:inherit;border:1px solid currentColor;border-radius:999px;padding:.3rem .8rem;font-size:.72rem;text-decoration:none}
+.mk-options a:hover{background:var(--paper);color:var(--ink)}
+.note{max-width:1240px;margin:1.5rem auto 0;padding:0 1.25rem;color:#CFC9BA;font-family:var(--mono);font-size:.75rem;line-height:1.75}
+.note b{color:var(--paper)}
+.note code{color:#E8E2D2}
+.stage{display:flex;flex-wrap:wrap;gap:2.25rem;justify-content:center;padding:2rem 1.25rem 4rem;max-width:1400px;margin:0 auto;align-items:flex-start}
+.col{width:390px}
+.opt-label{font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:#CFC9BA;margin:0 0 .3rem}
+.opt-sub{font-family:var(--mono);font-size:.7rem;line-height:1.65;color:#9A9384;margin:0 0 1rem;min-height:5em}
+
+/* ---------- the phone and the sheet ---------- */
+.phone{width:390px;height:730px;border-radius:34px;overflow:hidden;position:relative;
+  background:linear-gradient(#EDE9DE,#E4DFD2);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.behind{position:absolute;inset:0;padding:56px 26px;font-family:var(--scripture);color:#B3AC9B;font-size:1rem;line-height:1.9}
+.opener{position:absolute;top:56px;right:20px;min-height:44px;min-width:44px;display:flex;align-items:center;
+  padding:0 12px;border-radius:22px;font-family:var(--mono);font-size:12px;letter-spacing:.5px;color:var(--ink40)}
+.opener.pill{border:1px solid var(--ink15);background:rgba(244,241,233,.72)}
+.opener.tint{background:var(--dye-soft);color:var(--thread)}
+.scrim{position:absolute;inset:0;background:var(--scrim)}
+.sheet{position:absolute;left:0;right:0;bottom:0;max-height:85%;background:var(--paper);
+  border-radius:var(--r-sheet) var(--r-sheet) 0 0;padding-top:12px;display:flex;flex-direction:column}
+.closerow{align-self:flex-end;padding:0 24px 8px;font-family:var(--mono);font-size:13px;color:var(--ink40);line-height:44px}
+.scroll{overflow:auto;padding:0 24px 28px}
+.scroll::-webkit-scrollbar{width:0}
+
+/* ---------- the compact weave ---------- */
+.weave{margin-bottom:14px}
+.weave-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.weave-book{font-family:var(--display);font-weight:700;font-size:15px}
+.weave-meta{font-family:var(--mono);font-size:11px;color:var(--ink40)}
+.cloth{display:flex;gap:2px;height:26px;align-items:stretch}
+.cloth i{flex:1;border-radius:1px;background:var(--warp);opacity:.42}
+.cloth i.s{background:var(--thread);opacity:1}
+.cloth i.g{background:transparent;border:1px dashed var(--warp);opacity:.65}
+
+/* ---------- rows ---------- */
+.rule{border-top:1px solid var(--ink15)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:10px 0;cursor:pointer}
+.row-t{display:flex;flex-direction:column;gap:2px}
+.row-s{font-family:var(--display);font-weight:700;font-size:15px;color:var(--ink)}
+.row-st{font-family:var(--mono);font-size:11px;color:var(--ink40)}
+.row-r{display:flex;align-items:center;gap:8px;font-family:var(--display);font-size:15px;color:var(--ink40)}
+.dot{width:8px;height:8px;border-radius:4px;background:var(--madder);flex:0 0 auto}
+.body{padding-bottom:16px}
+.grouplab{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink40);margin:18px 0 2px}
+
+/* ---------- the cue ---------- */
+.warn{font-family:var(--mono);font-size:11px;line-height:16px;color:var(--ink40);margin:0 0 14px}
+.sentence{font-family:var(--scripture);font-size:19px;line-height:30px;color:var(--ink);margin:0 0 16px;white-space:pre-line}
+.blank{color:var(--thread);text-decoration:underline}
+.btns{display:flex;flex-wrap:wrap;gap:12px}
+.btn{min-height:44px;display:inline-flex;align-items:center;padding:0 24px;border-radius:999px;
+  font-family:var(--display);font-weight:700;font-size:14px;border:1px solid var(--ink);color:var(--ink);background:transparent}
+.btn.p{background:var(--ink);color:var(--paper)}
+
+/* ---------- attention promotion ---------- */
+.promo{border:1px solid var(--ink15);border-radius:var(--r-panel);padding:14px 16px;margin-bottom:14px;background:var(--mark-soft)}
+.promo-h{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.promo-h b{font-family:var(--display);font-size:14px}
+.promo p{font-family:var(--mono);font-size:11px;line-height:17px;color:var(--ink60);margin:0 0 12px}
+
+/* ---------- option B: pushed panel ---------- */
+.panelnav{display:flex;align-items:center;gap:10px;min-height:44px;margin-bottom:6px}
+.back{font-family:var(--mono);font-size:13px;color:var(--ink40)}
+.panelttl{font-family:var(--display);font-weight:900;font-size:20px}
+
+/* ---------- option C: selvedge tabs ---------- */
+.selvedge{display:flex;border-bottom:1px solid var(--ink15);margin-bottom:14px;overflow:auto}
+.selvedge span{flex:0 0 auto;display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink40);padding:12px 14px 10px;border-bottom:2px solid transparent;white-space:nowrap}
+.selvedge span.on{color:var(--thread);border-bottom-color:var(--thread)}
+.caption{font-family:var(--mono);font-size:.68rem;color:#9A9384;line-height:1.7;margin:.8rem 0 0}
+.caption b{color:#CFC9BA}
+</style>
+</head>
+<body>
+
+<header class="mk">
+  <strong>the knot — declutter directions</strong>
+  <nav class="mk-options" aria-label="Mockup views">
+    <a href="#option-a">A · Quiet list</a>
+    <a href="#option-b">B · Pushed panel</a>
+    <a href="#option-c">C · Selvedge tabs</a>
+    <a href="#openers">Opener treatments</a>
+  </nav>
+  <span>synthetic data · tokens.ts "The Loom"</span>
+</header>
+
+<p class="note">
+  The information architecture is <b>already settled</b> by the grill session and is identical in all three:
+  an everyday tier (compact weave · the cue · reading history) over a rare tier grouped as
+  <b>Your data</b> (Safekeeping, Starting over) · <b>Practice</b> (Partner, Adaptive policy) ·
+  <b>About</b> (Origin story, Support). What differs is <b>how the second tier is reached</b> — and that
+  changes the build, so it needs deciding before the recipe. Every direction is achievable in
+  React Native <code>StyleSheet</code> + Reanimated with no new dependency.
+  Option A shows the resting state; <b>B and C show the Safekeeping-needs-attention state</b>, which
+  promotes that section into the everyday tier already open.
+</p>
+
+<div class="stage">
+
+  <!-- ============ OPTION A ============ -->
+  <div class="col">
+    <h3 class="opt-label">Option A · Quiet list</h3>
+    <p class="opt-sub">One scroll, one level. "More" is a final row that expands in place into three labelled groups. Closest to today's code — the DisclosureSection primitive is reused unchanged, nested one deep.</p>
+    <div class="phone" id="option-a">
+      <div class="behind">…and he shall be like a tree planted by the rivers of water.</div>
+      <div class="opener pill">• Knot</div>
+      <div class="scrim"></div>
+      <div class="sheet">
+        <div class="closerow">Close</div>
+        <div class="scroll">
+
+          <div class="weave">
+            <div class="weave-head"><span class="weave-book">Genesis</span><span class="weave-meta">12 / 50 · 9 days</span></div>
+            <div class="cloth">
+              <i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="g"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+          </div>
+
+          <div class="rule"></div>
+          <div class="row"><div class="row-t"><span class="row-s">Practice</span></div><span class="row-r">▾</span></div>
+          <div class="body">
+            <p class="warn">Changing your cue often weakens it — sameness is what builds the habit.</p>
+            <p class="sentence">After <span class="blank">my morning coffee</span>,
+I read in <span class="blank">the armchair by the window</span>.
+If I have not by <span class="blank">9:00 PM</span>, remind me.</p>
+            <div class="btns"><span class="btn">− 1h</span><span class="btn">+ 1h</span></div>
+          </div>
+
+          <div class="rule"></div>
+          <div class="row"><div class="row-t"><span class="row-s">Reading history</span><span class="row-st">142 chapters sealed</span></div><span class="row-r">▸</span></div>
+
+          <div class="rule"></div>
+          <div class="row"><div class="row-t"><span class="row-s">More</span><span class="row-st">Safekeeping, partner, support, starting over</span></div><span class="row-r">▾</span></div>
+          <div class="body">
+            <p class="grouplab">Your data</p>
+            <div class="rule"></div>
+            <div class="row"><div class="row-t"><span class="row-s">Safekeeping</span><span class="row-st">Last snapshot: 2 days ago</span></div><span class="row-r">▸</span></div>
+            <div class="rule"></div>
+            <div class="row"><div class="row-t"><span class="row-s">Starting over</span></div><span class="row-r">▸</span></div>
+
+            <p class="grouplab">Practice</p>
+            <div class="rule"></div>
+            <div class="row"><div class="row-t"><span class="row-s">Partner</span><span class="row-st">Not set</span></div><span class="row-r">▸</span></div>
+            <div class="rule"></div>
+            <div class="row"><div class="row-t"><span class="row-s">Adaptive policy</span><span class="row-st">Dormant until day 366</span></div><span class="row-r">▸</span></div>
+
+            <p class="grouplab">About</p>
+            <div class="rule"></div>
+            <div class="row"><div class="row-t"><span class="row-s">Origin story</span></div><span class="row-r">▸</span></div>
+            <div class="rule"></div>
+            <div class="row"><div class="row-t"><span class="row-s">Support</span><span class="row-st">Nothing is sent automatically</span></div><span class="row-r">▸</span></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    <p class="caption"><b>Cheapest to build</b> — no new navigation concept, no new primitive. <b>Cost:</b> a disclosure inside a disclosure is the weakest part of the visual system, and the sheet gets long once More is open.</p>
+  </div>
+
+  <!-- ============ OPTION B ============ -->
+  <div class="col">
+    <h3 class="opt-label">Option B · Pushed panel</h3>
+    <p class="opt-sub">The everyday tier stays short and never grows. "More" slides a second panel across the same sheet with a back affordance; the rare tier is flat there, so no accordion is ever nested inside another.</p>
+    <div class="phone" id="option-b">
+      <div class="behind">…and he shall be like a tree planted by the rivers of water.</div>
+      <div class="opener pill">• Knot</div>
+      <div class="scrim"></div>
+      <div class="sheet">
+        <div class="closerow">Close</div>
+        <div class="scroll">
+
+          <div class="promo">
+            <div class="promo-h"><span class="dot"></span><b>Safekeeping needs attention</b></div>
+            <p>No backup has been saved outside this phone. Your reading lives only here.</p>
+            <div class="btns"><span class="btn p">Save a backup</span><span class="btn">Not now</span></div>
+          </div>
+
+          <div class="weave">
+            <div class="weave-head"><span class="weave-book">Genesis</span><span class="weave-meta">12 / 50 · 9 days</span></div>
+            <div class="cloth">
+              <i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="g"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+          </div>
+
+          <div class="rule"></div>
+          <div class="row"><div class="row-t"><span class="row-s">Practice</span></div><span class="row-r">▾</span></div>
+          <div class="body">
+            <p class="sentence">After <span class="blank">my morning coffee</span>,
+I read in <span class="blank">the armchair by the window</span>.
+If I have not by <span class="blank">9:00 PM</span>, remind me.</p>
+            <div class="btns"><span class="btn">− 1h</span><span class="btn">+ 1h</span></div>
+          </div>
+
+          <div class="rule"></div>
+          <div class="row"><div class="row-t"><span class="row-s">Reading history</span><span class="row-st">142 chapters sealed</span></div><span class="row-r">›</span></div>
+
+          <div class="rule"></div>
+          <div class="row"><div class="row-t"><span class="row-s">More</span><span class="row-st">Your data · Practice · About</span></div><span class="row-r"><span class="dot"></span>›</span></div>
+          <div class="rule"></div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">The pushed panel reads <b>← the knot / More</b>, then the three groups as flat rows. <b>Cost:</b> a back affordance is a second navigation concept inside a sheet that already has Close, and Android's hardware back must be disambiguated between panel and sheet.</p>
+  </div>
+
+  <!-- ============ OPTION C ============ -->
+  <div class="col">
+    <h3 class="opt-label">Option C · Selvedge tabs</h3>
+    <p class="opt-sub">No nesting and no pushing. A hairline selvedge across the top of the sheet — Today · Your data · Practice · About. Each tab is one short flat list, so the three groups become the navigation itself.</p>
+    <div class="phone" id="option-c">
+      <div class="behind">…and he shall be like a tree planted by the rivers of water.</div>
+      <div class="opener tint">• Knot</div>
+      <div class="scrim"></div>
+      <div class="sheet">
+        <div class="closerow">Close</div>
+        <div class="scroll">
+          <div class="selvedge">
+            <span class="on">Today</span><span>Your data <i class="dot" style="display:inline-block"></i></span><span>Practice</span><span>About</span>
+          </div>
+
+          <div class="promo">
+            <div class="promo-h"><span class="dot"></span><b>Safekeeping needs attention</b></div>
+            <p>No backup has been saved outside this phone. Your reading lives only here.</p>
+            <div class="btns"><span class="btn p">Save a backup</span><span class="btn">Not now</span></div>
+          </div>
+
+          <div class="weave">
+            <div class="weave-head"><span class="weave-book">Genesis</span><span class="weave-meta">12 / 50 · 9 days</span></div>
+            <div class="cloth">
+              <i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="g"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i class="s"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+          </div>
+
+          <p class="warn">Changing your cue often weakens it — sameness is what builds the habit.</p>
+          <p class="sentence">After <span class="blank">my morning coffee</span>,
+I read in <span class="blank">the armchair by the window</span>.
+If I have not by <span class="blank">9:00 PM</span>, remind me.</p>
+          <div class="btns" style="margin-bottom:20px"><span class="btn">− 1h</span><span class="btn">+ 1h</span></div>
+
+          <div class="rule"></div>
+          <div class="row"><div class="row-t"><span class="row-s">Reading history</span><span class="row-st">142 chapters sealed</span></div><span class="row-r">›</span></div>
+          <div class="rule"></div>
+        </div>
+      </div>
+    </div>
+    <p class="caption">The cue is no longer behind a disclosure at all — "Today" is short enough to show it outright. <b>Cost:</b> tabs are an idiom the app uses nowhere else, and a horizontal strip is the least quiet element in the loom register.</p>
+  </div>
+
+  <!-- ============ OPENERS ============ -->
+  <div class="col" id="openers">
+    <h3 class="opt-label">Opener treatments</h3>
+    <p class="opt-sub">Settled: a visible resting affordance, same position, same 44pt target. Three renderings of "visible but still quiet" — pick one alongside the direction.</p>
+    <div class="phone" style="height:auto;min-height:730px">
+      <div class="behind" style="padding-top:40px">
+        <p style="font-family:var(--mono);font-size:11px;color:var(--ink40);letter-spacing:.1em;text-transform:uppercase;margin:0 0 10px">Today — no boundary</p>
+        <div style="position:relative;height:56px"><div class="opener" style="position:absolute;top:0;right:0">• Knot</div></div>
+        <p style="font-family:var(--mono);font-size:11px;color:var(--ink40);line-height:1.7;margin:0 0 30px">12pt mono in <code>ink40</code> on bare ground. Nothing says it is a control.</p>
+
+        <p style="font-family:var(--mono);font-size:11px;color:var(--ink40);letter-spacing:.1em;text-transform:uppercase;margin:0 0 10px">i · Hairline pill</p>
+        <div style="position:relative;height:56px"><div class="opener pill" style="position:absolute;top:0;right:0">• Knot</div></div>
+        <p style="font-family:var(--mono);font-size:11px;color:var(--ink40);line-height:1.7;margin:0 0 30px">1px <code>ink15</code> border over a translucent <code>paper</code> fill, so it holds its shape over scripture. The quietest thing that still reads as a button.</p>
+
+        <p style="font-family:var(--mono);font-size:11px;color:var(--ink40);letter-spacing:.1em;text-transform:uppercase;margin:0 0 10px">ii · Weft tint</p>
+        <div style="position:relative;height:56px"><div class="opener tint" style="position:absolute;top:0;right:0">• Knot</div></div>
+        <p style="font-family:var(--mono);font-size:11px;color:var(--ink40);line-height:1.7;margin:0 0 30px"><code>dyeSoft</code> fill with a <code>thread</code> label. Unmistakably interactive and on-palette, but it is then the loudest chrome on the reading screen.</p>
+
+        <p style="font-family:var(--mono);font-size:11px;color:var(--ink40);letter-spacing:.1em;text-transform:uppercase;margin:0 0 10px">iii · Pill, and the dot means something</p>
+        <div style="position:relative;height:56px">
+          <div class="opener pill" style="position:absolute;top:0;right:0;gap:8px"><span class="dot"></span><span>Knot</span></div>
+        </div>
+        <p style="font-family:var(--mono);font-size:11px;color:var(--ink40);line-height:1.7;margin:0">Identical to i at rest, but the decorative leading "•" becomes a real <code>madder</code> attention dot when Safekeeping or Support needs you. It is the only treatment that carries the signal out to the reading screen.</p>
+      </div>
+    </div>
+    <p class="caption"><b>iii is a superset of i</b> — same resting appearance, one extra state, and it stops the attention signal from being invisible until you open the knot.</p>
+  </div>
+
+</div>
+</body>
+</html>
