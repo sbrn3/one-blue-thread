@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { logError } from '../src/errors';
-import { formatDiagnosticsForSharing, getSupportSummary, needsAttention } from '../src/lab/diagnostics';
+import { formatDiagnosticsForSharing, getSupportSummary, hasSupportAttention, needsAttention } from '../src/lab/diagnostics';
 import { meta } from '../src/log/log';
 import { migrate } from '../src/log/schema';
 import { openTestDb } from './util/testDb';
@@ -181,6 +181,75 @@ describe('getSupportSummary / formatDiagnosticsForSharing (§20 — support with
       logError(db, sentinels.reflection);
       const summary = getSupportSummary(db);
       expect(summary.items[0].code).toBe('unexpected_error');
+    });
+  });
+
+  // docs/plans/knot-declutter — hasSupportAttention is a cheap, bounded
+  // stand-in for needsAttention(getSupportSummary(db)) on the knot's
+  // opener. The two functions answering one question is the risk this
+  // introduces, so every fixture below asserts they agree, not just that
+  // hasSupportAttention returns some plausible value.
+  describe('hasSupportAttention — agrees with needsAttention(getSupportSummary(db)) everywhere', () => {
+    it('agrees when nothing is wrong', () => {
+      const db = openTestDb();
+      migrate(db);
+      meta.set(db, 'recovery_snapshot_last_ok', '1000');
+      const now = () => 1000;
+      expect(hasSupportAttention(db, now)).toBe(needsAttention(getSupportSummary(db, now)));
+      expect(hasSupportAttention(db, now)).toBe(false);
+    });
+
+    it('agrees on an invariant failure', () => {
+      const db = openTestDb();
+      migrate(db);
+      meta.set(db, 'recovery_snapshot_last_ok', '1000');
+      meta.set(db, 'invariant_failed', 'append_only_violation');
+      const now = () => 1000;
+      expect(hasSupportAttention(db, now)).toBe(needsAttention(getSupportSummary(db, now)));
+      expect(hasSupportAttention(db, now)).toBe(true);
+    });
+
+    it('agrees when the snapshot has never succeeded', () => {
+      const db = openTestDb();
+      migrate(db);
+      expect(hasSupportAttention(db)).toBe(needsAttention(getSupportSummary(db)));
+      expect(hasSupportAttention(db)).toBe(true); // never succeeded yet
+    });
+
+    it('agrees when the snapshot currently fails despite a past success', () => {
+      const db = openTestDb();
+      migrate(db);
+      meta.set(db, 'recovery_snapshot_last_ok', '1000');
+      meta.set(db, 'recovery_snapshot_last_error', 'storage_unavailable');
+      const now = () => 1000;
+      expect(hasSupportAttention(db, now)).toBe(needsAttention(getSupportSummary(db, now)));
+      expect(hasSupportAttention(db, now)).toBe(true);
+    });
+
+    it('agrees when an error was logged within the 7-day window, and again just outside it', () => {
+      const db = openTestDb();
+      migrate(db);
+      meta.set(db, 'recovery_snapshot_last_ok', '1000');
+      db.run(`INSERT INTO error_log (ts, message) VALUES (0, 'network timeout')`);
+
+      const inside = () => 7 * DAY - 1;
+      expect(hasSupportAttention(db, inside)).toBe(needsAttention(getSupportSummary(db, inside)));
+      expect(hasSupportAttention(db, inside)).toBe(true);
+
+      const outside = () => 7 * DAY + 1;
+      expect(hasSupportAttention(db, outside)).toBe(needsAttention(getSupportSummary(db, outside)));
+      expect(hasSupportAttention(db, outside)).toBe(false);
+    });
+
+    it('agrees once the recovery snapshot error is cleared to empty string, the retry-success path', () => {
+      const db = openTestDb();
+      migrate(db);
+      meta.set(db, 'recovery_snapshot_last_ok', '1000');
+      meta.set(db, 'recovery_snapshot_last_error', 'storage_unavailable');
+      meta.set(db, 'recovery_snapshot_last_error', ''); // retrySnapshot's own clearing convention
+      const now = () => 1000;
+      expect(hasSupportAttention(db, now)).toBe(needsAttention(getSupportSummary(db, now)));
+      expect(hasSupportAttention(db, now)).toBe(false);
     });
   });
 });

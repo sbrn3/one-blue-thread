@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   findNodeHandle,
@@ -17,7 +17,7 @@ import type { Cue } from '../cue';
 import { WeaveZone } from '../flow/WeaveZone';
 import { deriveBolt } from '../flow/bolt';
 import { bundledChapterCount } from '../text';
-import { getSupportSummary, needsAttention } from '../lab/diagnostics';
+import { getSupportSummary, hasSupportAttention, needsAttention } from '../lab/diagnostics';
 import { getProfile } from '../lab/profile';
 import { computeStreak, meta } from '../log/log';
 import { logicalToday } from '../log/time';
@@ -79,6 +79,22 @@ export function Knot({ services }: KnotProps) {
   const openerRef = useRef<View>(null);
   const closeRef = useRef<View>(null);
 
+  // docs/plans/knot-declutter — the opener's dot, readable on the reading
+  // screen with the knot closed. Deliberately NOT backup.status()/
+  // getSupportSummary(db) run unconditionally here: those are read again,
+  // in full, once the knot is actually open (below). This is the cheap
+  // hasSupportAttention() probe plus the same backup.status() the knot
+  // already calls on open — status() is itself a bounded meta read, so it
+  // is not the risk; getSupportSummary()'s unbounded amendment log is.
+  const [openerAttention, setOpenerAttention] = useState(false);
+  const refreshOpenerAttention = useCallback(() => {
+    const status = backup.status();
+    setOpenerAttention(
+      status.snapshotAttentionNeeded || status.externalAttentionNeeded || hasSupportAttention(db),
+    );
+  }, [backup, db]);
+  useEffect(refreshOpenerAttention, [refreshOpenerAttention]);
+
   // Same derivation the flow uses. The knot reaches the weave independently of
   // today's seal, so this must be correct on an unsealed day too.
   const bolt = useMemo(
@@ -137,6 +153,10 @@ export function Knot({ services }: KnotProps) {
   const handleClose = () => {
     setOpen(false);
     restoreOpenerFocus();
+    // Whatever needed attention may have just been resolved (or a new
+    // thing may have surfaced) while the knot was open — re-read for the
+    // opener's dot rather than leaving it showing a stale answer.
+    refreshOpenerAttention();
   };
 
   const handleResume = () => {
@@ -151,9 +171,18 @@ export function Knot({ services }: KnotProps) {
         style={styles.button}
         onPress={handleOpen}
         accessibilityRole="button"
-        accessibilityLabel="Open the knot: weave, practice, and settings"
+        accessibilityLabel={
+          openerAttention
+            ? 'Open the knot: weave, practice, and settings — needs attention'
+            : 'Open the knot: weave, practice, and settings'
+        }
       >
-        <Text style={styles.buttonLabel}>• Knot</Text>
+        {/* The dot is decorative at rest (ink40) and becomes the real
+            madder attention signal when openerAttention is true — but the
+            accessible name above always carries the same information in
+            words, so the dot is never the sole carrier of meaning. */}
+        <View style={[styles.buttonDot, openerAttention && styles.buttonDotAttention]} />
+        <Text style={styles.buttonLabel}>Knot</Text>
       </Pressable>
 
       <Modal
@@ -284,11 +313,27 @@ const styles = StyleSheet.create({
     right: 20,
     minHeight: 44,
     minWidth: 44,
-    paddingHorizontal: 12,
-    borderRadius: 22,
+    flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    borderRadius: tokens.radius.pill,
+    borderWidth: 1,
+    borderColor: tokens.color.ink15,
+    // Translucent, not opaque paper, so the pill still holds its shape
+    // over scripture without becoming a solid card on the reading screen.
+    backgroundColor: 'rgba(244, 241, 233, 0.72)',
     justifyContent: 'center',
     zIndex: 200,
+  },
+  buttonDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: tokens.color.ink40,
+  },
+  buttonDotAttention: {
+    backgroundColor: tokens.color.madder,
   },
   buttonLabel: {
     fontFamily: tokens.font.mono,
@@ -298,7 +343,7 @@ const styles = StyleSheet.create({
   },
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(22, 22, 26, 0.4)',
+    backgroundColor: tokens.color.scrim,
     justifyContent: 'flex-end',
   },
   sheet: {
