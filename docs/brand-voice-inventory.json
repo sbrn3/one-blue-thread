@@ -24,6 +24,7 @@
   "src/knot/DisclosureSection.tsx": ["operation-consent-error"],
   "src/knot/HistoryModal.tsx": ["operation-consent-error", "behavioural-fact"],
   "src/knot/Knot.tsx": ["operation-consent-error", "behavioural-fact"],
+  "src/knot/MoreSection.tsx": ["operation-consent-error"],
   "src/knot/PartnerSection.tsx": ["reader-owned", "operation-consent-error"],
   "src/knot/ResetSection.tsx": ["operation-consent-error"],
   "src/lab/analysis/report.ts": ["operation-consent-error", "behavioural-fact"],

@@ -11,6 +11,14 @@ interface DisclosureSectionProps {
   expanded: boolean;
   onToggle: () => void;
   children: ReactNode;
+  /**
+   * docs/plans/knot-declutter — set for a disclosure rendered inside
+   * another one (the rare tier's items inside "More"), so it reads as
+   * subordinate: a smaller summary weight and a left indent matching
+   * MoreSection's group label, with no new colour and no elevation (the
+   * flat atmosphere layer has neither).
+   */
+  nested?: boolean;
 }
 
 /**
@@ -18,9 +26,17 @@ interface DisclosureSectionProps {
  * The parent owns open state so a section needing attention (Safekeeping,
  * Support) can be opened by default without this component guessing why.
  */
-export function DisclosureSection({ summary, status, attention = false, expanded, onToggle, children }: DisclosureSectionProps) {
+export function DisclosureSection({
+  summary,
+  status,
+  attention = false,
+  expanded,
+  onToggle,
+  children,
+  nested = false,
+}: DisclosureSectionProps) {
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, nested && styles.wrapNested]}>
       <Pressable
         onPress={onToggle}
         accessibilityRole="button"
@@ -29,7 +45,7 @@ export function DisclosureSection({ summary, status, attention = false, expanded
         style={({ pressed }) => [styles.header, pressed && styles.headerPressed]}
       >
         <View style={styles.headerText}>
-          <Text style={styles.summary}>{summary}</Text>
+          <Text style={[styles.summary, nested && styles.summaryNested]}>{summary}</Text>
           {status && <Text style={styles.status}>{status}</Text>}
         </View>
         <View style={styles.headerRight}>
@@ -46,6 +62,9 @@ const styles = StyleSheet.create({
   wrap: {
     borderTopWidth: 1,
     borderTopColor: tokens.color.ink15,
+  },
+  wrapNested: {
+    paddingLeft: tokens.space[3],
   },
   header: {
     minHeight: tokens.control.minTarget + 4,
@@ -67,6 +86,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 15,
     color: tokens.color.ink,
+  },
+  summaryNested: {
+    fontSize: 14,
   },
   status: {
     fontFamily: tokens.font.mono,

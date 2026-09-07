@@ -48,6 +48,7 @@ const INTERACTIVE_CALLER_ALLOWLIST = new Set<string>([
   'src/flow/SrbaiZone.tsx',
   'src/flow/StudyHint.tsx',
   'src/knot/BackupSection.tsx',
+  'src/knot/ChapterStrip.tsx',
   'src/knot/ChapterViewer.tsx',
   'src/knot/CueEditor.tsx',
   'src/knot/DisclosureSection.tsx',
