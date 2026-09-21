@@ -20,39 +20,17 @@ weave. Nothing to install.
 download `one-blue-thread.apk`, allow "install unknown apps," done. Android, free,
 no account, nothing leaves your phone.
 
-## The first time you open it
+## First run
 
-Onboarding asks a few short questions, in order, and then gets out of the way:
+Onboarding really only asks one thing that matters: a cue, one sentence —
+"After ___, I read in ___." Pick something you already do every day so the
+reading rides along with it. Everything else it asks (reminder time,
+translation, starting book) is a sensible default you can change later.
 
-1. **Your cue** — one sentence: "After ___, I read in ___." Pick something
-   that already happens every day (a coffee, a commute, a bedtime) so the
-   reading rides along with it rather than needing its own willpower.
-2. **A reminder time** — optional, for if you haven't read by a given hour.
-3. **A translation** — the public-domain WEB ships offline out of the box;
-   NIV or ESV need a free API key, entered on-device, and are cached per
-   chapter after that.
-4. **Where to start** — pick a book, or take the suggested one.
-5. **Backups** — a weekly on-device recovery snapshot, and an optional
-   "someone to read alongside" the app never contacts on its own.
-
-After that, every day looks the same: it opens to your cue, gives you a
-passage to read, occasionally asks you to recall an earlier verse from
-memory (grade it "Held it," "Partly," or "Lost it" — nothing is penalised),
-and you press and hold to seal the day once you're done. Miss a day and it
-just... shows a gap. No streak to protect, no makeup lesson.
-
-## A few things worth knowing
-
-- **Nothing leaves your phone.** No account, no analytics, no ads. The one
-  optional exception is a translation API key, if you choose NIV or ESV.
-- **It works fully offline.** The bundled WEB translation never needs a
-  network; NIV/ESV cache each chapter after the first fetch.
-- **Undo is real.** A missed recall touches nothing. A held-down reset ("the
-  unravel" — see `docs/CONTEXT.md`) erases everything and starts over, and
-  it's the only irreversible action in the app.
-- **It's not trying to be sticky.** See [`docs/BRAND.md`](docs/BRAND.md) for
-  the editorial rule behind that, and the `lab` in the demo/app for the one
-  quiet, fully-auditable, one-tap-freezable exception.
+After that it's the same each day: your cue, a passage, sometimes a verse
+to recall from memory, then hold to seal. Miss a day and nothing happens —
+no streak, no catch-up. The only irreversible thing in the app is a
+deliberate, held-down reset that starts you over from scratch.
 
 Curious how it's built, or want to run it yourself? Read on.
 
