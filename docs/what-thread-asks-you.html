@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What Thread Asks You</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+
+  /* Thread's own design tokens — src/ui/tokens.ts — one accent,
+     two voices, no gradients, no shadows beyond a hairline. This
+     document borrows that register rather than inventing its own. */
+  :root{
+    --paper: #FBFAF7;
+    --ink: #16161A;
+    --thread: #1F3FFF;
+    --ink60: #5E5D66;
+    --ink40: #9C9BA3;
+    --ink15: #E6E5E1;
+    --ink08: #F1F0EC;
+  }
+
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Schibsted Grotesk', ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    padding: 64px 24px 96px;
+  }
+  .page{ max-width: 760px; margin: 0 auto; }
+  .mono{ font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace; }
+  .scripture{ font-family: 'Newsreader', Georgia, serif; }
+
+  /* ---------- masthead ---------- */
+  .eyebrow{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink40);
+    margin-bottom: 20px;
+  }
+  h1{
+    font-family: 'Schibsted Grotesk', sans-serif;
+    font-weight: 800;
+    font-size: clamp(34px, 6vw, 48px);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    margin: 0 0 18px;
+  }
+  .dek{
+    max-width: 56ch;
+    color: var(--ink60);
+    font-size: 17px;
+    margin-bottom: 28px;
+  }
+  .dek b{ color: var(--ink); font-weight: 600; }
+
+  .rule{
+    border: 1px solid var(--ink15);
+    border-left: 3px solid var(--thread);
+    border-radius: 4px;
+    padding: 18px 22px;
+    margin-bottom: 56px;
+  }
+  .rule p{
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1.5;
+    margin: 0;
+    color: var(--ink);
+  }
+  .rule .src{
+    display: block;
+    margin-top: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-style: normal;
+    font-size: 11.5px;
+    color: var(--ink40);
+  }
+
+  /* ---------- test sections ---------- */
+  .test{
+    padding-top: 40px;
+    margin-top: 40px;
+    border-top: 1px solid var(--ink15);
+  }
+  .test:first-of-type{ margin-top: 0; }
+  .test-eyebrow{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--thread);
+    margin-bottom: 10px;
+  }
+  .test-eyebrow .num{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px; height: 20px;
+    border: 1px solid var(--thread);
+    border-radius: 50%;
+    font-size: 11px;
+  }
+  .test-eyebrow .cadence{ color: var(--ink40); }
+  h2{
+    font-family: 'Schibsted Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: -0.005em;
+    margin: 0 0 12px;
+  }
+  .test p.desc{
+    max-width: 62ch;
+    color: var(--ink60);
+    font-size: 15.5px;
+    margin: 0 0 22px;
+  }
+  .test p.desc b{ color: var(--ink); font-weight: 600; }
+
+  /* on-screen mock */
+  .mock{
+    background: var(--paper);
+    border: 1px solid var(--ink15);
+    border-radius: 10px;
+    padding: 22px 24px;
+    margin-bottom: 18px;
+  }
+  .mock .label{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    color: var(--ink40);
+    margin-bottom: 12px;
+  }
+  .mock .prompt{
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--ink);
+    margin: 0 0 16px;
+  }
+  .mock .likert-row{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    font-size: 14.5px;
+    color: var(--ink);
+    padding: 9px 0;
+    border-bottom: 1px solid var(--ink08);
+  }
+  .mock .likert-row:last-child{ border-bottom: none; }
+  .mock .likert-row .q{ max-width: 40ch; }
+  .mock .scale{
+    display: flex;
+    gap: 6px;
+    flex: none;
+  }
+  .mock .scale span{
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1px solid var(--ink15);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink40);
+  }
+  .mock .reflect{
+    margin-top: 14px;
+    border-top: 1px dashed var(--ink15);
+    padding-top: 12px;
+  }
+  .mock .reflect .cap{ font-family:'JetBrains Mono',monospace; font-size: 10.5px; color: var(--ink40); margin-bottom: 6px; }
+  .mock .reflect .line{ border-bottom: 1px solid var(--ink15); height: 18px; }
+
+  .chiprow{
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .chip{
+    font-family: 'Schibsted Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 12.5px;
+    padding: 8px 15px;
+    border-radius: 999px;
+    background: var(--ink08);
+    color: var(--ink);
+  }
+  .chip.ghost{
+    background: transparent;
+    border: 1px solid var(--ink);
+  }
+  .chip.skip{
+    background: transparent;
+    text-decoration: underline;
+    color: var(--ink40);
+    font-weight: 400;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    padding: 8px 4px;
+  }
+
+  /* grading key */
+  .keytable{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+    margin-top: 4px;
+  }
+  .keytable th{
+    text-align: left;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink40);
+    font-weight: 600;
+    padding: 8px 14px 8px 0;
+    border-bottom: 1px solid var(--ink15);
+  }
+  .keytable td{
+    padding: 9px 14px 9px 0;
+    border-bottom: 1px solid var(--ink08);
+    color: var(--ink60);
+    vertical-align: top;
+  }
+  .keytable td.grade{ color: var(--ink); font-weight: 600; white-space: nowrap; }
+  .keytable td.num{ font-family:'JetBrains Mono',monospace; color: var(--ink); white-space: nowrap; }
+
+  .consequence{
+    margin-top: 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink40);
+    line-height: 1.6;
+    border-left: 2px solid var(--ink15);
+    padding-left: 12px;
+  }
+  .consequence b{ color: var(--ink60); }
+
+  /* ---------- aside: the check-in ---------- */
+  .aside{
+    margin-top: 48px;
+    padding: 22px 24px;
+    background: var(--ink08);
+    border-radius: 10px;
+  }
+  .aside .kicker{
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink40);
+    margin-bottom: 8px;
+  }
+  .aside h3{
+    font-family: 'Schibsted Grotesk', sans-serif;
+    font-size: 18px;
+    margin: 0 0 8px;
+  }
+  .aside p{ color: var(--ink60); font-size: 14.5px; margin: 0 0 14px; max-width: 62ch; }
+  .aside ul{ margin: 0; padding-left: 18px; }
+  .aside li{
+    font-family: 'Newsreader', Georgia, serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 8px;
+    line-height: 1.5;
+  }
+  .aside li:last-child{ margin-bottom: 0; }
+
+  footer{
+    margin-top: 64px;
+    padding-top: 20px;
+    border-top: 1px solid var(--ink15);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink40);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="eyebrow">thread · src/lab + src/flow</div>
+  <h1>What Thread asks you</h1>
+  <p class="dek">Thread only ever <b>watches</b> one thing directly: whether you opened your Bible and how far you got. Everything else about how the habit is going — whether it stuck, whether you remember what you read — it has to <b>ask</b>. Three prompts do that.</p>
+
+  <div class="rule">
+    <p>Every answer below is self‑graded and consequence‑free. Grading a passage “lost” cannot touch your streak, cannot un‑seal a day, cannot shrink tomorrow's reading. The one exception is quiet and aggregate: probe grades feed a running score of which daily dose size actually gets remembered — never anything about the day you graded.</p>
+    <span class="src">src/lab/ladder.ts §13.6 · src/lab/analysis/dose.ts §14 E10</span>
+  </div>
+
+  <!-- TEST 1 — PROBE -->
+  <div class="test">
+    <div class="test-eyebrow"><span class="num">1</span> Next‑day recall probe <span class="cadence">· daily, fires ~60% of days, randomized</span></div>
+    <h2>What do you remember?</h2>
+    <p class="desc">The morning after a sealed day, Thread sometimes — not always, and never predictably — asks you to recall what you read <b>before</b> it shows you the text again. It's a free‑recall test on yesterday's chapter, separate from any verse you're deliberately memorizing.</p>
+
+    <div class="mock">
+      <div class="label">arrival zone</div>
+      <p class="prompt">"Yesterday you read Philippians 3. What do you remember?"</p>
+      <div class="chiprow">
+        <span class="chip ghost">Reveal</span>
+      </div>
+    </div>
+    <div class="mock">
+      <div class="label">after reveal</div>
+      <div class="chiprow">
+        <span class="chip">Held it</span>
+        <span class="chip">Partly</span>
+        <span class="chip">Lost it</span>
+        <span class="chip skip">Skip</span>
+      </div>
+    </div>
+
+    <table class="keytable">
+      <thead><tr><th>Your grade</th><th>Score</th><th>What it means</th></tr></thead>
+      <tbody>
+        <tr><td class="grade">Held it</td><td class="num">1.0</td><td>Recalled it, essentially whole.</td></tr>
+        <tr><td class="grade">Partly</td><td class="num">0.5</td><td>Got some of it back, not all.</td></tr>
+        <tr><td class="grade">Lost it</td><td class="num">0.0</td><td>Nothing came back before the reveal.</td></tr>
+        <tr><td class="grade">Skip</td><td class="num">0.5</td><td>Declined to answer — scored neutral, not penalized.</td></tr>
+      </tbody>
+    </table>
+    <div class="consequence">Decided once per day and locked in — reopening the app never re‑rolls whether today's probe fires. Your grade is logged and, in aggregate across many days, becomes <b>recall_score</b> — one half of the composite Thread uses to work out which daily dose size (10/20/30/45 verses) people actually retain, not just complete.</div>
+  </div>
+
+  <!-- TEST 2 — LEITNER RECALL -->
+  <div class="test">
+    <div class="test-eyebrow"><span class="num">2</span> Memory‑verse recall <span class="cadence">· daily, up to 2 passages when due</span></div>
+    <h2>The passages you chose to keep</h2>
+    <p class="desc">Anything you've marked as a memory candidate and had promoted follows a Leitner box schedule — five boxes, at growing intervals — and comes back for recall exactly when it's due, never more often just because you're anxious about it.</p>
+
+    <div class="mock">
+      <div class="label">recall zone · reference only, no text shown</div>
+      <p class="prompt" style="font-style:normal; font-family:'JetBrains Mono',monospace; font-size:14px; letter-spacing:0.02em; color:var(--ink60);">PHILIPPIANS 4:6–7</p>
+      <div class="chiprow"><span class="chip ghost">Reveal</span></div>
+    </div>
+    <div class="mock">
+      <div class="label">after reveal — you grade what you got</div>
+      <div class="chiprow">
+        <span class="chip">Held it</span>
+        <span class="chip">Partly</span>
+        <span class="chip">Lost it</span>
+        <span class="chip skip">Skip</span>
+      </div>
+    </div>
+
+    <table class="keytable">
+      <thead><tr><th>Your grade</th><th>Box moves</th><th>Next due</th></tr></thead>
+      <tbody>
+        <tr><td class="grade">Held it</td><td class="num">+1 (capped at 5)</td><td>Further out — box intervals run 1 → 3 → 7 → 21 → 60 days.</td></tr>
+        <tr><td class="grade">Partly</td><td class="num">stays</td><td>Same interval, comes back at the same spacing.</td></tr>
+        <tr><td class="grade">Lost it</td><td class="num">→ box 1</td><td>Back to a 1‑day interval — deliberately not Anki's easier reset.</td></tr>
+      </tbody>
+    </table>
+    <div class="consequence">Skippable in one tap, and skipping doesn't move anything. Grading here has no import path into seal, streak, weave, or dose at all — not aggregate, not individual. It only ever moves that one passage between boxes.</div>
+  </div>
+
+  <!-- TEST 3 — SRBAI -->
+  <div class="test">
+    <div class="test-eyebrow"><span class="num">3</span> SRBAI check‑in <span class="cadence">· monthly, once per calendar month</span></div>
+    <h2>Has this become automatic?</h2>
+    <p class="desc">The Self‑Report Behavioural Automaticity Index, reworded to measure <b>initiation</b> rather than the reading itself — whether opening the app has become automatic, independent of whether that particular day got read. It's the one place Thread asks instead of infers, because this one thing genuinely can't be read off the log.</p>
+
+    <div class="mock">
+      <div class="label">four statements · strongly disagree (1) to strongly agree (5)</div>
+      <div class="likert-row"><span class="q">Reading my Bible is something I do automatically.</span><span class="scale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></span></div>
+      <div class="likert-row"><span class="q">Reading my Bible is something I start before I've decided to.</span><span class="scale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></span></div>
+      <div class="likert-row"><span class="q">Reading my Bible is something that would feel strange to skip.</span><span class="scale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></span></div>
+      <div class="likert-row"><span class="q">Reading my Bible is something I do without having to remember to.</span><span class="scale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></span></div>
+      <div class="reflect">
+        <div class="cap">one line, free text — the "formational line"</div>
+        <div class="line"></div>
+      </div>
+    </div>
+
+    <div class="mock">
+      <div class="label">shown alongside the survey — "the monthly eyeball"</div>
+      <p class="prompt" style="font-size:15px;">A plain list of every date Thread believes you read this month. Deliberately not a chart — a chart can be subtly wrong and still look plausible; a list of dates is checkable against your own memory in ten seconds.</p>
+    </div>
+
+    <div class="consequence">Never re‑asked twice in the same calendar month, whatever you answer. The four scores average into one point on a monthly trend line — the only survey‑derived curve anywhere in the app.</div>
+  </div>
+
+  <div class="aside">
+    <div class="kicker">related, but not a test</div>
+    <h3>The lapse check‑in</h3>
+    <p>After 4–7 days of silence, Thread has usually formed a guess about <em>why</em> — a changed cue, fatigue with the current book, a dose that's gotten too heavy, real life, or nothing sharp at all — and asks exactly one question matched to that guess. There's no score and no wrong answer; it's a nudge, not an instrument. It never fires inside the first 7 days of an unexplained total silence, and it never contacts your accountability partner without your tap.</p>
+    <ul>
+      <li>"You used to read at the same point in your day; lately it's drifted, or stopped. Has something changed?"</li>
+      <li>"This book's been a slog lately, even though reading was going fine before it. Permission to stop here — that's allowed."</li>
+      <li>"You've been opening the app without finishing the reading. Today's ask just got smaller — no need to catch up."</li>
+      <li>"It's been quiet. No pressure — just checking in, once."</li>
+    </ul>
+  </div>
+
+  <footer>
+    <span>src/lab/probe.ts · src/lab/srbai.ts · src/memory (Leitner) · src/lab/ladder.ts</span>
+    <span>rendered by src/flow/ProbeZone, RecallZone, SrbaiZone, LapseZone</span>
+  </footer>
+
+</div>
+</body>
+</html>
