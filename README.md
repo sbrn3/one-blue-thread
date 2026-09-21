@@ -20,8 +20,41 @@ weave. Nothing to install.
 download `one-blue-thread.apk`, allow "install unknown apps," done. Android, free,
 no account, nothing leaves your phone.
 
-The app itself is still early — the demo shows where it's headed. Building
-it yourself, or curious how it works? Read on.
+## The first time you open it
+
+Onboarding asks a few short questions, in order, and then gets out of the way:
+
+1. **Your cue** — one sentence: "After ___, I read in ___." Pick something
+   that already happens every day (a coffee, a commute, a bedtime) so the
+   reading rides along with it rather than needing its own willpower.
+2. **A reminder time** — optional, for if you haven't read by a given hour.
+3. **A translation** — the public-domain WEB ships offline out of the box;
+   NIV or ESV need a free API key, entered on-device, and are cached per
+   chapter after that.
+4. **Where to start** — pick a book, or take the suggested one.
+5. **Backups** — a weekly on-device recovery snapshot, and an optional
+   "someone to read alongside" the app never contacts on its own.
+
+After that, every day looks the same: it opens to your cue, gives you a
+passage to read, occasionally asks you to recall an earlier verse from
+memory (grade it "Held it," "Partly," or "Lost it" — nothing is penalised),
+and you press and hold to seal the day once you're done. Miss a day and it
+just... shows a gap. No streak to protect, no makeup lesson.
+
+## A few things worth knowing
+
+- **Nothing leaves your phone.** No account, no analytics, no ads. The one
+  optional exception is a translation API key, if you choose NIV or ESV.
+- **It works fully offline.** The bundled WEB translation never needs a
+  network; NIV/ESV cache each chapter after the first fetch.
+- **Undo is real.** A missed recall touches nothing. A held-down reset ("the
+  unravel" — see `docs/CONTEXT.md`) erases everything and starts over, and
+  it's the only irreversible action in the app.
+- **It's not trying to be sticky.** See [`docs/BRAND.md`](docs/BRAND.md) for
+  the editorial rule behind that, and the `lab` in the demo/app for the one
+  quiet, fully-auditable, one-tap-freezable exception.
+
+Curious how it's built, or want to run it yourself? Read on.
 
 ---
 
@@ -75,10 +108,11 @@ npm run typecheck  # tsc --noEmit, strict
 
 Every push to `main` builds `one-blue-thread.apk` in GitHub Actions (Actions → latest
 run → Artifacts). Tagging a version publishes it under **Releases** — the
-link the app's own README points people to:
+link this README's "Get the app" points people to. Latest is `v0.6.1`; bump
+the patch/minor number for the next one:
 
 ```sh
-git tag v0.1.0 && git push --tags
+git tag v0.6.2 && git push --tags
 ```
 
 The signing key is stable across builds, so updates install over the old
