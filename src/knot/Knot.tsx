@@ -99,6 +99,14 @@ export function Knot({ services }: KnotProps) {
   // Safekeeping alone (an invariant failure, a recent local error).
   const [promoted, setPromoted] = useState<'safekeeping' | 'support' | null>(null);
 
+  // The unravel hold (ResetSection, inside More) needs the sheet's own
+  // ScrollView to get out of the way for its duration, exactly like the
+  // seal's hold needs Flow's — see SealZone.tsx's onScrollLock. Without
+  // this the ScrollView's native responder can steal the touch mid-hold on
+  // a real device, snapping the animation back to 0 almost as soon as it
+  // starts.
+  const [scrollEnabled, setScrollEnabled] = useState(true);
+
   const openerRef = useRef<View>(null);
   const closeRef = useRef<View>(null);
 
@@ -235,7 +243,11 @@ export function Knot({ services }: KnotProps) {
             >
               <Text style={styles.close}>Close</Text>
             </Pressable>
-            <ScrollView contentContainerStyle={styles.sheetContent} keyboardShouldPersistTaps="handled">
+            <ScrollView
+              contentContainerStyle={styles.sheetContent}
+              keyboardShouldPersistTaps="handled"
+              scrollEnabled={scrollEnabled}
+            >
               {paused && (
                 <View style={styles.pausedBanner}>
                   <Text style={styles.pausedText}>Notifications are paused.</Text>
@@ -307,6 +319,7 @@ export function Knot({ services }: KnotProps) {
                   supportSummary={supportSummary}
                   viewingEntry={viewingEntry}
                   promoted={promoted}
+                  onScrollLock={(locked) => setScrollEnabled(!locked)}
                 />
               </DisclosureSection>
             </ScrollView>

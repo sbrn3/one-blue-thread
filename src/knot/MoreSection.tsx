@@ -36,6 +36,8 @@ interface MoreSectionProps {
    * out of its group below and never renders twice.
    */
   promoted: 'safekeeping' | 'support' | null;
+  /** Passed straight through to ResetSection — see SealZone's onScrollLock. */
+  onScrollLock: (locked: boolean) => void;
 }
 
 /**
@@ -59,6 +61,7 @@ export function MoreSection({
   supportSummary,
   viewingEntry,
   promoted,
+  onScrollLock,
 }: MoreSectionProps) {
   const { backup, partner, study } = services;
 
@@ -89,7 +92,7 @@ export function MoreSection({
         onToggle={() => onToggle('reset')}
         nested
       >
-        <ResetSection db={db} log={log} />
+        <ResetSection db={db} log={log} onScrollLock={onScrollLock} />
       </DisclosureSection>
 
       <Text style={styles.groupLabel}>Practice</Text>

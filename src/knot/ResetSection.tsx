@@ -30,6 +30,15 @@ interface ResetSectionProps {
   log: Log;
   /** Injected in tests; the app uses performReset + the native env. */
   onReset?: (onWiped: () => void) => Promise<void>;
+  /**
+   * The hold sits inside the knot's own ScrollView. Without composing the
+   * gesture as Gesture.Simultaneous(hold, Gesture.Native()) and disabling
+   * scroll for the hold's duration — exactly like SealZone.tsx's
+   * onScrollLock — the ScrollView's own responder can steal the touch
+   * mid-hold on a real device, cancelling it (and unwinding the animation)
+   * almost before it starts.
+   */
+  onScrollLock: (locked: boolean) => void;
 }
 
 /**
@@ -46,7 +55,7 @@ interface ResetSectionProps {
  * falls back to a two-tap confirm rather than a single tap: the accessible path
  * keeps the same deliberation as the default one.
  */
-export function ResetSection({ db, log, onReset }: ResetSectionProps) {
+export function ResetSection({ db, log, onReset, onScrollLock }: ResetSectionProps) {
   const reducedMotion = useReducedMotion();
   const [screenReaderEnabled, setScreenReaderEnabled] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -88,9 +97,11 @@ export function ResetSection({ db, log, onReset }: ResetSectionProps) {
     .minDuration(tokens.reset.holdMs)
     .maxDistance(tokens.seal.maxDriftPx)
     .onBegin(() => {
+      runOnJS(onScrollLock)(true);
       progress.value = withTiming(1, { duration: tokens.reset.holdMs, easing: Easing.linear });
     })
     .onFinalize((_event, success) => {
+      runOnJS(onScrollLock)(false);
       cancelAnimation(progress);
       if (success) {
         progress.value = 1;
@@ -99,6 +110,11 @@ export function ResetSection({ db, log, onReset }: ResetSectionProps) {
         progress.value = withTiming(0, { duration: RESTORE_MS }); // let go → it re-weaves
       }
     });
+
+  // Composed with Gesture.Native() so the hold and the enclosing ScrollView
+  // negotiate touch ownership through gesture-handler rather than the
+  // ScrollView's own responder silently winning — see SealZone.tsx.
+  const composed = Gesture.Simultaneous(hold, Gesture.Native());
 
   if (stranded) {
     return (
@@ -138,7 +154,7 @@ export function ResetSection({ db, log, onReset }: ResetSectionProps) {
             </View>
           ) : (
             <>
-              <GestureDetector gesture={hold}>
+              <GestureDetector gesture={composed}>
                 <View style={styles.unravelWrap} accessible={false}>
                   {bolt && (
                     <Unravel
