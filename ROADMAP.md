@@ -27,6 +27,16 @@ Status key: 📋 planned · 🔨 in progress · ✅ shipped · ❄️ parked
   `v0.4.0` to `v0.5.1` was unusable on a device. Also bundles the three
   typefaces the tokens have always named, and guards two latent hangs.
 
+- ✅ **Start-over control as a circular seal-style button** — reader feedback
+  (issue #31, reclassified 2026-09-22 then implemented same day). The
+  hold-to-erase control read as a loom illustration, not a control; replaced
+  the wide cloth-strip `Unravel` widget with `UnravelRing`, matching the
+  seal's own circular tap-mode fallback (96×96, `SealZone.tsx`'s
+  `ringFallback`). Progressive hold feedback was already there — this changed
+  the shape, not the mechanic: the ring empties as you hold (deliberate
+  inverse of the seal's ring, which fills), coloured with the current book's
+  dye. `src/ui/Unravel.tsx` removed, no longer referenced.
+
 ## Under consideration
 
 _(nothing yet — add ideas here before they graduate to Planned)_
