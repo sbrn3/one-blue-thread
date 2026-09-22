@@ -29,7 +29,11 @@ Status key: 📋 planned · 🔨 in progress · ✅ shipped · ❄️ parked
 
 ## Under consideration
 
-_(nothing yet — add ideas here before they graduate to Planned)_
+- 📋 **Knot opener as a settings icon** *(#30)* — reader feedback: the
+  top-right "Knot" text pill "not intuitive... should just be a settings
+  icon". The clipped-label half of #30 is fixed (safe-area insets); this is
+  the remaining IA question and needs its own small design pass, not a
+  same-PR icon swap.
 
 ## Parked
 

@@ -206,7 +206,7 @@ export function Knot({ services }: KnotProps) {
     <>
       <Pressable
         ref={openerRef}
-        style={styles.button}
+        style={[styles.button, { top: 56 + insets.top, right: 20 + insets.right }]}
         onPress={handleOpen}
         accessibilityRole="button"
         accessibilityLabel={
@@ -348,6 +348,10 @@ export function Knot({ services }: KnotProps) {
 const styles = StyleSheet.create({
   button: {
     position: 'absolute',
+    // top/right are overridden inline with insets.top/insets.right added in
+    // — a display cutout or curved-edge screen on the right can otherwise
+    // eat into this raw 20px and clip the label's last letter (issue #30:
+    // "Knot" reported rendering as "kno").
     top: 56,
     right: 20,
     minHeight: 44,
