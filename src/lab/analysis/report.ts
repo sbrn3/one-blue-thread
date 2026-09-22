@@ -14,6 +14,8 @@ const ARM_LABELS: Record<string, { A: string; B: string; name: string }> = {
   E3: { A: 'Visible', B: 'Hidden', name: 'STREAK VISIBILITY' },
   E4: { A: 'Full chapter', B: 'One verse', name: 'COMPLETION FLOOR' },
   E7: { A: 'Daily', B: '5 days/week', name: 'READING FREQUENCY' },
+  E11: { A: 'Visible', B: 'Hidden', name: 'DAY-COUNT VISIBILITY' },
+  E12: { A: 'Visible', B: 'Hidden', name: 'SITTING-COUNT VISIBILITY' },
 };
 
 const RECOMMENDATION_TEMPLATES: Record<string, { A: string; B: string }> = {
@@ -32,6 +34,14 @@ const RECOMMENDATION_TEMPLATES: Record<string, { A: string; B: string }> = {
   E7: {
     A: 'Keep a daily target — every day is expected.',
     B: 'Move to 5 days a week, any 5 — two rest days no longer count as misses.',
+  },
+  E11: {
+    A: 'Keep the day count visible.',
+    B: 'Keep the day count hidden — it wasn’t earning its place.',
+  },
+  E12: {
+    A: 'Keep the sitting count visible.',
+    B: 'Keep the sitting count hidden — it wasn’t earning its place.',
   },
 };
 
@@ -52,6 +62,8 @@ const PROFILE_EFFECTS: Record<string, (winner: 'A' | 'B') => { key: string; valu
   E3: (w) => ({ key: 'streakVisible', value: w === 'A' ? '1' : '0' }),
   E4: (w) => ({ key: 'floor', value: w === 'B' ? 'one_verse' : 'full_chapter' }),
   E7: (w) => ({ key: 'frequencyTarget', value: w === 'B' ? '5_per_week' : 'daily' }),
+  E11: (w) => ({ key: 'dayCountVisible', value: w === 'A' ? '1' : '0' }),
+  E12: (w) => ({ key: 'sittingCountVisible', value: w === 'A' ? '1' : '0' }),
 };
 
 /**

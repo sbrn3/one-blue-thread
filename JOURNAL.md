@@ -37,6 +37,37 @@ environment; the shape change is inferred from source and the same-mechanic
 
 ROADMAP.md's #31 entry moved from "Under consideration" to "Shipped."
 
+## Decision 2026-09-22 — two new reversal experiments for ArrivalZone's progress lines
+
+**Decision:** Add two new experiments to the reversal queue (after `E3`,
+same "Visible"/"Hidden" arm shape as `E3` STREAK VISIBILITY): a day-count
+experiment on `ArrivalZone`'s "Day N in {Book}" line, and a sitting-count
+experiment on its "sitting X of Y" line. Queue becomes `E7, E4, E1, E3,
+<day-count>, <sitting-count>` — day-count first since it's the line
+actually suspected of causing harm (anxiety/comparison), sitting-count
+after since it was flagged as probably-functional wayfinding but the user
+wanted it tested rather than assumed. Hidden arm = line fully removed
+(matches `E3`'s own convention), not de-emphasized.
+
+**Why:** `CONTEXT.md` already declares the fell line the app's only
+progress indicator, in tension with these two raw numeric counters; rather
+than resolve that by judgment, the existing on-device reversal-experiment
+engine (zero telemetry, single-user, `src/lab`) already has the exact
+mechanism needed (E3 is structurally the same visible/hidden toggle) so
+it's used instead of guessing or building new infrastructure. E7/E4 stay
+first because their outcomes redefine what "sealed" means and would
+re-base anything queued after them; these two are pure display questions
+like E1/E3, so they trail.
+
+**Consequences:** Each reversal experiment runs 4 phases × 21 days ≈ 84
+days; appending two more extends the full queue by roughly 168 days on top
+of the existing ~336-day backlog (E7→E4→E1→E3) before both new questions
+get an answer — this is a single-user, one-reversal-at-a-time trial, so
+there's no way to parallelize or speed this up. Only informs this one
+profile's read on the question, not a general answer for all readers.
+
+**Branch:** fix/lapse-zone-cue-save
+
 ## 2026-09-07 — the knot declutter
 
 Two faults behind one complaint ("the knot is a mess, buttons don't work,

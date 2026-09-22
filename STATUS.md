@@ -132,6 +132,15 @@ all three bundled typefaces, and sat idle instead of pinning a core.
   half is tracked separately in `ROADMAP.md`.
   See `docs/plans/knot-declutter/plan.html`.
 
+- **arrival-zone-progress-display** — 🔨 implementation complete; PR open.
+  Adds `E11`/`E12` reversal experiments (day-count and sitting-count line
+  visibility in `ArrivalZone`) to the existing lab queue, appended after
+  `E3`, using the same mechanism. C2: 8 files, 2 commits landed (486
+  passed/1 todo, typecheck clean). PR #39 on
+  `feat/arrival-zone-progress-visibility`. Both experiments are inert until
+  an active phase — ~11 months out behind the existing queue.
+  See `docs/plans/arrival-zone-progress-display/plan.html`.
+
 ## Next actions
 
 - [x] ~~Build and install a fresh APK; confirm cold launch on the Android

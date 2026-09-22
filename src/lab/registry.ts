@@ -4,7 +4,10 @@
 // 5-days/week arm wins, the weave, the primary metric, and the
 // notification model all need re-basing — better known on day ~21
 // than day ~300.
-export const REVERSAL_QUEUE = ['E7', 'E4', 'E1', 'E3'] as const;
+// E11/E12 trail the queue deliberately: they only gate what ArrivalZone
+// shows, so unlike E7/E4 they don't re-base the primary metric or anything
+// queued after them — running them last costs nothing extra.
+export const REVERSAL_QUEUE = ['E7', 'E4', 'E1', 'E3', 'E11', 'E12'] as const;
 export type ReversalExpId = (typeof REVERSAL_QUEUE)[number];
 
 // MRTs run in parallel with the reversal queue and with each other —

@@ -196,7 +196,7 @@ describe('advancePhase (§13.4 reconcile step 3, §13 "one reversal at a time")'
     expect(e1).toEqual({ phase: 0, status: 'active', start_date: '2026-07-15' });
   });
 
-  it('marks the last queued experiment (E3) fully done with nothing queued after it', () => {
+  it('marks E3 done and starts E11, the next experiment in REVERSAL_QUEUE', () => {
     const ctx = setup();
     meta.set(ctx.db, 'trial_seed', 'fixed-seed');
     ctx.db.run(
@@ -206,8 +206,27 @@ describe('advancePhase (§13.4 reconcile step 3, §13 "one reversal at a time")'
 
     advancePhase(ctx, '2026-07-14');
 
+    expect(ctx.db.get("SELECT status FROM exp_phases WHERE exp_id = 'E3' AND phase = 3")).toEqual({
+      status: 'done',
+    });
+    const e11 = ctx.db.get<{ phase: number; status: string; start_date: string }>(
+      "SELECT phase, status, start_date FROM exp_phases WHERE exp_id = 'E11'",
+    );
+    expect(e11).toEqual({ phase: 0, status: 'active', start_date: '2026-07-15' });
+  });
+
+  it('marks the last queued experiment (E12) fully done with nothing queued after it', () => {
+    const ctx = setup();
+    meta.set(ctx.db, 'trial_seed', 'fixed-seed');
+    ctx.db.run(
+      `INSERT INTO exp_phases (exp_id, phase, arm, start_date, end_date, status)
+       VALUES ('E12', 3, 'B', '2026-06-24', '2026-07-14', 'active')`,
+    );
+
+    advancePhase(ctx, '2026-07-14');
+
     const rows = ctx.db.all("SELECT * FROM exp_phases");
-    expect(rows).toHaveLength(1); // nothing new seeded — E3 is last in REVERSAL_QUEUE
+    expect(rows).toHaveLength(1); // nothing new seeded — E12 is last in REVERSAL_QUEUE
     expect((rows[0] as { status: string }).status).toBe('done');
   });
 });

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — ArrivalZone progress-line visibility experiments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:            #FBFAF7;
+  --surface:       #ffffff;
+  --card-bg:       #ffffff;
+  --border:        #E6E5E1;
+  --border-strong: #d8d7d2;
+  --text:          #16161A;
+  --text-2:        #5E5D66;
+  --text-muted:    #9C9BA3;
+  --primary:       #1F3FFF;
+  --primary-dark:  #1732cc;
+  --primary-tint:  #EEF0FF;
+  --success:       #155724;
+  --success-bg:    #d4edda;
+  --warning:       #856404;
+  --warning-bg:    #fff3cd;
+  --danger:        #c0392b;
+  --danger-bg:     #fde8e8;
+  --font-head:     'Newsreader', Georgia, serif;
+  --font-body:     'Schibsted Grotesk', system-ui, -apple-system, sans-serif;
+  --radius:        12px;
+  --shadow:        0 4px 6px rgba(0,0,0,0.08);
+  --shadow-lg:     0 8px 32px rgba(0,0,0,0.16);
+}
+* { box-sizing: border-box; }
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(600px 400px at 0% -5%, rgba(26,58,92,0.06), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2.2rem 1.6rem 4rem;
+}
+h1 { font-family: var(--font-head); font-size: 2rem; font-weight: 400; margin: 0 0 .3rem; letter-spacing: .01em; }
+h2 { font-family: var(--font-head); font-size: 1.25rem; font-weight: 400; color: var(--primary); margin: 1.8rem 0 .8rem; }
+h3 { font-size: .95rem; font-weight: 600; color: var(--text); margin: 1.3rem 0 .4rem; }
+a { color: var(--primary); }
+code { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: .85em; color: var(--primary-dark); background: var(--primary-tint); padding: .1em .4em; border-radius: 5px; }
+.meta { font-size: .82rem; color: var(--text-muted); margin-bottom: 1.6rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.badge { display: inline-block; padding: .25em .7em; border-radius: 999px; font-size: .74rem; font-weight: 600; border: 1px solid var(--border); background: var(--surface); }
+.badge.navy   { color: var(--primary); border-color: var(--primary); background: var(--primary-tint); }
+.badge.green  { color: var(--success); background: var(--success-bg); border-color: #c3e6cb; }
+.badge.yellow { color: var(--warning); background: var(--warning-bg); border-color: #ffeeba; }
+.badge.red    { color: var(--danger);  background: var(--danger-bg);  border-color: #f5c6cb; }
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: .8rem; margin-bottom: 2rem; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .9rem 1.1rem; box-shadow: var(--shadow); }
+.stat-value { font-family: var(--font-head); font-size: 1.7rem; color: var(--primary); font-variant-numeric: tabular-nums; }
+.stat-label { font-size: .72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+.tabs { display: flex; gap: .4rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 1.6rem; }
+.tab { padding: .5rem 1rem; border: none; background: none; cursor: pointer; font-family: var(--font-body); font-size: .87rem; color: var(--text-2); border-radius: 8px 8px 0 0; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: var(--text); background: var(--primary-tint); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; background: var(--primary-tint); }
+.panel { display: none; animation: fade .25s ease; }
+.panel.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.checklist { list-style: none; padding: 0; margin: .5rem 0; }
+.checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; font-size: .9rem; border-bottom: 1px solid var(--border); }
+.checklist li:last-child { border-bottom: none; }
+.checklist input { margin-top: .3rem; flex-shrink: 0; accent-color: var(--primary); width: 16px; height: 16px; }
+.checklist input:checked + span { color: var(--text-muted); text-decoration: line-through; }
+.note { background: var(--warning-bg); border: 1px solid #ffeeba; border-radius: var(--radius); padding: .7rem 1rem; font-size: .86rem; margin: .8rem 0; color: var(--text); }
+.mockup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: .9rem; margin: 1rem 0; }
+.mockup-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); }
+.mockup-card.chosen { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary), var(--shadow-lg); }
+.mockup-card h3 { margin-top: 0; }
+.requirements { font-size: .92rem; line-height: 2; padding-left: 1.3rem; }
+.evidence-table { width: 100%; border-collapse: collapse; margin: .8rem 0 1.2rem; font-size: .84rem; }
+.evidence-table th, .evidence-table td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: left; vertical-align: top; }
+.evidence-table th { background: var(--primary-tint); color: var(--primary); }
+</style>
+</head>
+<body>
+
+<h1>ArrivalZone progress-line visibility experiments</h1>
+<div class="meta">
+  2026-09-22
+  <span class="badge navy">C2 Structured</span>
+  <span class="badge navy">8 files</span>
+  <span class="badge navy">2 commits</span>
+  <span class="badge yellow">~1 session</span>
+  <span class="badge navy">Aesthetics: reused, no new mockup</span>
+</div>
+
+<div class="stat-row">
+  <div class="stat"><div class="stat-value">8</div><div class="stat-label">Files</div></div>
+  <div class="stat"><div class="stat-value">2</div><div class="stat-label">Commits</div></div>
+  <div class="stat"><div class="stat-value">3</div><div class="stat-label">Test files</div></div>
+  <div class="stat"><div class="stat-value">~1 session</div><div class="stat-label">Estimate</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="intent" onclick="show('intent')">Intent</button>
+  <button class="tab" data-tab="requirements" onclick="show('requirements')">Requirements</button>
+  <button class="tab" data-tab="aesthetics" onclick="show('aesthetics')">Aesthetics</button>
+  <button class="tab" data-tab="execution" onclick="show('execution')">Execution</button>
+  <button class="tab" data-tab="verify" onclick="show('verify')">Verification</button>
+</div>
+
+<div id="intent" class="panel active">
+  <h2>Problem &amp; Intent</h2>
+  <h3>Status, owner &amp; next action</h3>
+  <p>Not yet approved. Owner: the user, who noticed <code>ArrivalZone</code> showing
+  "James 2 · sitting 1 of 3" and "Day 15 in James" and asked whether this should be
+  tested rather than assumed. Resolved through <code>/grill</code>
+  (<a href="grill-summary.md">grill-summary.md</a>) and this plan. Next action:
+  approve this plan, or send back with corrections, before any code changes.</p>
+
+  <h3>Outcome and constraints</h3>
+  <p>Answer, empirically and per-reader, whether the day-count line ("Day N in
+  {Book}") and the sitting-count suffix ("· sitting X of Y") in
+  <code>ArrivalZone</code> actually help the reader, using the app's existing
+  on-device, zero-telemetry reversal-experiment engine (<code>src/lab</code>) —
+  the same mechanism already used for <code>E3</code> STREAK VISIBILITY —
+  rather than resolving it by design judgment or building new experiment
+  infrastructure. Constraint: single-user, offline, zero telemetry (AGENTS.md
+  §Privacy, §20 "support with zero telemetry") — nothing about this reads or
+  sends data off-device; the experiment's outcome (days sealed per phase) is
+  computed and stored exactly like the four existing reversal experiments.</p>
+
+  <h3>Scope and non-goals</h3>
+  <p><strong>In scope:</strong> two new reversal experiments, <code>E11</code>
+  (day-count visibility) and <code>E12</code> (sitting-count visibility),
+  appended to <code>REVERSAL_QUEUE</code> after <code>E3</code>; the
+  conditional-render wiring in <code>ArrivalZone.tsx</code>/<code>Flow.tsx</code>;
+  live per-phase visibility (not just the post-verdict applied setting).</p>
+  <p><strong>Non-goals:</strong> fixing whatever gap <code>E1</code>/<code>E3</code>/
+  <code>E4</code>-floor may have around live per-phase enforcement (documented as
+  a finding below, deliberately not touched here); reordering or otherwise
+  changing <code>E7</code>/<code>E4</code>/<code>E1</code>/<code>E3</code>'s
+  existing queue position; a reader-facing settings toggle (considered and
+  rejected in <code>/grill</code> — see grill-summary.md); de-emphasizing
+  instead of fully hiding (rejected in <code>/grill</code>, round 3).</p>
+
+  <h3>Dependencies and unresolved gates</h3>
+  <p>None blocking. Both new experiments sit at the tail of the existing
+  <code>E7 → E4 → E1 → E3</code> queue, so no interaction with in-flight
+  experiments. <code>thread/</code> is currently clean on <code>main</code>
+  (<code>8e44b58</code>) — confirmed via <code>git status --short</code> before
+  this plan was written; no unrelated uncommitted work to preserve.</p>
+
+  <h3>Evidence and decisions</h3>
+  <p>Grill session: <a href="grill-summary.md">grill-summary.md</a> (mechanism,
+  scope, sitting-count treatment, queue placement, hidden-arm definition — all
+  five rounds). Decision recorded in <code>JOURNAL.md</code>'s 2026-09-22
+  "two new reversal experiments for ArrivalZone's progress lines" entry.
+  Source evidence: <code>src/flow/ArrivalZone.tsx:33-47</code> (the two lines),
+  <code>src/lab/registry.ts</code> (queue + comment convention),
+  <code>src/lab/analysis/report.ts:12-55</code> (the three lookup tables every
+  reversal experiment must appear in), <code>src/notify/notifier.ts:25-32</code>
+  (<code>e7ArmBActive</code> — the live-phase-check pattern this plan reuses),
+  <code>src/flow/Flow.tsx:493-499</code> (the "applied settings, read fresh
+  each render" pattern <code>E1</code>/<code>E4</code>-floor/<code>E3</code>
+  currently use — see the design finding in
+  <a href="exec.md">exec.md</a>), <code>docs/CONTEXT.md</code>'s "Fell line"
+  entry (the tension that prompted this in the first place). No design tokens
+  involved — this only conditionally omits existing <code>Text</code> elements
+  using <code>ArrivalZone.tsx</code>'s current <code>styles</code>, unchanged.</p>
+
+  <h3>Documentation effects</h3>
+  <p><code>docs/plans/README.md</code> and <code>STATUS.md</code>'s Active
+  Plans table get an entry once this plan is approved (done as part of this
+  Phase 9, per policy — see below). No <code>CONTEXT.md</code> change (see
+  grill-summary.md's Terms section for why). <code>JOURNAL.md</code> already
+  carries the decision; no further entry needed until this ships.</p>
+</div>
+
+<div id="requirements" class="panel">
+  <h2>Requirements (confirmed)</h2>
+  <h3>User stories</h3>
+  <ol class="requirements">
+    <li>As the reader, when neither <code>E11</code> nor <code>E12</code> has
+    an active Hidden phase and neither has concluded with a Hidden verdict, I
+    want <code>ArrivalZone</code> to render exactly as it does today, so
+    nothing changes for the ~11 months these two sit behind the existing
+    queue.</li>
+    <li>As the reader, during an active <code>E11</code> phase whose arm is
+    B (Hidden) and today's date falls inside that phase's window, I want the
+    "Day N in {Book}" line fully omitted — not faded, not replaced.</li>
+    <li>As the reader, during an active <code>E12</code> Hidden phase, I want
+    the "· sitting X of Y" suffix fully omitted, with the chapter line
+    falling back to plain "{Book} {chapter}" exactly as it already does today
+    when <code>sittingsTotal === 1</code>.</li>
+    <li>As the reader, the two experiments' schedules are independent —
+    <code>E11</code> being in a Hidden phase must not affect
+    <code>E12</code>'s line, and vice versa.</li>
+    <li>As the reader, once <code>E11</code> or <code>E12</code> concludes and
+    a verdict is Applied (<code>applyRecommendation</code>), that arm governs
+    permanently from then on — the same "applied settings, read fresh each
+    render" contract <code>E1</code>/<code>E4</code>-floor/<code>E3</code>
+    already give the reader.</li>
+    <li>As the lab engine, <code>E11</code> and <code>E12</code> must appear
+    in <code>REVERSAL_QUEUE</code>, <code>ARM_LABELS</code>,
+    <code>RECOMMENDATION_TEMPLATES</code>, and <code>PROFILE_EFFECTS</code> —
+    every place the four existing reversal experiments are registered —
+    so <code>§13</code> "one reversal at a time" and the generic analysis/report
+    code (<code>renderReversalReport</code>, <code>applyRecommendation</code>)
+    treat them identically to <code>E1</code>/<code>E3</code>/<code>E4</code>/<code>E7</code>,
+    with no silent fallback to generic "A"/"B" labels.</li>
+    <li>As the owner reading an eventual Support-exported report, I want
+    <code>E11</code>/<code>E12</code>'s verdicts to render with real names
+    ("DAY-COUNT VISIBILITY" / "SITTING-COUNT VISIBILITY") and real
+    recommendation text, not the generic fallback
+    <code>test/report.test.ts:36-40</code> demonstrates for unknown ids.</li>
+  </ol>
+
+  <h3>Out of Scope</h3>
+  <ul class="requirements">
+    <li>Fixing <code>E1</code>/<code>E3</code>/<code>E4</code>-floor's apparent
+    lack of a live per-phase check (see exec.md's design finding) — a
+    pre-existing condition, not introduced or worsened by this plan, and
+    fixing it risks disturbing three already-running/queued experiments'
+    data. Flagged for a future session, not bundled here.</li>
+    <li>A reader-facing settings toggle for either line — considered in
+    <code>/grill</code> and rejected in favor of the empirical route.</li>
+    <li>Any change to <code>E7</code>/<code>E4</code>/<code>E1</code>/<code>E3</code>'s
+    existing order, phase length, or PRNG mechanism
+    (<code>phases.ts</code>/<code>prng.ts</code> untouched).</li>
+  </ul>
+
+  <h3>Testing Decisions</h3>
+  <ul class="requirements">
+    <li><code>src/lab/arrivalVisibility.ts</code>'s two functions are pure
+    (db in, boolean out) and fully unit-tested in
+    <code>test/arrivalVisibility.test.ts</code>, following
+    <code>test/report.test.ts</code>'s <code>openTestDb()</code> pattern —
+    covers default-visible, applied-hidden, applied-visible-overrides-live-B,
+    live-B-in-range, live-A, and out-of-range-date.</li>
+    <li><code>report.ts</code>'s three lookup-table additions get one test
+    each in <code>test/report.test.ts</code>, mirroring the existing
+    <code>E1</code> "Hold vs Tap" case at line 27.</li>
+    <li><code>test/lab.test.ts</code>'s determinism loop (line 25) gets
+    <code>E11</code>/<code>E12</code> added alongside <code>E1</code>/<code>E3</code>/<code>E4</code>/<code>E8</code>.</li>
+    <li><strong>Deliberately not unit-tested:</strong> the
+    <code>Flow.tsx</code>/<code>ArrivalZone.tsx</code> wiring itself — there is
+    no component renderer for <code>Flow</code> in this suite yet
+    (<code>STATUS.md</code>'s open "Give the suite a real component renderer"
+    item), and neither file has an existing render test to extend. The logic
+    threaded through <code>Flow.tsx</code> is a two-line pass-through of
+    already-unit-tested functions, so the risk this leaves unverified is low;
+    recorded here rather than silently skipped.</li>
+  </ul>
+</div>
+
+<div id="aesthetics" class="panel">
+  <h2>Aesthetics</h2>
+  <h3>Current-surface extraction</h3>
+  <table class="evidence-table">
+    <thead><tr><th>Layer</th><th>Current measured values/patterns</th><th>Source</th><th>Keep/change and why</th></tr></thead>
+    <tbody>
+      <tr><td>Tokens</td><td>N/A</td><td>—</td><td>No new tokens; existing <code>styles.progress</code>/<code>styles.chapter</code> in <code>ArrivalZone.tsx</code> reused unchanged.</td></tr>
+      <tr><td>Typography</td><td>N/A</td><td>—</td><td>Same as above — no new text style, only conditional presence of existing <code>Text</code> elements.</td></tr>
+      <tr><td>Spacing and layout</td><td><code>zone</code> uses <code>gap: 12</code> between children (<code>ArrivalZone.tsx:53-58</code>)</td><td><code>src/flow/ArrivalZone.tsx</code></td><td>Keep. Omitting a line via conditional render (not <code>opacity: 0</code>) lets the flex <code>gap</code> collapse naturally — no manual spacing adjustment needed.</td></tr>
+      <tr><td>Color and semantics</td><td>N/A</td><td>—</td><td>No color change.</td></tr>
+      <tr><td>Components and states</td><td>No existing visible/hidden state on either line today — always rendered</td><td><code>src/flow/ArrivalZone.tsx:33-47</code></td><td>Change: add the two boolean-gated states this plan requires. No new component.</td></tr>
+      <tr><td>Atmosphere and depth</td><td>N/A</td><td>—</td><td>Not applicable to two lines of text.</td></tr>
+      <tr><td>Motion and interaction</td><td>N/A</td><td>—</td><td>No entry/exit animation — the visible/hidden state only changes at a phase boundary (once every 21 days at most, and only once either experiment is actually active), not on a user interaction. A hard show/hide is correct; do not add a transition.</td></tr>
+    </tbody>
+  </table>
+  <h3>Mockups</h3>
+  <div class="mockup-grid">
+    <div class="mockup-card chosen"><h3>Fully removed (reused, no new mockup)</h3><p>Already settled in <code>/grill</code> round 3: the Hidden arm removes the line entirely, matching <code>E3</code>'s own convention. No structural UI decision remains — this is a boolean gate on existing markup, not a new visual pattern, so no <code>mockup.html</code> was produced.</p></div>
+  </div>
+  <p class="note">Chosen direction: <strong>conditional omission of existing text, no restyling.</strong> See <a href="grill-summary.md">grill-summary.md</a> round 3 for the rejected alternative (de-emphasize instead of remove).</p>
+</div>
+
+<div id="execution" class="panel">
+  <h2>Execution</h2>
+  <p><strong>Grade C2:</strong> 8 files (<code>src/lab/registry.ts</code>,
+  <code>src/lab/arrivalVisibility.ts</code>, <code>src/lab/analysis/report.ts</code>,
+  <code>src/flow/ArrivalZone.tsx</code>, <code>src/flow/Flow.tsx</code>,
+  <code>test/arrivalVisibility.test.ts</code>, <code>test/report.test.ts</code>,
+  <code>test/lab.test.ts</code>) across two layers (lab engine config +
+  flow/UI), one already-resolved UI decision. Below the C3 threshold (10+
+  files / 3+ layers) and above C1 (single layer) — proportionate.</p>
+  <p>The authoritative file recipes, slice dependencies, commands, branch
+  decision, and rollback steps are in <a href="exec.md">exec.md</a>. Live
+  status is recorded only in <a href="PROGRESS.md">PROGRESS.md</a>.</p>
+  <p>Two slices, both inline, one session: S01 wires <code>E11</code>/<code>E12</code>
+  into the lab engine (registry, a new small pure-function module mirroring
+  the existing <code>e7ArmBActive</code> live-phase-check pattern, and the
+  report lookup tables) with full unit coverage; S02 threads the resulting
+  two booleans through <code>Flow.tsx</code> into <code>ArrivalZone.tsx</code>
+  as two new props. New branch <code>feat/arrival-zone-progress-visibility</code>
+  off <code>main</code> in the existing <code>thread/</code> worktree (clean,
+  no sibling worktree needed for a change this size).</p>
+</div>
+
+<div id="verify" class="panel">
+  <h2>Verification</h2>
+  <p>Automated (<code>npm test</code> + <code>npm run typecheck</code>) is the
+  real gate here — this is pure logic plus a conditional render, none of it
+  touches the event-log schema, PRNG determinism mechanism, notification
+  scheduling, backup crypto, or partner hand-off, so no mandatory itemised
+  manual checklist applies.</p>
+  <ul class="checklist">
+    <li><input type="checkbox"><span>Owner spot-check (optional): with both
+    experiments still queued behind <code>E3</code>, confirm the reading
+    screen looks unchanged today (both lines present) — the expected state
+    for essentially this entire trial's remaining runway.</span></li>
+    <li><input type="checkbox"><span>Owner spot-check (optional): manually
+    set <code>profile.dayCountVisible</code> / <code>profile.sittingCountVisible</code>
+    to <code>'0'</code> in the dev SQLite db and confirm each line disappears
+    independently, with the layout's <code>gap</code> collapsing cleanly (no
+    stray blank space).</span></li>
+    <li><input type="checkbox"><span>Owner spot-check (optional): confirm a
+    chapter with <code>sittingsTotal &gt; 1</code> still shows the
+    "· sitting X of Y" suffix when <code>sittingCountVisible</code> is
+    <code>true</code>/unset, unchanged from today.</span></li>
+  </ul>
+</div>
+
+<script>
+function show(id){
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+}
+const KEY = 'plan-checks-' + location.pathname;
+document.querySelectorAll('.checklist input[type=checkbox]').forEach((cb, i) => {
+  cb.checked = localStorage.getItem(KEY + i) === '1';
+  cb.addEventListener('change', () => localStorage.setItem(KEY + i, cb.checked ? '1' : '0'));
+});
+</script>
+</body>
+</html>

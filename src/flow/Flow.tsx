@@ -8,6 +8,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import type { Cue } from '../cue';
+import { dayCountVisible, sittingCountVisible } from '../lab/arrivalVisibility';
 import { getPendingReport, markApplied, type PendingReport } from '../lab/analysis/report';
 import { phaseMetrics, type PhaseMetric } from '../lab/analysis/reversal';
 import { getPendingLadderResponse, markLadderResponded, type PendingLapseResponse } from '../lab/lapse';
@@ -503,6 +504,8 @@ export function Flow({ services }: FlowProps) {
   const floor = getProfile(db, 'floor') === 'one_verse' ? 'one_verse' : 'full_chapter';
   const canSeal = floor === 'one_verse' ? hasStartedReading : hasReachedEnd;
   const streak = getProfile(db, 'streakVisible') === '1' && session.sealedToday ? computeStreak(db, today) : null;
+  const showDayCount = dayCountVisible(db, today);
+  const showSittingCount = sittingCountVisible(db, today);
 
   return (
     <View
@@ -536,6 +539,8 @@ export function Flow({ services }: FlowProps) {
           sittingIndex={session.sittingIndex}
           sittingsTotal={session.sittings.length}
           daysInBook={session.daysInBook}
+          showDayCount={showDayCount}
+          showSittingCount={showSittingCount}
         />
         {pendingLapse && (
           <LapseZone

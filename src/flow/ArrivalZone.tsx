@@ -11,6 +11,10 @@ interface ArrivalZoneProps {
   sittingIndex: number;
   sittingsTotal: number;
   daysInBook: number;
+  /** §14 E11, applied — omitted (the default) shows the day count, as before. */
+  showDayCount: boolean;
+  /** §14 E12, applied — omitted (the default) shows the sitting suffix, as before. */
+  showSittingCount: boolean;
 }
 
 function formatDay(date: string): string {
@@ -29,9 +33,11 @@ export function ArrivalZone({
   sittingIndex,
   sittingsTotal,
   daysInBook,
+  showDayCount,
+  showSittingCount,
 }: ArrivalZoneProps) {
   const chapterLabel =
-    sittingsTotal > 1
+    showSittingCount && sittingsTotal > 1
       ? `${bookName(book)} ${chapter} · sitting ${sittingIndex + 1} of ${sittingsTotal}`
       : `${bookName(book)} ${chapter}`;
 
@@ -42,9 +48,11 @@ export function ArrivalZone({
         {cue ? `After ${cue.anchor}, in ${cue.place}.` : 'No cue set yet — read when it suits you.'}
       </Text>
       <Text style={styles.chapter}>{chapterLabel}</Text>
-      <Text style={styles.progress}>
-        Day {daysInBook} in {bookName(book)}
-      </Text>
+      {showDayCount && (
+        <Text style={styles.progress}>
+          Day {daysInBook} in {bookName(book)}
+        </Text>
+      )}
     </View>
   );
 }
