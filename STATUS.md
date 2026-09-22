@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-09-22 (knot-declutter shipped; five follow-up PRs merged)_
+_Last updated: 2026-09-22 (knot-declutter shipped; PRs #35–#37 merged; `/catch-me-up --fix` doc-drift pass)_
 
 ## Current phase
 
@@ -17,14 +17,24 @@ searchable reading history, and a one-time study hint — 7 stacked PRs,
 
 ## Branch state
 
-`main` at `fd5989f`, clean and level with `origin/main` (nothing ahead, nothing
-behind). Shipped since `v0.6.0`: #24 (knot declutter), #25 (unravel hold
-survives the sheet's ScrollView), #26 (grill skill framing), #27 (landing page
-realigned with the shipped app), #28 and #29 (README reordered and trimmed),
-#33 (a "Sealing" toggle in the knot so a reader can switch back from
-tap-to-seal to hold-to-seal — the app silently flips to tap on a high
-hold-cancel rate, §11, and had no way back). The `v0.4.0`, `v0.5.0` and
-`v0.5.1` release notes carry a warning that those builds do not open.
+`main` at `c090a25`, level with `origin/main`. Since `v0.6.0` (`25a3faf`):
+#23/#24 (`fix/launch-hang` render-path guard, then knot declutter — nested
+modals, opener affordance, everyday/rare tiers), #25 (unravel hold survives
+the sheet's ScrollView), #26 (grill skill framing), #27 (landing page
+realigned with the shipped app), #28/#29 (README reordered and trimmed), #33
+(a "Sealing" toggle in the knot so a reader can switch back from tap-to-seal
+to hold-to-seal), #34 (deterministic `catch-me-up` fact sheet,
+`scripts/catch-me-up.mjs`), and today's #35/#36/#37: the start-over control
+reshaped as a ring (#31), an edited cue actually persisting on screen (#32,
+previously silently reverting), and the knot opener clearing safe-area
+insets so its label can't clip (the other half of #30 — "should just be a
+settings icon" — is tracked in `ROADMAP.md`, not fixed here). The `v0.4.0`,
+`v0.5.0` and `v0.5.1` release notes carry a warning that those builds do not
+open.
+
+Run `node scripts/catch-me-up.mjs` for live worktree/branch state instead of
+trusting a paragraph here — it was stale for two weeks the last time someone
+hand-wrote it (see `JOURNAL.md`'s 2026-09-07 entry for what that cost).
 
 **Worktrees - check `git worktree list` before trusting any of them.**
 
@@ -116,8 +126,11 @@ all three bundled typefaces, and sat idle instead of pinning a core.
   About, with attention-promotion preserved. A follow-up, PR #25 (`e5bfc61`),
   let the unravel hold survive the sheet's `ScrollView`. Owner device check
   (reading history actually opens) was deferred to release by decision and is
-  **still outstanding** - issues #30 and #32 are the first reader feedback on
-  this surface. See `docs/plans/knot-declutter/plan.html`.
+  still outstanding. Issues #30 and #32 were the first reader feedback on this
+  surface, both fixed today (PR #37 — knot opener label clipping; PR #36 —
+  edited cues not persisting on screen); #30's "should be a settings icon"
+  half is tracked separately in `ROADMAP.md`.
+  See `docs/plans/knot-declutter/plan.html`.
 
 ## Next actions
 

@@ -13,43 +13,58 @@ Status key: 📋 planned · 🔨 in progress · ✅ shipped · ❄️ parked
   Native source, since iOS has no sideloading equivalent to the APK. Plan:
   `docs/plans/apple-web-pwa/plan.html`.
 
-## Shipped
-
-- ✅ **One Blue Thread rebrand** — shipped in `v0.6.0` (PR #18, `2118227`,
-  2026-09-06). Public identity, Numbers 15:37–41 in full from the bundled WEB
-  text, the renamed repo and its canonical Pages URL. Package, slug, database
-  and keys unchanged, so it upgrades in place. Cultural review of the origin
-  context line is still open; NIV still needs surface-complete permission.
-
-- ✅ **The app opens again** — shipped in `v0.6.0` (PR #19, 2026-09-06).
-  `cueTerms` re-normalised each verse once per dictionary candidate, freezing
-  the JS thread during `Flow`'s render: 6222ms → 35ms. Every release from
-  `v0.4.0` to `v0.5.1` was unusable on a device. Also bundles the three
-  typefaces the tokens have always named, and guards two latent hangs.
-
-- ✅ **Start-over control as a circular seal-style button** — reader feedback
-  (issue #31, reclassified 2026-09-22 then implemented same day). The
-  hold-to-erase control read as a loom illustration, not a control; replaced
-  the wide cloth-strip `Unravel` widget with `UnravelRing`, matching the
-  seal's own circular tap-mode fallback (96×96, `SealZone.tsx`'s
-  `ringFallback`). Progressive hold feedback was already there — this changed
-  the shape, not the mechanic: the ring empties as you hold (deliberate
-  inverse of the seal's ring, which fills), coloured with the current book's
-  dye. `src/ui/Unravel.tsx` removed, no longer referenced.
-
 ## Under consideration
 
 - 📋 **Knot opener as a settings icon** *(#30)* — reader feedback: the
   top-right "Knot" text pill "not intuitive... should just be a settings
-  icon". The clipped-label half of #30 is fixed (safe-area insets); this is
-  the remaining IA question and needs its own small design pass, not a
-  same-PR icon swap.
+  icon". The clipped-label half of #30 is fixed (safe-area insets, PR #37);
+  this is the remaining IA question and needs its own small design pass,
+  not a same-PR icon swap.
 
 ## Parked
 
 _(none)_
 
 ## Shipped
+
+- ✅ 2026-09-22 — **Start-over control as a circular seal-style button**
+  (#31, PR #35, reclassified from issue then implemented same day). The
+  hold-to-erase control read as a loom illustration, not a control; replaced
+  the wide cloth-strip `Unravel` widget with `UnravelRing`, matching the
+  seal's own circular tap-mode fallback (96×96, `SealZone.tsx`'s
+  `ringFallback`). Progressive hold feedback was already there — this
+  changed the shape, not the mechanic: the ring empties as you hold
+  (deliberate inverse of the seal's ring, which fills), coloured with the
+  current book's dye. `src/ui/Unravel.tsx` removed, no longer referenced.
+
+- ✅ 2026-09-22 — **Knot opener clears safe-area insets** (#30, PR #37) so
+  a right-edge display cutout or curved-edge screen can't clip the "Knot"
+  label — reported as the pill rendering "kno". The IA half of #30
+  ("should just be a settings icon") stays open under Under consideration.
+
+- ✅ 2026-09-22 — **Edited cues actually persist** (#32, PR #36). `Flow.tsx`
+  read `services.cue.current()` fresh on every render instead of from
+  state, so a save via `CueEditor` never triggered a re-render and the
+  edited sentence appeared to revert. Added `cueState`, mirroring the
+  pattern `Knot.tsx` already used for its own copy of the cue.
+
+- ✅ 2026-09-07 — **Knot declutter** (PR #24): nested-modal fix for the
+  reading-history and chapter-row controls, plus the flat six-section
+  accordion split into an everyday tier (weave, cue, reading history) over a
+  grouped "More" tier (Your data · Practice · About).
+  Plan: `docs/plans/knot-declutter/plan.html`.
+
+- ✅ 2026-09-06 — **One Blue Thread rebrand** (PR #18, `2118227`, `v0.6.0`).
+  Public identity, Numbers 15:37–41 in full from the bundled WEB text, the
+  renamed repo and its canonical Pages URL. Package, slug, database and keys
+  unchanged, so it upgrades in place. Cultural review of the origin context
+  line is still open; NIV still needs surface-complete permission.
+
+- ✅ 2026-09-06 — **The app opens again** (PR #19, `v0.6.0`). `cueTerms`
+  re-normalised each verse once per dictionary candidate, freezing the JS
+  thread during `Flow`'s render: 6222ms → 35ms. Every release from `v0.4.0`
+  to `v0.5.1` was unusable on a device. Also bundles the three typefaces the
+  tokens have always named, and guards two latent hangs.
 
 - ✅ 2026-09-05 — **App quality foundations** (PRs #11–#17, tagged `v0.5.0`):
   packaged fonts, portrait-safe layouts, race-safe startup with visible
