@@ -5,6 +5,38 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## 2026-09-22 — the start-over control, shaped like a button
+
+Reader feedback on issue #31: the hold-to-erase control (`ResetSection.tsx`)
+didn't read as a control — it rendered `Unravel`, a wide (260×150) illustration
+of the current book's cloth pulling apart chapter-by-chapter. The ask was for
+something that looks like "a normal circular seal button." The progressive
+hold feedback it also asked for already existed (the cloth visibly unravelled
+as you held); only the shape was the actual gap.
+
+Replaced `Unravel` with a new `UnravelRing` (`src/ui/UnravelRing.tsx`): a
+96×96 SVG ring matching the silhouette of `SealZone.tsx`'s own circular
+tap-mode fallback (`ringFallback`), coloured with the current book's dye.
+Kept it the deliberate inverse of the seal (docs/CONTEXT.md): the seal's ring
+*fills* as you hold; this one *empties* — same `strokeDasharray`/
+`strokeDashoffset` mechanic, opposite direction, still driven by the same
+shared `progress` value `ResetSection` already animated. No change to the
+gesture, timing, scroll-lock, or reduced-motion/screen-reader fallback path —
+only the visual in the hold-and-confirm state.
+
+`src/ui/Unravel.tsx` and its per-chapter warp/weft rendering are gone —
+nothing else referenced it. `bundledChapterCount` and `bolt.sealed` are no
+longer needed in `ResetSection.tsx` since the ring doesn't depict individual
+chapters; `deriveBolt` is still called for `bolt.book`, which the ring's dye
+color comes from.
+
+`npm test` (462 cases, 461 passed/1 todo) and `npm run typecheck` both clean.
+No device check — no Android device or emulator available in this
+environment; the shape change is inferred from source and the same-mechanic
+`progress` wiring, not verified against real touch/haptics timing on a phone.
+
+ROADMAP.md's #31 entry moved from "Under consideration" to "Shipped."
+
 ## 2026-09-07 — the knot declutter
 
 Two faults behind one complaint ("the knot is a mess, buttons don't work,

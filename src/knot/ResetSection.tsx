@@ -15,14 +15,15 @@ import type { Log } from '../log/log';
 import { logicalToday } from '../log/time';
 import { nativeResetEnv } from '../reset/nativeEnv';
 import { performReset } from '../reset/perform';
-import { bundledChapterCount } from '../text';
 import { ActionButton } from '../ui/controls';
 import { dyeFor } from '../ui/dye';
 import { tokens } from '../ui/tokens';
-import { Unravel } from '../ui/Unravel';
+import { UnravelRing } from '../ui/UnravelRing';
 
-const UNRAVEL_WIDTH = 260;
-const UNRAVEL_HEIGHT = 150;
+// Matches the seal's tap-mode fallback ring (SealZone.tsx's `ringFallback`) —
+// reader feedback (issue #31) wanted this to read as "a normal circular
+// button" rather than the old wide cloth-strip bolt view.
+const UNRAVEL_RING_SIZE = 96;
 const RESTORE_MS = 320;
 
 interface ResetSectionProps {
@@ -157,14 +158,7 @@ export function ResetSection({ db, log, onReset, onScrollLock }: ResetSectionPro
               <GestureDetector gesture={composed}>
                 <View style={styles.unravelWrap} accessible={false}>
                   {bolt && (
-                    <Unravel
-                      width={UNRAVEL_WIDTH}
-                      maxHeight={UNRAVEL_HEIGHT}
-                      chapterCount={bundledChapterCount(bolt.book)}
-                      sealed={bolt.sealed}
-                      dye={dyeFor(bolt.book)}
-                      progress={progress}
-                    />
+                    <UnravelRing size={UNRAVEL_RING_SIZE} dye={dyeFor(bolt.book)} progress={progress} />
                   )}
                 </View>
               </GestureDetector>
@@ -208,7 +202,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
-    minHeight: UNRAVEL_HEIGHT,
+    minHeight: UNRAVEL_RING_SIZE,
   },
   holdLabel: {
     fontFamily: tokens.font.display,

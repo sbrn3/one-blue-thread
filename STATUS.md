@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-09-07 (knot-declutter implementation complete, PR #24 open)_
+_Last updated: 2026-09-22 (knot-declutter shipped; five follow-up PRs merged)_
 
 ## Current phase
 
@@ -17,25 +17,36 @@ searchable reading history, and a one-time study hint — 7 stacked PRs,
 
 ## Branch state
 
-`main` at `25a3faf`, tagged `v0.6.0` and released with the APK attached.
-Merged today: #18 (rebrand), #19 (launch-hang fix, bundled fonts, CI), #20
-(docs), #21 (render-path guard), #22 (plan ledger). The `v0.4.0`, `v0.5.0` and
-`v0.5.1` release notes now carry a warning that those builds do not open.
+`main` at `fd5989f`, clean and level with `origin/main` (nothing ahead, nothing
+behind). Shipped since `v0.6.0`: #24 (knot declutter), #25 (unravel hold
+survives the sheet's ScrollView), #26 (grill skill framing), #27 (landing page
+realigned with the shipped app), #28 and #29 (README reordered and trimmed),
+#33 (a "Sealing" toggle in the knot so a reader can switch back from
+tap-to-seal to hold-to-seal — the app silently flips to tap on a high
+hold-cancel rate, §11, and had no way back). The `v0.4.0`, `v0.5.0` and
+`v0.5.1` release notes carry a warning that those builds do not open.
 
-**2026-09-07 correction:** `origin/main` had already moved to `9461a66`
-(PR #23, `fix/launch-hang` — a render-path guard test) by the time this was
-read for `knot-declutter`; this section's `25a3faf` was stale on the remote
-even though it hadn't been touched locally. Caught only because
-`fix/knot-declutter` had been branched from a local `main` that itself
-hadn't been fast-forwarded past `25a3faf` — 24 commits behind `origin/main`,
-missing the whole rebrand and font bundling. See `JOURNAL.md`'s
-2026-09-07 entry.
+**Worktrees - check `git worktree list` before trusting any of them.**
 
-The `thread-aesthetic-loom` worktree sits on the merged `fix/launch-hang` and
-holds another session's uncommitted `apple-web-pwa` work (`docs/CONTEXT.md`,
-`docs/plans/README.md`, three untracked plan directories) - leave it alone. The
-`thread/` worktree is still on the long-merged `feat/account-reset` at
-`baddf2f` and is badly stale; check `git worktree list` before trusting it.
+- `thread/` is now on `main` and is the authoritative checkout. It is no longer
+  the stale `feat/account-reset` tree that earlier revisions of this file and
+  the 2026-09-07 journal entry warned about.
+- `thread-aesthetic-loom/` sits on the merged `fix/launch-hang` and still holds
+  another session's uncommitted `apple-web-pwa` work (`docs/CONTEXT.md`,
+  `docs/plans/README.md`, five untracked plan directories) - leave it alone.
+- `thread-lab-trial-integrity/` sits on `fix/lab-trial-integrity` with
+  uncommitted work across `src/lab/`, `src/backup/dump.ts`, `src/log/schema.ts`,
+  `src/notify/notifier.ts` and `src/reset/index.ts`, plus untracked
+  `src/lab/integrity.ts` and `test/integrity.test.ts` - unfinished, not merged.
+- `thread-unravel-scroll-lock/` is an empty leftover directory, not a
+  registered worktree; PR #25 carried that work. Safe to delete.
+
+**2026-09-07 correction (kept for the lesson):** `git fetch` updates
+remote-tracking refs, not local branch refs. `fix/knot-declutter` was branched
+from a local `main` that had never been fast-forwarded, putting it 24 commits
+behind `origin/main` and missing the whole rebrand and font bundling. Caught
+before merge by re-checking `main..origin/main`. See `JOURNAL.md`'s 2026-09-07
+entry.
 
 ## The app opens again
 
@@ -56,7 +67,8 @@ all three bundled typefaces, and sat idle instead of pinning a core.
 
 ## Verification (Tyndale release, historical)
 
-- `npm test` — 318 passing at the time (now 365, with the loom suite added).
+- `npm test` - 318 passing at the time; 461 passed / 1 todo at the knot-declutter
+  merge, 462 cases today.
 - `npm run typecheck` — clean.
 - `npm run check:tyndale` — 17,477 study resources, 6,010 dictionary articles,
   66 canonical book partitions, references, links, hashes, and notices verified.
@@ -96,16 +108,16 @@ all three bundled typefaces, and sat idle instead of pinning a core.
   `docs/plans/app-quality-foundations/plan.html`'s per-slice ledger for exact
   gaps per PR — the device pass below remains open.
 
-- **knot-declutter** — 🔨 implementation complete; PR open. The knot's
-  "Reading history" and chapter rows opened nothing (a second `<Modal>`
-  stacked on an already-open one); fixed by nesting both inside the knot's
-  own modal tree. Also splits the flat six-section accordion into an
-  everyday tier (weave, cue, reading history) over a "More" disclosure
-  grouped Your data · Practice · About, with attention-promotion preserved.
-  All 3 slices landed on `fix/knot-declutter` (461 passed/1 todo, typecheck
-  clean); PR #24 is MERGEABLE against `main`. Owner device check (reading
-  history actually opens) deferred to release, by decision.
-  See `docs/plans/knot-declutter/plan.html`.
+- **knot-declutter** - ✅ shipped on `main` (PR #24, `3c873f8`). The knot's
+  "Reading history" and chapter rows opened nothing (a second `<Modal>` stacked
+  on an already-open one); fixed by nesting both inside the knot's own modal
+  tree. Also split the flat six-section accordion into an everyday tier (weave,
+  cue, reading history) over a "More" disclosure grouped Your data · Practice ·
+  About, with attention-promotion preserved. A follow-up, PR #25 (`e5bfc61`),
+  let the unravel hold survive the sheet's `ScrollView`. Owner device check
+  (reading history actually opens) was deferred to release by decision and is
+  **still outstanding** - issues #30 and #32 are the first reader feedback on
+  this surface. See `docs/plans/knot-declutter/plan.html`.
 
 ## Next actions
 
