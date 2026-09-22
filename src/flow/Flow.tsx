@@ -143,6 +143,11 @@ export function Flow({ services }: FlowProps) {
   // may not get sealed.
   const [pendingLapse, setPendingLapse] = useState<PendingLapseResponse | null>(null);
   const [partnerName, setPartnerName] = useState<string | null>(null);
+  // services.cue.current() reads the DB directly rather than reacting to
+  // state, so a save via handleSaveCue below needs its own state to force
+  // ArrivalZone/CueEditor to see the new value — otherwise nothing here
+  // re-renders and the edit looks like it silently reverted (#32).
+  const [cueState, setCueState] = useState<Cue | null>(() => services.cue.current());
 
   useEffect(() => {
     if (session.status !== 'ready') return;
@@ -156,6 +161,7 @@ export function Flow({ services }: FlowProps) {
   const handleSaveCue = useCallback(
     (c: Cue) => {
       services.cue.set(c);
+      setCueState(c);
     },
     [services.cue],
   );
@@ -524,7 +530,7 @@ export function Flow({ services }: FlowProps) {
       >
         <ArrivalZone
           today={today}
-          cue={services.cue.current()}
+          cue={cueState}
           book={session.book}
           chapter={session.chapter}
           sittingIndex={session.sittingIndex}
@@ -535,7 +541,7 @@ export function Flow({ services }: FlowProps) {
           <LapseZone
             response={pendingLapse.response}
             partnerName={partnerName}
-            cue={services.cue.current()}
+            cue={cueState}
             currentBookId={session.book}
             onSaveCue={handleSaveCue}
             onExitBook={handleExitBook}
