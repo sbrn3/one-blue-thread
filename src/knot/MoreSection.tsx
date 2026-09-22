@@ -2,6 +2,7 @@ import { StyleSheet, Text } from 'react-native';
 import type { BackupStatus } from '../backup';
 import type { SupportSummary } from '../lab/diagnostics';
 import { needsAttention } from '../lab/diagnostics';
+import { getProfile } from '../lab/profile';
 import type { Log } from '../log/log';
 import type { SqlDb } from '../log/db';
 import { meta } from '../log/log';
@@ -16,8 +17,17 @@ import { DisclosureSection } from './DisclosureSection';
 import type { HistoryEntry } from './history';
 import { PartnerSection } from './PartnerSection';
 import { ResetSection } from './ResetSection';
+import { SealModeSection } from './SealModeSection';
 
-export type MoreSectionKey = 'safekeeping' | 'reset' | 'partner' | 'adaptive' | 'origin' | 'study' | 'support';
+export type MoreSectionKey =
+  | 'safekeeping'
+  | 'reset'
+  | 'partner'
+  | 'seal'
+  | 'adaptive'
+  | 'origin'
+  | 'study'
+  | 'support';
 
 interface MoreSectionProps {
   services: Services;
@@ -99,6 +109,16 @@ export function MoreSection({
 
       <DisclosureSection summary="Partner" expanded={openSections.partner} onToggle={() => onToggle('partner')} nested>
         <PartnerSection partner={partner} />
+      </DisclosureSection>
+
+      <DisclosureSection
+        summary="Sealing"
+        status={getProfile(db, 'seal') === 'tap' ? 'Switched to tap' : undefined}
+        expanded={openSections.seal}
+        onToggle={() => onToggle('seal')}
+        nested
+      >
+        <SealModeSection db={db} />
       </DisclosureSection>
 
       <DisclosureSection
