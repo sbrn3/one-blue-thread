@@ -1,105 +1,77 @@
 ---
 name: catch-me-up
-description: Orient a new One Blue Thread session by inspecting Git state, STATUS.md, ROADMAP.md, open bugs, and recent history. Reclassifies mislabelled bugs, re-triages the roadmap, batches real bugs, and hands back a short brief.
+description: Orient a new One Blue Thread session from a deterministic fact sheet (git state across worktrees, open issues/PRs, CI, doc drift) and hand back a short brief. Read-only by default; `--fix` also repairs stale docs, reclassifies feature-request bugs onto the roadmap, re-triages the roadmap, and batches real bugs.
 ---
 
 # Catch me up
 
-Gather facts, fix stale docs, split feature requests out of the bug list and onto
-the roadmap, re-triage the roadmap, batch the real bugs, hand back a short brief.
+Facts come from a script; this skill only adds judgment. Default mode is
+read-only and should finish in well under a minute.
 
-## 1. Gather facts
-
-There is no facts script. Run, from the repo root:
+## 1. Facts (one call)
 
 ```
-git fetch origin
-git status --short
-git log --oneline -10
-git log --oneline main..origin/main      # local behind — flag prominently, offer git pull --ff-only
-git log --oneline origin/main..main      # local ahead — unpushed work
-git worktree list
+node scripts/catch-me-up.mjs
 ```
 
-For every worktree other than the main checkout: `git -C <path> status --short` —
-flag any dirty one prominently (forgotten work).
+Treat its output as true — do not re-run the git or `gh` commands it already
+covers, and do not re-read `ROADMAP.md` or the plans ledger to re-check what its
+"Doc drift" section reports. `--no-fetch` skips the network fetch if the user
+asks for speed over freshness.
 
-Then check concurrent live work: run `ListAgents`. For each peer that is
-`interactive` and whose name starts with `thread`, `SendMessage` one line:
-`/catch-me-up orienting — one line: what are you working on, and any file/branch/doc I should not touch?`
-Give them a moment; fold replies into the brief. Skip if there are no interactive
-peers.
+In parallel with the script, run `ListAgents` and note any other `thread*`
+sessions. Do not message them or wait on them; the script's dirty-worktree flags
+cover the "forgotten work" risk.
 
-Then read `STATUS.md` fully, and `AGENTS.md` if this is a fresh session. Read the
-last 2–3 entries of `JOURNAL.md` (newest first) — only entries directly relevant.
-`ROADMAP.md` gets a full read in step 4.
+Read further only when the brief needs it: the top of `STATUS.md` (current phase)
+if the fact sheet leaves "what shipped last" unclear, the newest `JOURNAL.md`
+entry if the last session's context matters. `AGENTS.md` is already loaded via
+`CLAUDE.md`.
 
-Open issues:
-`gh issue list --state open --repo sbrn3/one-blue-thread --limit 30` (via
-`"C:\Program Files\GitHub CLI\gh.exe"` if `gh` is not on PATH).
-
-## 2. Reconcile stale docs (writes allowed)
-
-Fix any contradiction between `STATUS.md` and reality: wrong branch/ahead-behind,
-a merged item still "in progress", wrong test count (`npm test` prints it),
-a shipped plan still in the Active Plans table. Keep the STATUS Active Plans
-table and `docs/plans/README.md` (if it exists) in sync. Bump the "Last updated"
-date. Don't touch code, branches, issues, or the §13.6 invariants. Flag genuinely
-ambiguous contradictions in the brief instead of guessing.
-
-## 3. Split feature requests out of the bug list
-
-Read every open `bug` issue. Classify each:
-- **Real defect** — documented or clearly-intended behavior is broken. Stays an
-  issue; flows into step 5.
-- **Feature request** — a new capability or enhancement with no broken behavior
-  behind it.
-
-Reclassify feature requests automatically. For each: add one lean line to the
-right section of `ROADMAP.md` (📋 planned) — a sentence of what it is plus a
-pointer to where the full intent lives (the closed issue `#n` is a fine detail
-home). Then
-`gh issue close <n> --comment "Reclassified as a feature request during /catch-me-up triage — tracked in ROADMAP.md. No broken behaviour behind this; reopen if that's wrong."`
-List what was reclassified in the brief. Only genuinely borderline cases get
-flagged for the user instead of closed.
-
-## 4. Re-triage the roadmap
-
-Read `ROADMAP.md` end to end, every run. Then:
-- **Staleness cross-check first.** For every 🔨 / 📋 line naming an issue, PR,
-  branch, or SHA: check its real state (`gh issue view`, `gh pr view`, JOURNAL
-  headings, `git log`). Anything actually merged/shipped flips to ✅ with
-  evidence inline. List each flip in the brief's "Docs fixed".
-- Drop or merge items already shipped or duplicated.
-- Re-order 📋 items by leverage and dependency — unblockers and cheap high-pain
-  wins first, big speculative items last.
-- Group related items into coherent batches that could each ship as one plan.
-- Mark what is 🔨 active now vs 📋 next vs 📋 later.
-
-Write the re-sorted `ROADMAP.md` back. Keep the Shipped history intact — this is
-a re-sort of what's planned, not a rewrite of what shipped.
-
-## 5. Triage and batch the remaining bugs
-
-Group the surviving open bugs into 2–4 batches by shared surface / root cause /
-owning area of `/src`. For each: issue numbers, one-line theme, size (S/M/L), and
-whether it fits an active plan or needs its own. Order batches cheap-high-pain
-first. This is default output, not something to wait to be asked for.
-
-## 6. Brief (hard cap ~180 words)
+## 2. Brief (hard cap ~180 words)
 
 Only these sections. No preamble. One clause per bullet. Empty section → "none".
 
-- **State** — up to 3 bullets: branch, what shipped last, anything dirty or
-  divergent.
-- **Other sessions** — one line per concurrent session that is not this one, with
-  any "don't touch" it flagged. "none" otherwise.
-- **Docs fixed** — one line per file, or "none".
-- **Reclassified** — `#n → ROADMAP section`, one per line, or "none".
-- **Bugs** — one line per open bug: `#n title — <=10-word read`.
-- **Roadmap** — top 3 planned items, one line each; then one line for what's
-  active now.
-- **Blockers** — hard blockers only, or "none".
+- **State** — up to 3 bullets: branch, what shipped last, anything dirty,
+  divergent, or failing in CI (from the script's Flags / CI).
+- **Other sessions** — one line per other `thread*` session from `ListAgents`,
+  or "none".
+- **Doc drift** — count plus the one or two that matter; mention `--fix`.
+- **Bugs** — one line per open issue: `#n title — <=10-word read`, marking any
+  that look like feature requests.
+- **Roadmap** — top planned item and what's active now, one line each.
 - **Next** — one recommended action. At most one alternative.
+
+Stop here unless the user ran `/catch-me-up --fix` or asks for the triage.
+
+## 3. `--fix` — repair and triage (writes allowed)
+
+Only on a branch that starts at current `origin/main` (a fresh `docs/…` or
+`chore/…` branch in its own worktree, or the checkout that holds an up-to-date
+`main`). Never write these docs on an unrelated feature branch — each worktree
+would drift its own copy. If no suitable checkout exists, say so and stop.
+
+1. **Doc drift.** Fix each item the script reported: flip landed 🔨/📋 items to
+   ✅ with the evidence inline, update `STATUS.md`'s Branch state and "Last
+   updated", sync the STATUS Active plans list with `docs/plans/README.md`.
+   Re-word surrounding prose that the flip makes false (e.g. "PR open"). Flag,
+   don't guess, anything ambiguous — e.g. a plan folder intentionally left out of
+   the ledger. Don't touch code, branches, or the §13.6 invariants.
+2. **Feature requests out of the bug list.** For each open issue whose body
+   describes a new capability or enhancement with no broken behaviour behind it:
+   add one lean 📋 line to the right section of `ROADMAP.md` pointing at `#n`,
+   then
+   `gh issue close <n> --comment "Reclassified as a feature request during /catch-me-up triage — tracked in ROADMAP.md. No broken behaviour behind this; reopen if that's wrong."`
+   Borderline cases are flagged, not closed.
+3. **Re-triage the roadmap.** Re-order 📋 items by leverage and dependency
+   (unblockers and cheap high-pain wins first), group related items into batches
+   that could each ship as one plan, mark 🔨 now / 📋 next / 📋 later. Rewrite
+   `ROADMAP.md` only if the order or grouping actually changed. Keep Shipped
+   history intact.
+4. **Batch the real bugs** into 2–4 groups by shared surface or root cause: issue
+   numbers, one-line theme, size (S/M/L), and whether it fits an active plan.
+
+Add to the brief: **Docs fixed** (one line per file), **Reclassified**
+(`#n → ROADMAP section`), **Bug batches**. The cap rises to ~250 words.
 
 Never expose the user's real reading data in the brief or in any command.
