@@ -12,7 +12,7 @@ single-user). If a step still reads like a different project, fix it here.
 
 | Skill | Use |
 |---|---|
-| `catch-me-up` | Orient a new session; reconcile stale docs; triage bugs and the roadmap |
+| `catch-me-up` | Orient a new session from `scripts/catch-me-up.mjs`; `--fix` reconciles stale docs and triages bugs and the roadmap |
 | `grill` | Interview to sharpen an unresolved design before planning |
 | `plan` | Evidence-backed interactive plan before implementation |
 | `save-plan` | Retain an approved-but-deferred plan and sync the ledgers |
