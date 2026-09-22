@@ -34,6 +34,10 @@ describe('applyRecommendation (§15 compiled profile, applied immediately)', () 
     ['E4', 'A', 'floor', 'full_chapter'],
     ['E7', 'B', 'frequencyTarget', '5_per_week'],
     ['E7', 'A', 'frequencyTarget', 'daily'],
+    ['E11', 'A', 'dayCountVisible', '1'],
+    ['E11', 'B', 'dayCountVisible', '0'],
+    ['E12', 'A', 'sittingCountVisible', '1'],
+    ['E12', 'B', 'sittingCountVisible', '0'],
   ] as const)('%s winner %s writes profile.%s = %s', (expId, verdict, key, value) => {
     const db = openTestDb();
     migrate(db);

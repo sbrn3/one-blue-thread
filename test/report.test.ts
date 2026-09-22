@@ -33,6 +33,15 @@ describe('renderReversalReport (§15 report anatomy)', () => {
     expect(text).toContain('CONFIDENCE    Strong.');
   });
 
+  it('names E11/E12 using their own arm labels (Visible vs Hidden)', () => {
+    const dayCount = renderReversalReport({ ...SAMPLE_REVERSAL, expId: 'E11' });
+    expect(dayCount).toContain('EXPERIMENT E11 · DAY-COUNT VISIBILITY');
+    expect(dayCount).toContain('VERDICT       Hidden outperformed Visible.');
+
+    const sittingCount = renderReversalReport({ ...SAMPLE_REVERSAL, expId: 'E12' });
+    expect(sittingCount).toContain('EXPERIMENT E12 · SITTING-COUNT VISIBILITY');
+  });
+
   it('falls back to generic A/B labels for an unknown experiment id', () => {
     const text = renderReversalReport({ ...SAMPLE_REVERSAL, expId: 'E99' });
     expect(text).toContain('EXPERIMENT E99 · E99');

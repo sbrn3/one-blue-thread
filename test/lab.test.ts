@@ -22,7 +22,7 @@ describe('seeded PRNG (§16.7 — no Math.random anywhere)', () => {
 
 describe('phase assignment (§13.4)', () => {
   it('yields ABAB or BABA, decided once per experiment, reconstructible', () => {
-    for (const exp of ['E1', 'E3', 'E4', 'E8']) {
+    for (const exp of ['E1', 'E3', 'E4', 'E8', 'E11', 'E12']) {
       const pattern = Array.from({ length: PHASES_PER_EXPERIMENT }, (_, p) =>
         phaseArm('trial-seed', exp, p),
       );

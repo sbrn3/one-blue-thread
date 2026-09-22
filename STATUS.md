@@ -119,6 +119,13 @@ all three bundled typefaces, and sat idle instead of pinning a core.
   **still outstanding** - issues #30 and #32 are the first reader feedback on
   this surface. See `docs/plans/knot-declutter/plan.html`.
 
+- **arrival-zone-progress-display** — 📋 approved, not yet implemented. Adds
+  `E11`/`E12` reversal experiments (day-count and sitting-count line
+  visibility in `ArrivalZone`) to the existing lab queue, appended after
+  `E3`, using the same mechanism. C2: 8 files, 2 commits, 1 session. Branch
+  `feat/arrival-zone-progress-visibility` off `main`.
+  See `docs/plans/arrival-zone-progress-display/plan.html`.
+
 ## Next actions
 
 - [x] ~~Build and install a fresh APK; confirm cold launch on the Android
