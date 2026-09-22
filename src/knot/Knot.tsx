@@ -74,13 +74,14 @@ export function Knot({ services }: KnotProps) {
     setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
   }, []);
 
-  // The rare tier's seven items, all closed by default — MoreSection owns
+  // The rare tier's eight items, all closed by default — MoreSection owns
   // rendering them; this is only the open/closed record, same contract as
   // DisclosureSection everywhere else in the knot.
   const [moreSections, setMoreSections] = useState<Record<MoreSectionKey, boolean>>({
     safekeeping: false,
     reset: false,
     partner: false,
+    seal: false,
     adaptive: false,
     origin: false,
     study: false,
