@@ -24,6 +24,10 @@ function event(type: AppEvent['type']): AppEvent {
 }
 
 describe('hasConfound (§13 confound detection)', () => {
+  it('flags a translation_changed event', () => {
+    expect(hasConfound([event('translation_changed')], 0)).toBe(true);
+  });
+
   it('flags a cue_changed event', () => {
     expect(hasConfound([event('cue_changed')], 0)).toBe(true);
   });

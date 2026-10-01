@@ -11,6 +11,7 @@ export type EventType =
   | 'nudge_fired' // backup notification delivered
   | 'nudge_opened' // app opened from that notification
   | 'cue_changed' // anchor/place/time edited — a confound marker
+  | 'translation_changed' // NIV/ESV/WEB switched from the knot — a confound marker, same class as cue_changed (§19)
   | 'book_start'
   | 'book_finish'
   | 'knot_open'
