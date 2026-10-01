@@ -141,6 +141,13 @@ all three bundled typefaces, and sat idle instead of pinning a core.
   an active phase — ~11 months out behind the existing queue.
   See `docs/plans/arrival-zone-progress-display/plan.html`.
 
+- **knot-opener-icon** - 🔨 implemented in the working tree, not committed. Gear
+  opener, stable re-ordered knot (Preferences / Your data / About), backup
+  demoted, Start over and cue-save fixes, Report a problem link, translation
+  switch (absorbs `knot-translation-switch`). Open: owner device checks (Start
+  over hold, cue edits) and live NIV/ESV key round-trips before merging the
+  translation half. See `docs/plans/knot-opener-icon/plan.html`.
+
 ## Next actions
 
 - [x] ~~Build and install a fresh APK; confirm cold launch on the Android
@@ -175,7 +182,7 @@ all three bundled typefaces, and sat idle instead of pinning a core.
       Switch Control + 200% text matrix, real launch timing (fast/400ms/13s/
       14s/rejected), and an on-device exercise of the real `expo-file-system`
       recovery-snapshot move/rotation calls (PR #14 is fake-IO tested only).
-- [ ] Smoke-test `src/text/esv.ts` against a real ESV API key. This also answers
+- [ ] Smoke-test `src/text/esv.ts` and `src/text/apiBible.ts` against real keys by pasting each into the knot's Translation row. This also answers
       `apple-web-pwa` S01 question 5 (whether `api.esv.org` and `rest.api.bible`
       send browser CORS headers), which decides that plan's S09 branch.
 - [ ] `apple-web-pwa`: decide whether to approve. **Sequence it after the APK

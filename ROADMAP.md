@@ -15,11 +15,12 @@ Status key: 📋 planned · 🔨 in progress · ✅ shipped · ❄️ parked
 
 ## Under consideration
 
-- 📋 **Knot opener as a settings icon** *(#30)* — reader feedback: the
-  top-right "Knot" text pill "not intuitive... should just be a settings
-  icon". The clipped-label half of #30 is fixed (safe-area insets, PR #37);
-  this is the remaining IA question and needs its own small design pass,
-  not a same-PR icon swap.
+- 🔨 **Knot opener, settings layout and translation switch** *(#30)* — a
+  gear opener, a sheet that orders itself the same every time, backup demoted,
+  Start over and cue-save fixes, a Report a problem link, and the translation
+  switch (absorbing the parked `knot-translation-switch`). Implemented in the
+  working tree; see `docs/plans/knot-opener-icon/`. Night mode is a separate,
+  later grill.
 
 ## Parked
 
