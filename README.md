@@ -102,7 +102,7 @@ Bundled **WEB** (public domain) ships in `assets/bible/web.json` — the app
 always works offline. Regenerate it with `node scripts/build-bible.mjs`.
 
 **NIV or ESV (licensed):** chosen in-app, at onboarding's translation
-screen — not at build time. The API key is entered on-device and stored in
+screen or later from the knot's Translation row — not at build time. The API key is entered on-device and stored in
 SQLite (`meta` table), never compiled into the build or committed to the
 repo. NIV needs only a free key from api.bible (the specific NIV bible id
 is resolved automatically from the key via `/v1/bibles`); ESV needs a free
@@ -112,10 +112,11 @@ falls back to WEB automatically with no network. Each provider's required
 copyright notice renders under every chapter via `attribution()`, and
 neither provider has a method capable of bulk-downloading the translation.
 
-The ESV integration (`src/text/esv.ts`) was built from published API docs,
-not exercised against a live key — there was none available to test with.
-The parser is unit-tested against the documented response shape; smoke-test
-it against a real key before relying on it day to day.
+Neither the ESV integration (`src/text/esv.ts`) nor the NIV one
+(`src/text/apiBible.ts`) has been exercised against a live key: both were built
+from published API docs and are unit-tested against fakes. The knot's
+Translation row proves a pasted key with a live round-trip before saving it and
+refuses the save on failure, so the first real key doubles as the smoke test.
 
 ### Study resources
 

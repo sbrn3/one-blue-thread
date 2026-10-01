@@ -58,14 +58,21 @@ pass: you weave to commit.
 to first run. The deliberate inverse of the seal: the cloth comes apart while
 held, and re-weaves if released early.
 
-**The knot** — the settings sheet, and the app's only persistent control.
+**The knot** — the settings sheet, and the app's only persistent control. Opened
+by a gear icon; the word "Knot" is the name of the sheet, not its label.
 
 **The everyday tier** — the part of the knot visible the moment it opens: the
 weave, the cue, and reading history. Holds only what is touched daily.
 
 **The rare tier** — everything else in the knot, one "More" disclosure deep,
-grouped Your data, Practice, and About. A section needing attention is
-promoted out of it into the everyday tier for that open.
+grouped Preferences, Your data, and About. Nothing is ever promoted out of it
+or opened for the reader — the sheet is the same every time. Only Support
+carries a "Needs attention" marker (and lights the gear's dot); backup state
+never does.
+
+**Preferences** — the rare tier's first group: how the app behaves for you
+(Sealing, Partner, Adaptive policy, and later Translation and Appearance). Not
+to be confused with the everyday tier's "Practice" row, which is the cue.
 
 **The cue** — the one if-then sentence ("After X, I read in Y") that the whole
 product is built to deliver.

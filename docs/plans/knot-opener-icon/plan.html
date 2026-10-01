@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — Knot opener icon, settings IA, translation switch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&display=swap" rel="stylesheet">
+<style>
+/* ── One Blue Thread identity — mirrors docs/index.html / src/ui/tokens.ts. Do not swap for generic styles ── */
+:root {
+  --bg:            #FBFAF7;
+  --surface:       #ffffff;
+  --card-bg:       #ffffff;
+  --border:        #E6E5E1;
+  --border-strong: #d8d7d2;
+  --text:          #16161A;
+  --text-2:        #5E5D66;
+  --text-muted:    #9C9BA3;
+  --primary:       #1F3FFF;
+  --primary-dark:  #1732cc;
+  --primary-tint:  #EEF0FF;
+  --success:       #155724;
+  --success-bg:    #d4edda;
+  --warning:       #856404;
+  --warning-bg:    #fff3cd;
+  --danger:        #c0392b;
+  --danger-bg:     #fde8e8;
+  --font-head:     'Newsreader', Georgia, serif;
+  --font-body:     'Schibsted Grotesk', system-ui, -apple-system, sans-serif;
+  --radius:        12px;
+  --shadow:        0 4px 6px rgba(0,0,0,0.08);
+  --shadow-lg:     0 8px 32px rgba(0,0,0,0.16);
+}
+* { box-sizing: border-box; }
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(600px 400px at 0% -5%, rgba(26,58,92,0.06), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2.2rem 1.6rem 4rem;
+}
+h1 { font-family: var(--font-head); font-size: 2rem; font-weight: 400; margin: 0 0 .3rem; letter-spacing: .01em; }
+h2 { font-family: var(--font-head); font-size: 1.25rem; font-weight: 400; color: var(--primary); margin: 1.8rem 0 .8rem; }
+h3 { font-size: .95rem; font-weight: 600; color: var(--text); margin: 1.3rem 0 .4rem; }
+a { color: var(--primary); }
+code { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: .85em; color: var(--primary-dark); background: var(--primary-tint); padding: .1em .4em; border-radius: 5px; }
+.meta { font-size: .82rem; color: var(--text-muted); margin-bottom: 1.6rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.badge { display: inline-block; padding: .25em .7em; border-radius: 999px; font-size: .74rem; font-weight: 600; border: 1px solid var(--border); background: var(--surface); }
+.badge.navy   { color: var(--primary); border-color: var(--primary); background: var(--primary-tint); }
+.badge.green  { color: var(--success); background: var(--success-bg); border-color: #c3e6cb; }
+.badge.yellow { color: var(--warning); background: var(--warning-bg); border-color: #ffeeba; }
+.badge.red    { color: var(--danger);  background: var(--danger-bg);  border-color: #f5c6cb; }
+/* Stat row */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: .8rem; margin-bottom: 2rem; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .9rem 1.1rem; box-shadow: var(--shadow); }
+.stat-value { font-family: var(--font-head); font-size: 1.7rem; color: var(--primary); font-variant-numeric: tabular-nums; }
+.stat-label { font-size: .72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+/* Tabs */
+.tabs { display: flex; gap: .4rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 1.6rem; }
+.tab { padding: .5rem 1rem; border: none; background: none; cursor: pointer; font-family: var(--font-body); font-size: .87rem; color: var(--text-2); border-radius: 8px 8px 0 0; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: var(--text); background: var(--primary-tint); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; background: var(--primary-tint); }
+.panel { display: none; animation: fade .25s ease; }
+.panel.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+/* Checklist */
+.checklist { list-style: none; padding: 0; margin: .5rem 0; }
+.checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; font-size: .9rem; border-bottom: 1px solid var(--border); }
+.checklist li:last-child { border-bottom: none; }
+.checklist input { margin-top: .3rem; flex-shrink: 0; accent-color: var(--primary); width: 16px; height: 16px; }
+.checklist input:checked + span { color: var(--text-muted); text-decoration: line-through; }
+/* Notes / callouts */
+.note { background: var(--warning-bg); border: 1px solid #ffeeba; border-radius: var(--radius); padding: .7rem 1rem; font-size: .86rem; margin: .8rem 0; color: var(--text); }
+.mockup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: .9rem; margin: 1rem 0; }
+.mockup-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); }
+.mockup-card.chosen { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary), var(--shadow-lg); }
+.mockup-card h3 { margin-top: 0; }
+.requirements { font-size: .92rem; line-height: 2; padding-left: 1.3rem; }
+.evidence-table { width: 100%; border-collapse: collapse; margin: .8rem 0 1.2rem; font-size: .84rem; }
+.evidence-table th, .evidence-table td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: left; vertical-align: top; }
+.evidence-table th { background: var(--primary-tint); color: var(--primary); }
+</style>
+</head>
+<body>
+
+<h1>Knot opener icon, settings IA, translation switch</h1>
+<div class="meta">
+  2026-10-01
+  <span class="badge navy">C3</span>
+  <span class="badge navy">~28 files</span>
+  <span class="badge navy">7 commits</span>
+  <span class="badge yellow">~6 sessions</span>
+  <span class="badge navy">Aesthetics: extends existing knot pattern</span>
+</div>
+
+<div class="stat-row">
+  <div class="stat"><div class="stat-value">28</div><div class="stat-label">Files</div></div>
+  <div class="stat"><div class="stat-value">7</div><div class="stat-label">Commits</div></div>
+  <div class="stat"><div class="stat-value">5</div><div class="stat-label">Test files touched</div></div>
+  <div class="stat"><div class="stat-value">~6</div><div class="stat-label">Sessions</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="intent" onclick="show('intent')">Intent</button>
+  <button class="tab" data-tab="requirements" onclick="show('requirements')">Requirements</button>
+  <button class="tab" data-tab="aesthetics" onclick="show('aesthetics')">Aesthetics</button>
+  <button class="tab" data-tab="execution" onclick="show('execution')">Execution</button>
+  <button class="tab" data-tab="verify" onclick="show('verify')">Verification</button>
+</div>
+
+<div id="intent" class="panel active">
+  <h2>Problem &amp; Intent</h2>
+  <h3>Status, owner &amp; next action</h3>
+  <p><strong>Awaiting approval.</strong> Owner/trigger: reader feedback on issue #30 plus the owner's own grill (<code>grill-summary.md</code>). Next action: approve this plan and authorize a branch/PR policy (see gates), then run S01.</p>
+  <h3>Outcome and constraints</h3>
+  <p>A reader should be able to find the settings sheet without knowing what "Knot" means, and find things inside it where they expect them. The sheet's order must not change depending on state. A reader can also change translation from the sheet, which onboarding already promises ("add a translation any time from the knot") and the code does not deliver. Constraints: offline-first (WEB always works), no real keys in tests or repo, keys stay in SQLite <code>meta</code>, 44pt targets, reduced motion honoured, hard rules in <code>AGENTS.md</code> untouched.</p>
+  <h3>Scope and non-goals</h3>
+  <p><strong>In:</strong> (a) gear-icon opener with an attention dot; (b) knot sheet re-ordered around the user stories, with Safekeeping and Support no longer promoted or auto-expanded, and backup demoted to a quiet row that never raises a dot or marker; (c) the parked <code>knot-translation-switch</code> plan, absorbed, as the first row of the Preferences group. (d) bug fixes the owner reported against the latest build: Start over does not work, and an edited cue (practice prompt) does not seem to save; (e) a "Report a problem" link to a new GitHub issue. <strong>Out:</strong> night mode and its Appearance row (own grill, no dead rows); onboarding wording changes; multi-translation; backup encryption of keys.</p>
+  <h3>Dependencies and unresolved gates</h3>
+  <ul>
+    <li><strong>Branch/PR authorization:</strong> none given yet. Proposed: PR 1 = S01, PR 2 = S02-S05. Commit, push and PR each need explicit authorization.</li>
+    <li><strong>Live keys:</strong> S05 needs a free api.bible key and an api.esv.org key from the owner. PR 2 is not mergeable until both live round-trips pass or the owner waives one.</li>
+    <li><strong>Naming decision for approval:</strong> the everyday tier already has a disclosure called "Practice" (the cue), and More has a group called "Practice". Default in this plan: rename the More group <strong>Preferences</strong>. Reject this at approval to keep both as "Practice".</li>
+    <li><strong>Gear glyph:</strong> exact path chosen during S01 and checked on a dev build (owner spot-check).</li>
+  </ul>
+  <h3>Evidence and decisions</h3>
+  <p>Facts traced in <code>src/knot/Knot.tsx</code> (opener, <code>promoted</code> state, <code>handleOpen</code>), <code>src/knot/MoreSection.tsx</code>, <code>src/knot/DisclosureSection.tsx</code>, <code>test/ui-contracts.test.ts</code>, <code>src/ui/tokens.ts</code>. Decisions: <code>grill-summary.md</code> (confirmed 2026-10-01) and the <code>JOURNAL.md</code> entry "Decision 2026-10-01 — the knot stops promoting Safekeeping and Support". Translation decisions come from <code>docs/plans/knot-translation-switch/grill-summary.md</code> and the JOURNAL "Decision 2026-09-05" entry. The owner later said paste-once keys and personal use, so S03/S05 drop the onboarding wording edits; the live key check, WEB fallback and confound logging stay. The ROADMAP's narrower "settings icon only" framing is superseded by the owner's wider ask. Design tokens: no new token needed. <strong>Start over:</strong> reported broken in the latest build; cause unverified (no device here). Leading hypothesis: <code>ResetSection</code>'s <code>Gesture.LongPress</code> sits inside the knot's RN <code>&lt;Modal&gt;</code>, which on Android needs its own <code>GestureHandlerRootView</code>; the only one is at <code>App.tsx:35</code>. Second weakness: a failure before the wipe is swallowed silently in <code>ResetSection.run()</code>. Fixed in S01 plus an owner device check. <strong>Cue not saving:</strong> the database write is correct; the cue is held in two separate state copies (<code>Flow.tsx:151</code>, <code>Knot.tsx:62</code>) so a save in one leaves the other stale and the next edit overwrites it; <code>CueEditor</code> also double-commits on blur plus submit. Fixed in S06 with a subscribable <code>CueService</code>. Both causes come from reading the code, not from a reproduction. <strong>Issue link:</strong> a link-out only; the URL carries the app version and nothing from the reader's data.</p>
+  <h3>Documentation effects</h3>
+  <p>Update <code>docs/CONTEXT.md</code> (knot/tier terms, Preferences), <code>docs/plans/README.md</code>, <code>STATUS.md</code>, <code>README.md</code> (translation/verification status) and <code>ROADMAP.md</code> (#30 shipped) as slices land. Delete <code>grill-summary.md</code> and the superseded <code>knot-translation-switch</code> artifacts only after approval.</p>
+</div>
+
+<div id="requirements" class="panel">
+  <h2>Requirements (confirmed)</h2>
+  <h3>User stories</h3>
+  <ol class="requirements">
+    <li>As a reader, I want the settings control to be a recognisable gear, so that I can find it without knowing the word "Knot".</li>
+    <li>As a reader, I want the gear to show a small dot only when Support (something is genuinely wrong) needs attention; backup status never lights it, because backup is not a priority for me. A screen reader gets the same information in words.</li>
+    <li>As a reader, I want the sheet to look and order itself the same every time I open it, so that I can learn where things are.</li>
+    <li>As a reader, I want a Support section that needs attention to stay in its normal place, collapsed, with a visible marker, so that it neither moves nor hides what I came for.</li>
+    <li>As a reader, I want my weave, my cue, and my reading history immediately visible, so that the daily things take no digging.</li>
+    <li>As a reader, I want a paused-notifications banner with a Resume button when paused, so that I can turn them back on.</li>
+    <li>As a reader, I want to switch between tap and hold sealing, so that a gesture that fails for me is not a dead end.</li>
+    <li>As a reader, I want to set up or check my accountability partner and check-in.</li>
+    <li>As a reader, I want to freeze adaptive notification timing.</li>
+    <li>As a reader, I want to browse study material for my current book.</li>
+    <li>As a reader, I want to confirm my history is backed up.</li>
+    <li>As a reader, I want "Starting over" to be last in its group, so that a destructive control is not next to everyday ones.</li>
+    <li>As a reader, I want the origin story available under About.</li>
+    <li>As a reader, I want diagnostics to stay out of the way until something is wrong, then be easy to find because the gear and its row are marked.</li>
+    <li>As a reader, I want to choose between the World English Bible, NIV and ESV from the sheet, with the bundled text named in full.</li>
+    <li>As a reader, I want a pasted key proved by a live check before it is saved, and a failure to keep my current translation and show the error, so that I never believe I'm in NIV while reading WEB.</li>
+    <li>As a reader, I want a key I already pasted kept per provider, so that switching back doesn't mean pasting again.</li>
+    <li>As the lab (silent actor), I want a translation change logged as a confound, so that days around it are reported but excluded from verdicts.</li>
+    <li>As a reader switching mid-day, I want today's portion reloaded and restarted at sitting 1, so that re-reading, never skipping, is the failure mode.</li>
+    <li>As a reader, I want Start over to actually work (hold to unravel erases everything and restarts the app), and to be told plainly if it can't, so that a failed erase is never silent.</li>
+    <li>As a reader, I want a cue I edit in the knot or on the arrival screen to show the new text in both places and to survive the next edit, so that a change never silently reverts.</li>
+    <li>As a reader, I want a "Report a problem" link under About that opens a new GitHub issue in my browser, carrying only the app version, so that I can log a bug in seconds without exposing my reading data.</li>
+  </ol>
+  <h3>Out of Scope</h3>
+  <ul class="requirements">
+    <li>Night mode / Appearance row: needs its own palette design (per-token contrast, book dyes on a dark ground). Reserved in the layout, not built.</li>
+    <li>Onboarding translation wording changes: the app is personal-use for now.</li>
+    <li>Memorised-verse wording shifting under a mid-trial switch: the confound flag covers the data; the reader experience stays deferred (as in the translation plan).</li>
+    <li>Encrypting API keys inside backup exports (pre-existing exposure).</li>
+  </ul>
+  <h3>Testing Decisions</h3>
+  <ul class="requirements">
+    <li>The suite is Vitest in <code>node</code> with no component renderer (AGENTS.md). UI changes are guarded by source-walking contracts in <code>test/ui-contracts.test.ts</code>: no <code>promoted</code> in the knot, no "Knot" opener label, <code>TranslationSection</code> on the interactive allowlist.</li>
+    <li>Logic is tested with the existing patterns: <code>test/confound.test.ts</code> (one new case), <code>test/esv.test.ts</code> (fake <code>fetchFn</code>), new <code>test/translationService.test.ts</code> (<code>openTestDb()</code> + <code>migrate(db)</code> + a fake provider).</li>
+    <li>Not unit-tested: the gear's appearance, safe-area placement, the sheet's visual order, and live NIV/ESV calls. Those are owner spot-checks and the S05 gate.</li>
+  </ul>
+</div>
+
+<div id="aesthetics" class="panel">
+  <h2>Aesthetics</h2>
+  <h3>Current-surface extraction</h3>
+  <table class="evidence-table">
+    <thead><tr><th>Layer</th><th>Current measured values/patterns</th><th>Source</th><th>Keep/change and why</th></tr></thead>
+    <tbody>
+      <tr><td>Tokens</td><td>paper #F4F1E9, ink #1A1A17, ink15 rules, ink40 secondary, madder #B5482F = a mark you made, scrim, space/radius/control scales</td><td>src/ui/tokens.ts</td><td>Keep. No new token.</td></tr>
+      <tr><td>Typography</td><td>display (Schibsted Grotesk) 15/14 bold row summaries; mono 11 status and group labels</td><td>DisclosureSection.tsx, MoreSection.tsx styles</td><td>Keep. The "Knot" mono label is removed.</td></tr>
+      <tr><td>Spacing and layout</td><td>opener 44 min, pill radius, top 56+inset, right 20+inset; rows min 48; groups 12 top margin</td><td>Knot.tsx styles</td><td>Change opener to a 44×44 circle at the same offsets; rows unchanged.</td></tr>
+      <tr><td>Color and semantics</td><td>resting dot ink40, attention dot madder 8px</td><td>Knot.tsx, DisclosureSection.tsx</td><td>Keep madder as the one attention colour; the opener's resting dot goes away, only the badge remains.</td></tr>
+      <tr><td>Components and states</td><td>DisclosureSection with status line and attention dot; nested rows indented</td><td>DisclosureSection.tsx</td><td>Reuse unchanged for the marked rows and the Translation row.</td></tr>
+      <tr><td>Atmosphere and depth</td><td>flat, no shadows, hairline rules, translucent paper over scripture</td><td>Knot.tsx button style</td><td>Keep the translucent ground so the gear reads over scripture.</td></tr>
+      <tr><td>Motion and interaction</td><td>sheet slide, none under reduced motion; pressed opacity .7</td><td>Knot.tsx, DisclosureSection.tsx</td><td>Keep. No new motion.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Intent:</strong> a quieter, more predictable settings door, not a new visual moment. <strong>Hygiene:</strong> existing tokens only. <strong>Details:</strong> pressed state inherited; rows collapse by default; the needs-attention marker is the existing madder dot plus "Needs attention" status text; a screen reader hears the same in the opener's label.</p>
+  <h3>Mockups</h3>
+  <div class="mockup-grid">
+    <div class="mockup-card chosen"><h3>Approved layout (from grill)</h3>
+      <p><strong>Opener:</strong> gear, top-right, madder dot only for Support problems (not backup).<br>
+      <strong>Everyday:</strong> paused banner · weave · Practice (cue) · reading history · More.<br>
+      <strong>More → Preferences:</strong> Translation · [Appearance, deferred] · Sealing · Partner · Adaptive policy.<br>
+      <strong>Your data:</strong> Safekeeping · Starting over.<br>
+      <strong>About:</strong> Study library · Origin story · Support.</p></div>
+  </div>
+  <p class="note">Chosen direction: <strong>extend the existing knot pattern</strong>. No HTML mockup: the owner confirmed the layout in text during the grill and no new visual language is introduced; the gear glyph is checked on a dev build.</p>
+</div>
+
+<div id="execution" class="panel">
+  <h2>Execution</h2>
+  <p><strong>Grade C3:</strong> ~28 files across three layers (knot UI, text/services, lab confound and log type) and two shippable deliverables. No event-log migration, PRNG, notification or backup-crypto change, so not C4.</p>
+  <p>The authoritative file recipes, slice dependencies, commands, budgets, branching strategy and rollback steps are in <a href="exec.md">exec.md</a>. Live status is recorded only in <a href="PROGRESS.md">PROGRESS.md</a>.</p>
+  <p>Six slices. <strong>S01</strong> (gear opener, stable re-ordered sheet, Start over fix, Report a problem link) and <strong>S06</strong> (one source of truth for the cue) need no keys and ship first as PR 1. <strong>S02-S05</strong> are the translation switch as PR 2: confound + key validation, TranslationService + services rebuild, the knot row, then docs and the live-key gate. S01 and S02 are independent but too small to delegate, so they run serially inline.</p>
+</div>
+
+<div id="verify" class="panel">
+  <h2>Verification</h2>
+  <p>Automated (<code>npm test</code> + <code>npm run typecheck</code> + CI APK build) is the real gate for every slice. The change adds a log event type (additive) but no migration, PRNG, notification or crypto change, so no mandatory manual checklist applies.</p>
+  <ul class="checklist">
+    <li><input type="checkbox"><span>Owner spot-check, dev build: the gear is visible over scripture at one narrow phone width and clears the safe area, not clipped.</span></li>
+    <li><input type="checkbox"><span>Owner spot-check: with a backup warning present, open the knot twice; the sheet is identical both times and the marked row sits in place, collapsed.</span></li>
+    <li><input type="checkbox"><span>Owner device check (required, cannot be unit-tested): Knot, More, Your data, Starting over, Start over, hold the ring about 2.5s; everything erases and the app returns to onboarding. If it fails, a visible error says why.</span></li>
+    <li><input type="checkbox"><span>Owner device check: edit the cue in the knot, then look at the arrival screen (and the reverse); both show the new text and it is still there after closing and reopening the app.</span></li>
+    <li><input type="checkbox"><span>Owner spot-check: About, Report a problem opens the browser at the new-issue page.</span></li>
+    <li><input type="checkbox"><span>Gate for PR 2 only: paste a real api.bible key and a real ESV key once each; each validates live, a chapter renders in that translation, and a deliberately wrong key is refused with the current translation unchanged.</span></li>
+  </ul>
+</div>
+
+<script>
+function show(id){
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+}
+const KEY = 'plan-checks-' + location.pathname;
+document.querySelectorAll('.checklist input[type=checkbox]').forEach((cb, i) => {
+  cb.checked = localStorage.getItem(KEY + i) === '1';
+  cb.addEventListener('change', () => localStorage.setItem(KEY + i, cb.checked ? '1' : '0'));
+});
+</script>
+</body>
+</html>

@@ -41,7 +41,7 @@ export function OnboardingFlow({ services, onDone }: OnboardingFlowProps) {
 
     if (final.provider && final.apiKey) {
       meta.set(db, 'text_provider', final.provider);
-      meta.set(db, 'text_provider_key', final.apiKey);
+      meta.set(db, `text_provider_key_${final.provider}`, final.apiKey);
     }
 
     if (final.book) {

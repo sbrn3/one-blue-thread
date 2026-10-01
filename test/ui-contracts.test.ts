@@ -55,6 +55,7 @@ const INTERACTIVE_CALLER_ALLOWLIST = new Set<string>([
   'src/knot/HistoryModal.tsx',
   'src/knot/Knot.tsx',
   'src/knot/PartnerSection.tsx',
+  'src/knot/TranslationSection.tsx',
   'src/onboarding/screens/AnchorScreen.tsx',
   'src/onboarding/screens/PlaceScreen.tsx',
   'src/onboarding/screens/SafekeepingScreen.tsx',
@@ -146,6 +147,30 @@ describe('ui-contracts (docs/plans/app-quality-foundations, Slice 7)', () => {
     const names = componentsThatRenderAModal();
     expect(names.has('HistoryModal')).toBe(true);
     expect(names.has('ChapterViewer')).toBe(true);
+  });
+
+  // docs/plans/knot-opener-icon — source-walking guards (no component renderer).
+  it('the knot promotes nothing and its opener has no "Knot" word label', () => {
+    const knot = codeOf(join(SRC, 'knot', 'Knot.tsx'));
+    const more = codeOf(join(SRC, 'knot', 'MoreSection.tsx'));
+    const promotion = /setPromoted|promoteds*(===|!==|=|:)/;
+    expect(knot).not.toMatch(promotion);
+    expect(more).not.toMatch(promotion);
+    expect(knot).not.toMatch(/>\s*Knot\s*</);
+    expect(codeOf(join(SRC, 'knot', 'KnotIcon.tsx'))).toMatch(/react-native-svg/);
+  });
+
+  it('backup state never drives the knot attention signals', () => {
+    const knot = codeOf(join(SRC, 'knot', 'Knot.tsx'));
+    const more = codeOf(join(SRC, 'knot', 'MoreSection.tsx'));
+    expect(knot).not.toMatch(/snapshotAttentionNeeded|externalAttentionNeeded/);
+    expect(more).not.toMatch(/snapshotAttentionNeeded|externalAttentionNeeded/);
+  });
+
+  it("the knot's modal contents sit in a GestureHandlerRootView (Android modals are a separate window; ResetSection's long-press needs it)", () => {
+    const knot = codeOf(join(SRC, 'knot', 'Knot.tsx'));
+    expect(knot).toMatch(/<GestureHandlerRootView/);
+    expect(knot.indexOf('<GestureHandlerRootView')).toBeGreaterThan(knot.indexOf('<Modal'));
   });
 
   it('no component renders a modal-opening child after its own last </Modal>', () => {

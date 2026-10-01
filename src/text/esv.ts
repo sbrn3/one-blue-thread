@@ -67,6 +67,34 @@ export class EsvProvider implements TextProvider {
 }
 
 /**
+ * Cache-free live check that an ESV key actually authenticates — the
+ * ESV equivalent of resolveNivBibleId's role for NIV (apiBible.ts).
+ * Deliberately does NOT go through EsvProvider.getChapter(): that
+ * method checks chapter_cache first, so a previously-cached chapter
+ * would let a revoked or rotated key "pass" validation with no live
+ * network call at all — exactly the silent-fallback failure this
+ * whole feature exists to prevent (docs/plans/knot-translation-switch).
+ */
+export async function probeEsvKey(apiKey: string, fetchFn: typeof fetch = fetch): Promise<void> {
+  const params = new URLSearchParams({
+    q: 'John 1:1',
+    'include-verse-numbers': 'false',
+    'include-footnotes': 'false',
+    'include-footnote-body': 'false',
+    'include-headings': 'false',
+    'include-passage-references': 'false',
+    'include-short-copyright': 'false',
+    'include-copyright': 'false',
+  });
+  const res = await fetchFn(`https://api.esv.org/v3/passage/text/?${params}`, {
+    headers: { Authorization: `Token ${apiKey}` },
+  });
+  if (!res.ok) throw new Error(`ESV API ${res.status} — check the key`);
+  const body = (await res.json()) as { passages?: string[] };
+  if (!body.passages?.[0]) throw new Error('ESV API returned no passage — check the key');
+}
+
+/**
  * ESV's passage/text endpoint returns one prose string per query with
  * verse numbers inlined as "[16]" and paragraphs separated by a blank
  * line — not clean per-verse JSON. Split on blank lines for paragraph

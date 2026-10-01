@@ -14,6 +14,13 @@ import type { TextProvider, Verse } from './provider';
 // An earlier version of this file used api.scripture.api.bible, which
 // is wrong — fixed here rather than left to fail silently into the
 // WEB fallback forever.
+//
+// VERIFICATION: like esv.ts, this file has never been exercised against a
+// real key — every test mocks fetchFn (test/text.test.ts), and the only claim
+// above is that the host matched published docs, not a live call. The knot's
+// Translation row validates a pasted key with a live round-trip before saving
+// it (docs/plans/knot-opener-icon, S05). Update or remove this note once that
+// has run against a real api.bible key.
 
 const API_BASE = 'https://rest.api.bible/v1';
 

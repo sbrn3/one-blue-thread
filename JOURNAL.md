@@ -5,6 +5,35 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## Decision 2026-10-01 — the knot stops promoting Safekeeping and Support
+
+**Decision:** When Safekeeping or Support needs attention, it no longer jumps
+to the top of the knot and force-expands. It stays in its normal group (Your
+data / About), collapsed like every other item, and carries a visible "needs
+attention" marker. This reverses the `promoted` mechanic `knot-declutter`
+shipped (`Knot.tsx` `handleOpen()`, `MoreSection.tsx`'s `promoted` guards).
+
+**Why:** Grill on issue #30. The reader's real complaint about the sheet's
+order and hierarchy was not the Your data / Practice / About axis but that the
+layout rearranged itself ("why would all the safekeeping settings be expanded
+and at the top?"). A sheet whose order changes depending on state can't be
+learned; things are never where you last found them. Trade-off accepted: an
+urgent problem is now one glance-and-tap further away than when it was
+pre-expanded.
+
+**Amendment (same day, owner):** backup is not a priority for this reader, so
+Safekeeping is demoted further. It never raises the opener's dot or a "Needs
+attention" marker; only Support does. Trade-off knowingly accepted: a failing
+backup now surfaces only when you open Safekeeping. Automatic snapshots keep
+running.
+
+**Consequences:** The everyday tier loses its conditional attention slot, so
+it is the same every time. The opener's attention dot must now point at a
+marked row inside More, not at something already visible. Grouping axis stays
+Your data / Practice / About.
+
+**Branch:** none yet (grill only; see `docs/plans/knot-opener-icon/`).
+
 ## 2026-09-22 — the start-over control, shaped like a button
 
 Reader feedback on issue #31: the hold-to-erase control (`ResetSection.tsx`)

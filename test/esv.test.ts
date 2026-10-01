@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { migrate } from '../src/log/schema';
-import { EsvProvider, parseEsvPassage } from '../src/text/esv';
+import { EsvProvider, parseEsvPassage, probeEsvKey } from '../src/text/esv';
 import { openTestDb } from './util/testDb';
 
 // Fixture shaped exactly per api.esv.org/docs/passage-text/'s documented
@@ -85,5 +85,27 @@ describe('EsvProvider (§07/§08 — unverified against a live key)', () => {
   it('never exposes a bulk-download path — one chapter per call, by construction', () => {
     const methods = Object.getOwnPropertyNames(EsvProvider.prototype);
     expect(methods.sort()).toEqual(['attribution', 'constructor', 'getChapter'].sort());
+  });
+});
+
+describe('probeEsvKey — cache-free live check', () => {
+  it('resolves on a valid response, hitting the real endpoint', async () => {
+    let calledUrl = '';
+    const fetchFn = (async (url: string) => {
+      calledUrl = url;
+      return { ok: true, json: async () => ({ passages: ['[1] In the beginning...'] }) };
+    }) as unknown as typeof fetch;
+    await expect(probeEsvKey('k', fetchFn)).resolves.toBeUndefined();
+    expect(calledUrl).toContain('api.esv.org');
+  });
+
+  it('throws on a non-ok response', async () => {
+    const fetchFn = (async () => ({ ok: false, status: 401, json: async () => ({}) })) as unknown as typeof fetch;
+    await expect(probeEsvKey('bad', fetchFn)).rejects.toThrow(/401/);
+  });
+
+  it('throws when the response has no passage', async () => {
+    const fetchFn = (async () => ({ ok: true, json: async () => ({ passages: [] }) })) as unknown as typeof fetch;
+    await expect(probeEsvKey('k', fetchFn)).rejects.toThrow(/no passage/);
   });
 });
