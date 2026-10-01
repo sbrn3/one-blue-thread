@@ -8,6 +8,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import type { Cue } from '../cue';
+import { useCue } from '../cue/useCue';
 import { dayCountVisible, sittingCountVisible } from '../lab/arrivalVisibility';
 import { getPendingReport, markApplied, type PendingReport } from '../lab/analysis/report';
 import { phaseMetrics, type PhaseMetric } from '../lab/analysis/reversal';
@@ -144,11 +145,9 @@ export function Flow({ services }: FlowProps) {
   // may not get sealed.
   const [pendingLapse, setPendingLapse] = useState<PendingLapseResponse | null>(null);
   const [partnerName, setPartnerName] = useState<string | null>(null);
-  // services.cue.current() reads the DB directly rather than reacting to
-  // state, so a save via handleSaveCue below needs its own state to force
-  // ArrivalZone/CueEditor to see the new value — otherwise nothing here
-  // re-renders and the edit looks like it silently reverted (#32).
-  const [cueState, setCueState] = useState<Cue | null>(() => services.cue.current());
+  // One source of truth for the cue: the arrival screen and the knot both
+  // edit it, so both read it from the service rather than keeping a copy (#32).
+  const cueState = useCue(services.cue);
 
   useEffect(() => {
     if (session.status !== 'ready') return;
@@ -162,7 +161,6 @@ export function Flow({ services }: FlowProps) {
   const handleSaveCue = useCallback(
     (c: Cue) => {
       services.cue.set(c);
-      setCueState(c);
     },
     [services.cue],
   );

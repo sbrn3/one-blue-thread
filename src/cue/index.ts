@@ -12,7 +12,11 @@ export interface Cue {
   validated: boolean;
 }
 
+export type CueListener = (cue: Cue | null) => void;
+
 export class CueService {
+  private readonly listeners = new Set<CueListener>();
+
   constructor(
     private readonly db: SqlDb,
     private readonly log: Log,
@@ -25,6 +29,19 @@ export class CueService {
     return row
       ? { anchor: row.anchor, place: row.place, nudgeHour: row.nudge_hour, validated: row.validated === 1 }
       : null;
+  }
+
+  /**
+   * The cue is shown and edited in more than one place (the arrival screen
+   * and the knot). Each used to keep its own copy in state, so a save in one
+   * left the other stale, and the next edit there overwrote the first.
+   * Subscribing makes the service the single source of truth.
+   */
+  subscribe(listener: CueListener): () => void {
+    this.listeners.add(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
   }
 
   /**
@@ -42,6 +59,14 @@ export class CueService {
       );
     });
     if (!opts.firstSet) this.log.write({ type: 'cue_changed' });
+    for (const listener of this.listeners) {
+      // A misbehaving subscriber must not undo or hide a save that already landed.
+      try {
+        listener(c);
+      } catch {
+        // ignored
+      }
+    }
   }
 
   /**

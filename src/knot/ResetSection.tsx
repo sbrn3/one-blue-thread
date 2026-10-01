@@ -62,6 +62,9 @@ export function ResetSection({ db, log, onReset, onScrollLock }: ResetSectionPro
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [stranded, setStranded] = useState(false);
+  // A failure before the wipe leaves everything intact, but must not be silent:
+  // saying nothing made a broken native step look like a dead button.
+  const [failure, setFailure] = useState<string | null>(null);
   const progress = useSharedValue(0);
 
   useEffect(() => {
@@ -73,6 +76,7 @@ export function ResetSection({ db, log, onReset, onScrollLock }: ResetSectionPro
   const bolt = confirming ? deriveBolt(db, log, logicalToday()) : null;
 
   const run = async () => {
+    setFailure(null);
     setBusy(true);
     let wiped = false;
     try {
@@ -82,12 +86,13 @@ export function ResetSection({ db, log, onReset, onScrollLock }: ResetSectionPro
       await (onReset ? onReset(markWiped) : performReset(db, nativeResetEnv, markWiped));
       // performReset reloads the app; nothing after this normally runs.
       if (wiped) setStranded(true);
-    } catch {
+    } catch (e) {
       // A failure before the wipe leaves everything intact — returning to the
       // sheet is correct. A failure after it has already destroyed the data,
       // and carrying on would let stores write deleted rows back.
       if (wiped) setStranded(true);
       else {
+        setFailure(e instanceof Error ? e.message : String(e));
         setBusy(false);
         setConfirming(false);
       }
@@ -138,6 +143,9 @@ export function ResetSection({ db, log, onReset, onScrollLock }: ResetSectionPro
       ) : !confirming ? (
         <>
           <Text style={styles.body}>Erase everything and return to the beginning.</Text>
+          {failure && (
+            <Text style={styles.failure}>Couldn&apos;t start over — nothing was erased. {failure}</Text>
+          )}
           <ActionButton label="Start over" variant="secondary" onPress={() => setConfirming(true)} style={styles.btn} />
         </>
       ) : (
@@ -197,6 +205,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     color: tokens.color.ink60,
+  },
+  failure: {
+    fontFamily: tokens.font.mono,
+    fontSize: 12,
+    lineHeight: 18,
+    color: tokens.color.madder,
   },
   unravelWrap: {
     alignItems: 'center',

@@ -36,3 +36,9 @@ The files are the unmodified upstream variable builds from Google Fonts; only
 the filenames were shortened. The OFL permits bundling and redistribution in
 this form, including inside the released APK, and requires that these copyright
 and licence notices travel with them.
+
+## Icons
+
+The knot's settings gear (`src/knot/KnotIcon.tsx`) is the "settings" glyph from
+[Feather](https://github.com/feathericons/feather), Copyright (c) 2013-2017 Cole
+Bemis, used under the MIT License.

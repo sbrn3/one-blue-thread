@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import type { Cue } from '../cue';
 import { ActionButton } from '../ui/controls';
@@ -34,13 +34,20 @@ export function CueEditor({ cue, onSave }: CueEditorProps) {
   const current = cue ?? DEFAULT_CUE;
   const [editing, setEditing] = useState<'anchor' | 'place' | null>(null);
   const [draft, setDraft] = useState('');
+  // onBlur and onSubmitEditing both fire for one confirmation; without this the
+  // second call re-saves from the same stale closure (a duplicate cue row and a
+  // duplicate cue_changed event).
+  const committing = useRef(false);
 
   const startEdit = (field: 'anchor' | 'place') => {
     setDraft(current[field]);
+    committing.current = false;
     setEditing(field);
   };
 
   const commitEdit = () => {
+    if (committing.current) return;
+    committing.current = true;
     if (editing) {
       const value = draft.trim() || current[editing];
       // Editing the anchor via the knot doesn't re-run the 3-question

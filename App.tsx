@@ -1,6 +1,6 @@
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider, initialWindowMetrics } from 'react-native-safe-area-context';
 import { installGlobalErrorHandler, logError, registerErrorDb } from './src/errors';
@@ -51,12 +51,27 @@ function AppRuntime() {
   useEffect(() => registerErrorDb(db), [db]);
 
   const [onboarded, setOnboarded] = useState(() => meta.get(db, 'onboarded') === '1');
-  // Rebuilt whenever onboarding completes, so the text provider picks
-  // up whatever provider/key onboarding just wrote to meta.
-  const services = useMemo(() => createServices(db), [db, onboarded]);
+  // Rebuilt whenever onboarding completes (so the text provider picks up what
+  // onboarding just wrote to meta) and whenever the knot switches translation.
+  // Flow's session-load effect keys on `text`'s identity, so a new services
+  // object is enough to reload today's portion in the new translation.
+  const [serviceEpoch, setServiceEpoch] = useState(0);
+  const services = useMemo(() => createServices(db), [db, onboarded, serviceEpoch]);
+  const handleTranslationChanged = useCallback(() => setServiceEpoch((e) => e + 1), []);
+
+  // The boot effect below must fire once per real launch / onboarding-complete
+  // transition — never on a translation switch, which also yields a new
+  // `services`. Reading it through a ref keeps the effect off `services`, so a
+  // switch does not re-run reconcile() or write a spurious app_open row to the
+  // append-only event log.
+  const servicesRef = useRef(services);
+  useEffect(() => {
+    servicesRef.current = services;
+  }, [services]);
 
   useEffect(() => {
     if (!onboarded) return;
+    const services = servicesRef.current;
     // §13.4 — everything the app "does at 4 AM" happens here instead,
     // lazily, on foreground. Runs before app_open is logged so the
     // reconciled state reflects days up to (not including) today.
@@ -78,12 +93,12 @@ function AppRuntime() {
     void services.backup.snapshotIfDue().catch((e: unknown) => {
       logError(db, `weekly recovery snapshot failed: ${e instanceof Error ? e.message : String(e)}`);
     });
-  }, [onboarded, services, db]);
+  }, [onboarded, db]); // NOT `services` — see servicesRef above
 
   return onboarded ? (
     <>
       <Flow services={services} />
-      <Knot services={services} />
+      <Knot services={services} onTranslationChanged={handleTranslationChanged} />
     </>
   ) : (
     <OnboardingFlow services={services} onDone={() => setOnboarded(true)} />

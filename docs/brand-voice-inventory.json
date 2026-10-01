@@ -28,6 +28,7 @@
   "src/knot/PartnerSection.tsx": ["reader-owned", "operation-consent-error"],
   "src/knot/ResetSection.tsx": ["operation-consent-error"],
   "src/knot/SealModeSection.tsx": ["operation-consent-error", "behavioural-fact"],
+  "src/knot/TranslationSection.tsx": ["operation-consent-error"],
   "src/lab/analysis/report.ts": ["operation-consent-error", "behavioural-fact"],
   "src/notify/notifier.ts": ["reader-owned", "operation-consent-error"],
   "src/onboarding/AnchorValidation.tsx": ["operation-consent-error", "behavioural-fact"],
