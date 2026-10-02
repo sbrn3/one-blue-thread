@@ -34,3 +34,16 @@ export function railGeometry(height: number, woven: boolean): { g: ClothGeom; ro
 export function railCoverage(height: number): number {
   return clothSize(railGeometry(height, true).g).height;
 }
+
+/**
+ * Where the rail's fell sits, in rail pixels. It follows scroll progress but can
+ * never pass the seal line (`lineY`, in rail coordinates; null while unmeasured):
+ * you cannot have woven past the thing that seals the day. `sealedSweep` (0→1)
+ * then carries it to the bottom once sealed.
+ */
+export function railFell(progressPx: number, lineY: number | null, railHeight: number, sealedSweep: number): number {
+  'worklet';
+  const base = lineY === null ? progressPx : Math.min(progressPx, lineY);
+  const clamped = Math.min(railHeight, Math.max(0, base));
+  return clamped + (railHeight - clamped) * sealedSweep;
+}

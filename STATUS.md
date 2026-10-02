@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-09-22 (knot-declutter shipped; PRs #35–#37 merged; `/catch-me-up --fix` doc-drift pass)_
+_Last updated: 2026-10-02 (seal-affordance: fell-line seal built)_
 
 ## Current phase
 
@@ -147,6 +147,10 @@ all three bundled typefaces, and sat idle instead of pinning a core.
   switch (absorbs `knot-translation-switch`). Open: owner device checks (Start
   over hold, cue edits) and live NIV/ESV key round-trips before merging the
   translation half. See `docs/plans/knot-opener-icon/plan.html`.
+- **seal-affordance** - 🔨 built on `feat/seal-fell-line`. The seal is now the fell
+  line (outlined pill on a thread across the page) and the rail locks onto it;
+  rail fix ships first. Open: owner device checks (rail/line alignment on a
+  notched phone, hold feel, tap mode). See `docs/plans/seal-affordance/plan.html`.
 
 ## Next actions
 

@@ -1,9 +1,15 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+  type SharedValue,
+} from 'react-native-reanimated';
 import Svg, { G, Path } from 'react-native-svg';
 import { warpPath, weftPath } from '../ui/loom';
-import { RAIL_WIDTH, railGeometry } from '../ui/rail';
+import { RAIL_WIDTH, railFell, railGeometry } from '../ui/rail';
 import { tokens } from '../ui/tokens';
 
 // §04 — the rail on the left edge tracks scroll position; reading progress IS
@@ -25,10 +31,45 @@ interface ThreadRailProps {
   layoutHeight: SharedValue<number>;
   /** The actual safe content height (post safe-area-inset) — see Flow.tsx's onLayout measurement. Full window height overcounted the status bar/home-indicator as rail. */
   railHeight: number;
+  /** Content-Y of the seal line (-1 until measured). The fell can never pass it. */
+  sealLineY: SharedValue<number>;
+  /** Where the ScrollView's viewport starts on screen (the top safe-area inset). */
+  viewportTop: number;
+  /** Once sealed, the fell sweeps on to the bottom of the rail. */
+  sealed: boolean;
+  reducedMotion: boolean;
 }
 
-export function ThreadRail({ scrollY, contentHeight, layoutHeight, railHeight }: ThreadRailProps) {
+const SWEEP_MS = 600;
+
+export function ThreadRail({
+  scrollY,
+  contentHeight,
+  layoutHeight,
+  railHeight,
+  sealLineY,
+  viewportTop,
+  sealed,
+  reducedMotion,
+}: ThreadRailProps) {
   const windowHeight = railHeight;
+
+  // 0 until the day is sealed, then the fell runs on down to the bottom. Already
+  // sealed on mount (or reduced motion) it simply is there.
+  const sealedSweep = useSharedValue(sealed ? 1 : 0);
+  useEffect(() => {
+    if (!sealed) sealedSweep.value = 0;
+    else if (reducedMotion) sealedSweep.value = 1;
+    else sealedSweep.value = withTiming(1, { duration: SWEEP_MS, easing: Easing.inOut(Easing.cubic) });
+  }, [sealed, reducedMotion, sealedSweep]);
+
+  const fellPx = () => {
+    'worklet';
+    const scrollable = Math.max(1, contentHeight.value - layoutHeight.value);
+    const progress = Math.min(1, Math.max(0, scrollY.value / scrollable));
+    const lineY = sealLineY.value < 0 ? null : viewportTop + sealLineY.value - scrollY.value;
+    return railFell(progress * windowHeight, lineY, windowHeight, sealedSweep.value);
+  };
 
   const { bare, woven } = useMemo(
     () => ({ bare: railGeometry(windowHeight, false), woven: railGeometry(windowHeight, true) }),
@@ -39,25 +80,15 @@ export function ThreadRail({ scrollY, contentHeight, layoutHeight, railHeight }:
   // indicator, like a scrollbar, not an animation: snapping it to 100% would
   // show a reduced-motion reader fully woven cloth and no fell line at the
   // top of an unread chapter, which is the one thing the rail must never do.
-  const fillStyle = useAnimatedStyle(() => {
-    const scrollable = Math.max(1, contentHeight.value - layoutHeight.value);
-    const progress = Math.min(1, Math.max(0, scrollY.value / scrollable));
-    return { height: `${progress * 100}%` };
-  });
+  const fillStyle = useAnimatedStyle(() => ({ height: fellPx() }));
 
   // The bare warp lives only below the fell: a window whose top follows the
   // fell, with the Svg counter-offset so its paths keep their coordinates.
   const bareWindowStyle = useAnimatedStyle(() => {
-    const scrollable = Math.max(1, contentHeight.value - layoutHeight.value);
-    const progress = Math.min(1, Math.max(0, scrollY.value / scrollable));
-    const fell = progress * windowHeight;
+    const fell = fellPx();
     return { top: fell, height: windowHeight - fell };
   });
-  const bareOffsetStyle = useAnimatedStyle(() => {
-    const scrollable = Math.max(1, contentHeight.value - layoutHeight.value);
-    const progress = Math.min(1, Math.max(0, scrollY.value / scrollable));
-    return { top: -(progress * windowHeight) };
-  });
+  const bareOffsetStyle = useAnimatedStyle(() => ({ top: -fellPx() }));
 
   const cols = bare.g.sett.drawnCols;
 

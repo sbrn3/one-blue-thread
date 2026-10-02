@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { geometry, warpX } from '../src/ui/loom';
-import { RAIL_OPTS, RAIL_THREADS, RAIL_WIDTH, railCoverage, railRows } from '../src/ui/rail';
+import { RAIL_OPTS, RAIL_THREADS, RAIL_WIDTH, railCoverage, railFell, railRows } from '../src/ui/rail';
 
 describe('rail geometry', () => {
   it.each([480, 736, 1024])('cloth reaches the bottom of a %ipx rail', (h) => {
@@ -25,5 +25,31 @@ describe('rail geometry', () => {
         expect(warpX(g, i + 1, y) - warpX(g, i, y)).toBeGreaterThan(0);
       }
     }
+  });
+});
+
+describe('railFell', () => {
+  const H = 700;
+
+  it('follows progress when the seal line is unmeasured or below', () => {
+    expect(railFell(200, null, H, 0)).toBe(200);
+    expect(railFell(200, 500, H, 0)).toBe(200);
+  });
+
+  it('locks at the seal line when progress would pass it', () => {
+    expect(railFell(600, 450, H, 0)).toBe(450);
+  });
+
+  it('is 0 when the seal line is above the screen', () => {
+    expect(railFell(300, -80, H, 0)).toBe(0);
+  });
+
+  it('clamps to the rail', () => {
+    expect(railFell(900, null, H, 0)).toBe(H);
+  });
+
+  it('sweeps to the bottom once sealed', () => {
+    expect(railFell(100, 300, H, 1)).toBe(H);
+    expect(railFell(100, 300, H, 0.5)).toBe(100 + (H - 100) * 0.5);
   });
 });

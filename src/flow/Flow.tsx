@@ -63,6 +63,7 @@ export function Flow({ services }: FlowProps) {
   const layoutHeight = useSharedValue(1);
   const scriptureTop = useSharedValue(0);
   const scriptureBottom = useSharedValue(0);
+  const sealLineY = useSharedValue(-1);
   const readingStartFired = useSharedValue(false);
   const scrollEndFired = useSharedValue(false);
 
@@ -521,6 +522,10 @@ export function Flow({ services }: FlowProps) {
         contentHeight={contentHeight}
         layoutHeight={layoutHeight}
         railHeight={railHeight}
+        sealLineY={sealLineY}
+        viewportTop={insets.top}
+        sealed={session.sealedToday}
+        reducedMotion={reducedMotion}
       />
       <Animated.ScrollView
         style={styles.scroll}
@@ -596,6 +601,10 @@ export function Flow({ services }: FlowProps) {
           sealMode={sealMode}
           canSeal={canSeal}
           floor={floor}
+          dayLabel={showDayCount ? session.daysInBook : null}
+          onLineLayout={(y) => {
+            sealLineY.value = y;
+          }}
         />
         {session.sealedToday && (
           <>

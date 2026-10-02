@@ -20,4 +20,6 @@ Created by `/plan`; retained by `/save-plan`.
 
 Status: 📋 planned · 🔨 in progress · ✅ shipped · ❄️ parked.
 `knot-translation-switch` is absorbed into `knot-opener-icon` at the owner's request; its plan.html stays as the code-level recipe reference.
+| seal-affordance | The seal becomes the fell line: a button-like pill on a thread across the page, and the rail locks onto it | 🔨 in progress | Built on `feat/seal-fell-line` (PR1 rail, PR2 seal). Open: device check of rail/line alignment, hold feel, notched phone. |
+
 Keep this table and `STATUS.md`'s Active Plans table in sync.
