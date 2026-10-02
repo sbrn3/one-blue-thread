@@ -9,7 +9,7 @@ changed, why, and anything the next session needs to know.
 
 **Decision:** the weave-as-button seal is replaced by a thread across the page
 with an outlined pill; the rail's fell locks onto it and sweeps to the bottom
-once sealed. Rail fix (windowed bare warp, full-height cloth) shipped first.
+once sealed. Rail fix (windowed bare warp, full-height cloth) landed with it. Merged as PR #43; goes out in the next release after v0.7.0.
 **Why:** the weave neither read as a button nor fit the page. **Next:** check on
 device — rail/line alignment on a notched phone, hold feel, tap mode.
 
