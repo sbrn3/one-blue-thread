@@ -51,8 +51,10 @@ and a translation the reader may choose outright: it is named, not hidden.
 
 ## Actions
 
-**The seal** — the press-and-hold that commits a day's reading. Drawn as a weft
-pass: you weave to commit.
+**The seal** — the press-and-hold that commits a day's reading. Drawn as the fell
+line itself: a thread run across the page under an outlined "Hold to seal" pill;
+holding pulls the weft taut along it. The rail's fell locks onto this line, so
+the rail cannot weave past the seal until the day is sealed.
 
 **The unravel** — the press-and-hold that erases the account and returns the app
 to first run. The deliberate inverse of the seal: the cloth comes apart while

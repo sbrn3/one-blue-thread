@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup — Seal animation</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* Colours are src/ui/tokens.ts ("The Loom"), not the template's older palette. */
+:root {
+  --paper: #F4F1E9; --ink: #1A1A17; --thread: #2E3A8C; --warp: #8F8779;
+  --madder: #B5482F; --dyeSoft: #E7E9F4;
+  --ink60: #5B584F; --ink40: #726D5C; --ink15: #E0DACB;
+  --display: 'Schibsted Grotesk', system-ui, sans-serif;
+  --scripture: 'Newsreader', Georgia, serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ink15); color: var(--ink); font-family: var(--display); }
+.mk-bar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; justify-content: space-between;
+  padding: .7rem 1.1rem; background: var(--ink); color: var(--paper);
+  font-family: var(--mono); font-size: .8rem;
+}
+.mk-bar strong { font-weight: 600; }
+.mk-bar .dir { opacity: .7; }
+.mk-options { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+.mk-options a, .mk-options label { color: inherit; border: 1px solid currentColor; border-radius: 999px; padding: .3rem .8rem; font-size: .72rem; text-decoration: none; cursor: pointer; user-select: none; }
+.mk-options label input { margin: 0 .35rem 0 0; vertical-align: -1px; }
+
+.intro { max-width: 980px; margin: 2rem auto 0; padding: 0 1.5rem; font-family: var(--scripture); font-size: 1.08rem; line-height: 1.6; color: var(--ink60); }
+.intro strong { color: var(--ink); font-weight: 600; }
+
+.mk-stage { display: flex; flex-wrap: wrap; gap: 2rem; padding: 2rem 1.5rem 3rem; justify-content: center; align-items: flex-start; }
+.col { width: 390px; max-width: 100%; display: flex; flex-direction: column; gap: .9rem; }
+
+.phone { background: var(--paper); border-radius: 34px; box-shadow: 0 20px 60px rgba(0,0,0,.18); padding: 40px 26px 30px; }
+.opt-label { font-family: var(--mono); font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; color: var(--thread); margin: 0 0 1.2rem; }
+.kicker { font-family: var(--mono); font-size: .68rem; letter-spacing: .14em; color: var(--ink40); text-transform: uppercase; margin: 0 0 .7rem; }
+.verse { font-family: var(--scripture); font-size: 1.18rem; line-height: 1.6; margin: 0; }
+.verse sup { font-size: .7rem; color: var(--ink40); margin-right: .25rem; }
+
+.zone { min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; margin-top: 1.4rem; }
+.loom { display: flex; align-items: center; justify-content: center; cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none; min-height: 100px; }
+.loom { max-width: 100%; }
+.loom svg { display: block; overflow: visible; max-width: 100%; height: auto; }
+.hint { margin-top: 14px; font-weight: 700; font-size: 13px; min-height: 18px; }
+.hint.sealed { font-family: var(--mono); font-weight: 400; letter-spacing: 1px; text-transform: uppercase; color: var(--thread); }
+.sealed-text { font-family: var(--mono); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--thread); }
+.twotap { margin-top: 4px; font-size: 13px; color: var(--thread); text-decoration: underline; text-underline-offset: 3px; min-height: 18px; }
+.pulses { display: flex; gap: 6px; margin-top: 10px; align-items: center; font-family: var(--mono); font-size: .62rem; color: var(--ink40); min-height: 12px; }
+.pulses i { width: 6px; height: 6px; border-radius: 50%; background: var(--ink15); display: inline-block; transition: background .08s; }
+.pulses i.on { background: var(--thread); }
+.pulses span { margin-left: 4px; }
+.hidden { visibility: hidden; }
+
+.ctrl { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: center; }
+.ctrl button { font-family: var(--mono); font-size: .72rem; background: var(--paper); color: var(--ink); border: 1px solid var(--ink40); border-radius: 999px; padding: .4rem .85rem; cursor: pointer; }
+.ctrl button:hover { border-color: var(--thread); color: var(--thread); }
+
+.notes { background: var(--paper); border-radius: 16px; padding: 1.1rem 1.25rem; font-size: .9rem; line-height: 1.5; }
+.notes h4 { font-family: var(--mono); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink40); margin: 0 0 .5rem; }
+.notes h4 + ul, .notes p + h4 { margin-top: 0; }
+.notes ul { margin: 0 0 .8rem; padding-left: 1.1rem; }
+.notes li { margin-bottom: .3rem; }
+.notes p { margin: 0 0 .8rem; }
+.notes .bad { color: var(--madder); font-weight: 600; }
+.notes .cost { font-family: var(--mono); font-size: .75rem; color: var(--ink60); margin: 0; }
+
+.compare { max-width: 980px; margin: 0 auto 4rem; padding: 0 1.5rem; }
+.compare table { width: 100%; border-collapse: collapse; background: var(--paper); border-radius: 16px; overflow: hidden; font-size: .88rem; }
+.compare th, .compare td { text-align: left; padding: .7rem .9rem; border-bottom: 1px solid var(--ink15); vertical-align: top; }
+.compare th { font-family: var(--mono); font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink40); font-weight: 400; }
+.compare td:first-child { font-weight: 700; white-space: nowrap; }
+.compare tr:last-child td { border-bottom: 0; }
+@media (max-width: 640px) { .compare { overflow-x: auto; } .compare table { min-width: 620px; } }
+</style>
+</head>
+<body>
+
+<div class="mk-bar">
+  <span><strong>Seal animation</strong> <span class="dir">— the current pass, plus three ways to make it read as weaving</span></span>
+  <nav class="mk-options" aria-label="Mockup views">
+    <a href="#current">Current</a>
+    <a href="#option-a">A · Shuttle pass</a>
+    <a href="#option-b">B · Taut warp</a>
+    <a href="#option-c">C · Bind off</a>
+    <label><input type="checkbox" id="zoom" checked>Loom ×2</label>
+    <label><input type="checkbox" id="slow">Slow ×4</label>
+    <label><input type="checkbox" id="bounds">Show loom box</label>
+  </nav>
+</div>
+
+<p class="intro"><strong>Press and hold any loom</strong> to seal (1.2 s, same as the app). Let go early to see it unwind, or drag more than 20 px to cancel. Looms are shown at ×2 so the weave is visible; untick "Loom ×2" for true phone size. The buttons under each phone replay the same thing hands-free. All four use the app's real geometry from <code>src/ui/loom.ts</code>, so the threads are drawn the way the app draws them.</p>
+
+<main class="mk-stage" id="stage"></main>
+
+<section class="compare">
+  <table>
+    <thead><tr><th></th><th>During the hold</th><th>At completion</th><th>After sealing</th><th>Build cost (RN)</th></tr></thead>
+    <tbody>
+      <tr><td>Current</td><td>Thick line wipes across, over every warp thread</td><td>Nothing — loom is swapped out</td><td>"SEALED" text only</td><td>—</td></tr>
+      <tr><td>A · Shuttle pass</td><td>Shuttle carries a cloth-weight weft over/under the warp, one row below the fell</td><td>Beater packs the row up into the cloth</td><td>Cloth stays, one row longer</td><td>Low — dash offset + one transform</td></tr>
+      <tr><td>B · Taut warp</td><td>Loose warp tightens as the weft goes in (the rail's language)</td><td>Warp twangs and settles</td><td>Cloth stays; unread warp below stays faint</td><td>Medium — warp <code>d</code> recomputed per frame in a worklet</td></tr>
+      <tr><td>C · Bind off</td><td>Interlaced draw, no shuttle</td><td>Thread ties off in a knot, cloth folds into a swatch</td><td>Swatch + "Sealed · Day 24" badge</td><td>Low–medium — dash + group transform</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<script>
+const T = { paper:'#F4F1E9', ink:'#1A1A17', thread:'#2E3A8C', warp:'#8F8779', madder:'#B5482F', ink40:'#726D5C', ink15:'#E0DACB' };
+const HOLD = 1200, UNWIND = 220, PULSES = 6, DRIFT = 20;
+let SLOW = 1, SHOW_BOUNDS = false, ZOOM = 2;
+
+// ---- ported from src/ui/loom.ts (same maths, so the threads match the app) ----
+function geom(W, H, cols, rows, pad) {
+  const sx = Math.min((W - pad * 2) / (cols + 1), 16);
+  const sy = Math.min(Math.max((H - pad * 2) / (rows + 1), 5), 16);
+  return { cols, sx, sy, pad, amp: 1.8, slackCap: 4.5, dist: new Array(rows).fill(0), extra: null };
+}
+function distAt(g, y) {
+  const f = (y - g.pad) / g.sy;
+  const a = Math.max(0, Math.min(g.dist.length - 1, Math.floor(f)));
+  const b = Math.min(g.dist.length - 1, a + 1);
+  const t = Math.max(0, Math.min(1, f - a));
+  return g.dist[a] + (g.dist[b] - g.dist[a]) * t;
+}
+function warpX(g, i, y) {
+  const d = Math.min(distAt(g, y), g.slackCap);
+  const slack = d / g.slackCap;
+  const wl = g.sy * 2.05;
+  const x = g.pad + i * g.sx + Math.sin(y / wl + i * 0.9) * g.amp * (1 + slack * 2.2) + Math.sin(i * 2.31 + 1.7) * d * 1.05;
+  return g.extra ? x + g.extra(i, y) : x;
+}
+const weftY = (g, j, x) => g.pad + j * g.sy + Math.sin(x / (g.sx * 2.05) + j * 0.7) * g.amp;
+const fx = (n) => Math.round(n * 100) / 100;
+function warpPath(g, i, a, b) {
+  const step = Math.min(3.5, g.sy / 3), ya = g.pad + (a - 0.5) * g.sy, yb = g.pad + (b + 0.5) * g.sy;
+  let d = '';
+  for (let y = ya; y <= yb + 0.001; y += step) d += (d ? 'L' : 'M') + fx(warpX(g, i, y)) + ' ' + fx(y) + ' ';
+  return d.trim();
+}
+function weftPts(g, j) {
+  const step = Math.min(3.5, g.sx / 3), x0 = g.pad - g.pad * 0.6, x1 = g.pad + g.sx * (g.cols - 1) + g.pad * 0.6, p = [];
+  for (let x = x0; x <= x1 + 0.001; x += step) p.push([x, weftY(g, j, x)]);
+  return p;
+}
+const toPath = (p) => p.map(([x, y], i) => (i ? 'L' : 'M') + fx(x) + ' ' + fx(y)).join(' ');
+const over = (i, j) => (i + j) % 2 === 0;
+function pointAt(pts, frac) {
+  const segs = []; let tot = 0;
+  for (let i = 1; i < pts.length; i++) { const l = Math.hypot(pts[i][0] - pts[i-1][0], pts[i][1] - pts[i-1][1]); segs.push(l); tot += l; }
+  let target = tot * Math.max(0, Math.min(1, frac));
+  for (let i = 0; i < segs.length; i++) {
+    if (target <= segs[i] || i === segs.length - 1) {
+      const t = segs[i] ? Math.min(1, target / segs[i]) : 0, a = pts[i], b = pts[i + 1];
+      return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI];
+    }
+    target -= segs[i];
+  }
+  return [...pts[pts.length - 1], 0];
+}
+
+// ---- drawing helpers ----
+const P = (d, stroke, w, op = 1, extra = '') => `<path d="${d}" stroke="${stroke}" stroke-width="${w}" stroke-opacity="${op}" stroke-linecap="round" fill="none" ${extra}/>`;
+const dash = (p) => `pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="${fx(1 - p)}"`;
+const clamp = (v) => Math.max(0, Math.min(1, v));
+const easeOutBack = (t) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+const easeInOut = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+function cloth(g, woven, warpTo) {
+  let s = '';
+  for (let i = 0; i < g.cols; i++) s += P(warpPath(g, i, 0, warpTo), T.warp, 3);
+  for (let j = 0; j < woven; j++) s += P(toPath(weftPts(g, j)), T.thread, 3.4, 0.9);
+  for (let j = 0; j < woven; j++) for (let i = 0; i < g.cols; i++) if (over(i, j)) s += P(warpPath(g, i, j, j), T.warp, 3);
+  return s;
+}
+const liveOvers = (g, row) => { let s = ''; for (let i = 0; i < g.cols; i++) if (over(i, row)) s += P(warpPath(g, i, row, row), T.warp, 3); return s; };
+const boxRect = (w, h) => SHOW_BOUNDS
+  ? `<rect x=".5" y=".5" width="${w - 1}" height="${h - 1}" fill="none" stroke="${T.madder}" stroke-width="1" stroke-dasharray="3 3"/><line x1="${w/2}" y1="0" x2="${w/2}" y2="${h}" stroke="${T.madder}" stroke-width=".75" stroke-dasharray="2 3"/>`
+  : '';
+const sealedHint = (op) => ({ text: 'Sealed', sealed: true, opacity: op });
+
+// ---- the four directions ----
+const gCur = geom(168, 96, 7, 5, 8);
+const gA = geom(168, 96, 7, 5, 8);
+const gC = geom(168, 96, 7, 5, 8);
+const gB = { ...geom(168, 96, 7, 5, 8), dist: new Array(7).fill(0) };
+const clothW = gA.sx * (gA.cols - 1) + gA.pad * 2;
+
+const OPTIONS = [
+  {
+    id: 'current', label: 'Current — dash draw', sealMs: 1,
+    render(k) {
+      if (k.state === 'sealed') return { sealedOnly: true };
+      let s = boxRect(168, 96) + cloth(gCur, 4, 4);
+      s += P(toPath(weftPts(gCur, 4)), T.thread, 6, 1, dash(k.p));
+      return { w: 168, h: 96, svg: s, hint: { text: 'Hold to seal' } };
+    },
+    notes: `
+      <h4>How it works today</h4>
+      <ul>
+        <li>A 168×96 loom: 7 warp threads and 4 finished weft rows.</li>
+        <li>Holding draws a 5th weft row left to right over 1.2 s (linear), with 6 light haptic pulses spread evenly across the hold.</li>
+        <li>Letting go early pulls the row back out over 220 ms and logs a <code>hold_cancel</code>.</li>
+        <li>Completing it fires a success haptic, and the whole loom is replaced by the word "Sealed".</li>
+      </ul>
+      <h4>What reads badly</h4>
+      <ul>
+        <li><span class="bad">It isn't woven.</span> The new row is painted on top of every warp thread. The finished rows go over and under, so the new one looks like a highlighter stroke laid across the cloth.</li>
+        <li><span class="bad">It's a different material.</span> 6 px against the cloth's 3.4 px, and fully opaque.</li>
+        <li><span class="bad">No payoff.</span> At the moment you finish, the cloth you just made disappears.</li>
+        <li><span class="bad">Off-centre.</span> The cloth only fills about 109×68 of its 168×96 box and sits top-left, so it hangs left of the centred "Hold to seal". Tick "Show loom box" to see it.</li>
+      </ul>`,
+  },
+  {
+    id: 'option-a', label: 'A · Shuttle pass', sealMs: 700,
+    render(k) {
+      const tx = (168 - clothW) / 2, ty = 10;
+      const beat = k.state === 'sealed' ? easeOutBack(clamp(k.c / 0.45)) : 0;
+      const gap = gA.sy * 0.45 * (1 - beat);
+      const pts = weftPts(gA, 4);
+      let s = boxRect(168, 96) + `<g transform="translate(${tx},${ty})">` + cloth(gA, 4, 4);
+      s += `<g transform="translate(0,${fx(gap)})">` + P(toPath(pts), T.thread, 3.4, 0.95, dash(k.p)) + '</g>';
+      s += liveOvers(gA, 4);
+      if ((k.state === 'holding' || k.state === 'unwinding') && k.p > 0.002) {
+        const [x, y, a] = pointAt(pts, k.p);
+        s += `<g transform="translate(${fx(x)},${fx(y + gap)}) rotate(${fx(a)})"><path d="M11 0 Q3 -3.6 -6 -1.4 L-6 1.4 Q3 3.6 11 0Z" fill="${T.ink}"/></g>`;
+      }
+      s += '</g>';
+      const hint = k.state === 'sealed' ? sealedHint(clamp((k.c - 0.4) / 0.4)) : { text: 'Hold to seal' };
+      return { w: 168, h: 96, svg: s, hint };
+    },
+    notes: `
+      <h4>What changes</h4>
+      <ul>
+        <li>The new row goes <strong>over and under</strong> the warp like the rows above it, at the same 3.4 px weight, so it reads as one more pass of the same thread.</li>
+        <li>A small <strong>shuttle</strong> leads the thread across. If you let go, it backs out the way it came.</li>
+        <li>During the hold the row sits a little below the cloth. On completion a <strong>beater</strong> packs it up into place with a small overshoot, and the success haptic lands on that knock.</li>
+        <li><strong>The cloth stays</strong>, one row longer, with "Sealed" fading in underneath.</li>
+        <li>The cloth is centred in its box.</li>
+      </ul>
+      <p class="cost">Cost: the same <code>strokeDashoffset</code> you already have, plus one <code>translateY</code> and one shuttle transform. Gesture, timings, haptics and the tap/two-tap fallbacks are unchanged.</p>`,
+  },
+  {
+    id: 'option-b', label: 'B · Taut warp', sealMs: 900,
+    render(k) {
+      const tx = (168 - clothW) / 2, ty = 2;
+      const s0 = gB.slackCap * (1 - easeInOut(k.p));
+      gB.dist = [0, 0, 0, 0, s0, Math.min(4.5, s0 + 1.5), Math.min(4.5, s0 + 3)];
+      const tw = k.state === 'sealed' ? 2.4 * Math.sin(k.c * Math.PI * 5) * (1 - k.c) : 0;
+      const y35 = gB.pad + 3.5 * gB.sy, y45 = gB.pad + 4.5 * gB.sy;
+      gB.extra = tw ? (i, y) => tw * (i % 2 ? 1 : -1) * clamp((y - y35) / (y45 - y35)) : null;
+      let s = boxRect(168, 100) + `<g transform="translate(${tx},${ty})">`;
+      for (let i = 0; i < gB.cols; i++) {
+        s += P(warpPath(gB, i, 0, 4), T.warp, 3);
+        s += P(warpPath(gB, i, 5, 6), T.warp, 2.4, 0.42);
+      }
+      for (let j = 0; j < 4; j++) s += P(toPath(weftPts(gB, j)), T.thread, 3.4, 0.9);
+      for (let j = 0; j < 4; j++) for (let i = 0; i < gB.cols; i++) if (over(i, j)) s += P(warpPath(gB, i, j, j), T.warp, 3);
+      s += P(toPath(weftPts(gB, 4)), T.thread, 3.4, 0.95, dash(k.p));
+      s += liveOvers(gB, 4);
+      s += '</g>';
+      const hint = k.state === 'sealed' ? sealedHint(clamp((k.c - 0.35) / 0.4)) : { text: 'Hold to seal' };
+      return { w: 168, h: 100, svg: s, hint };
+    },
+    notes: `
+      <h4>What changes</h4>
+      <ul>
+        <li>Below the cloth the warp is <strong>loose and faint</strong>, exactly like the unread part of the left-edge rail.</li>
+        <li>As you hold, the weft goes in and that warp <strong>pulls taut</strong>. Let go and it slackens again.</li>
+        <li>On completion the warp gives a short <strong>twang</strong> and settles. The cloth stays, with "Sealed" beneath it.</li>
+        <li>It's the same story the rail now tells: loose ahead, tight behind. The seal and the rail would read as one system.</li>
+      </ul>
+      <p class="cost">Cost: the warp's <code>d</code> has to be regenerated every frame. That means porting <code>warpX</code>/<code>warpPath</code> to worklets and animating 7 path strings, which is heavier than A or C. Fine at this size, but test it on a low-end phone.</p>`,
+  },
+  {
+    id: 'option-c', label: 'C · Bind off', sealMs: 1100,
+    render(k) {
+      const W = 220, H = 96, pts = weftPts(gC, 4);
+      const [ex, ey] = pts[pts.length - 1];
+      const sealed = k.state === 'sealed';
+      const k1 = sealed ? clamp(k.c / 0.3) : 0;
+      const k2 = sealed ? easeInOut(clamp((k.c - 0.32) / 0.45)) : 0;
+      const k3 = sealed ? clamp((k.c - 0.6) / 0.35) : 0;
+      const sc = 1 - 0.55 * k2;
+      const x0 = (W - clothW) / 2, y0 = 12, x1 = 22, y1 = 32;
+      const tx = x0 + (x1 - x0) * k2, ty = y0 + (y1 - y0) * k2;
+      let s = boxRect(W, H) + `<g transform="translate(${fx(tx)},${fx(ty)}) scale(${fx(sc)})">` + cloth(gC, 4, 4);
+      s += P(toPath(pts), T.thread, 3.4, 0.95, dash(k.p));
+      s += liveOvers(gC, 4);
+      if (sealed) s += P(`M${fx(ex)} ${fx(ey)} c5 0 8 -5 5 -8 c-3 -3 -8 0 -6 4 c2 4 7 4 11 1`, T.thread, 3, 1, dash(k1));
+      s += '</g>';
+      if (k3 > 0) s += `<text x="${x1 + clothW * 0.45 + 12}" y="${y1 + 20}" font-family="JetBrains Mono, monospace" font-size="12" letter-spacing="1" fill="${T.thread}" opacity="${fx(k3)}">SEALED · DAY 24</text>`;
+      return { w: W, h: H, svg: s, hint: sealed ? null : { text: 'Hold to seal' } };
+    },
+    notes: `
+      <h4>What changes</h4>
+      <ul>
+        <li>The hold is A's interlaced pass, without the shuttle.</li>
+        <li>On completion the thread end <strong>ties off in a small knot</strong>, the ritual of finishing a length of cloth. Then the cloth <strong>folds down into a swatch</strong>.</li>
+        <li>The sealed state becomes a <strong>badge</strong>: today's swatch next to "Sealed · Day 24". It's more of a ceremony, and it leaves something to look at instead of just a word.</li>
+      </ul>
+      <p class="cost">Cost: dash offsets plus one group transform, so cheap to animate. The badge is a new sealed-state layout. It needs the day number, which Flow already has ("Day 24 in James").</p>`,
+  },
+];
+
+// ---- hold controller (mirrors SealZone's LongPress) ----
+const ctrls = [];
+const stage = document.getElementById('stage');
+for (const opt of OPTIONS) {
+  const col = document.createElement('section');
+  col.className = 'col';
+  col.id = opt.id;
+  col.innerHTML = `
+    <div class="phone">
+      <h3 class="opt-label">${opt.label}</h3>
+      <p class="kicker">James 4 · sitting 3 of 11</p>
+      <p class="verse"><sup>3</sup>You ask, and don’t receive, because you ask with wrong motives, so that you may spend it on your pleasures.</p>
+      <div class="zone">
+        <div class="loom" aria-label="Hold to seal"></div>
+        <div class="hint"></div>
+        <div class="twotap">Use two taps instead</div>
+        <div class="pulses">${'<i></i>'.repeat(PULSES)}<span>haptic pulses</span></div>
+      </div>
+    </div>
+    <div class="ctrl">
+      <button data-a="play">▶ Full hold</button>
+      <button data-a="early">Let go early</button>
+      <button data-a="reset">↺ Reset</button>
+    </div>
+    <div class="notes">${opt.notes}</div>`;
+  stage.appendChild(col);
+  const k = {
+    opt, p: 0, c: 0, state: 'idle', unwindFrom: 0, timer: null, dirty: true,
+    loom: col.querySelector('.loom'), hint: col.querySelector('.hint'),
+    twotap: col.querySelector('.twotap'), pulses: col.querySelector('.pulses'),
+    dots: [...col.querySelectorAll('.pulses i')],
+  };
+  ctrls.push(k);
+
+  let start = null;
+  k.loom.addEventListener('pointerdown', (e) => { k.loom.setPointerCapture(e.pointerId); start = [e.clientX, e.clientY]; press(k); });
+  k.loom.addEventListener('pointermove', (e) => { if (start && Math.hypot(e.clientX - start[0], e.clientY - start[1]) > DRIFT) { start = null; release(k); } });
+  const up = () => { start = null; release(k); };
+  k.loom.addEventListener('pointerup', up);
+  k.loom.addEventListener('pointercancel', up);
+  col.querySelector('[data-a=play]').onclick = () => { reset(k); press(k); };
+  col.querySelector('[data-a=early]').onclick = () => { reset(k); press(k); k.timer = setTimeout(() => release(k), 620 * SLOW); };
+  col.querySelector('[data-a=reset]').onclick = () => reset(k);
+}
+
+function press(k) { if (k.state === 'sealed') return; k.state = 'holding'; k.dirty = true; }
+function release(k) { if (k.state !== 'holding') return; k.state = 'unwinding'; k.unwindFrom = k.p; k.dirty = true; }
+function reset(k) { clearTimeout(k.timer); k.p = 0; k.c = 0; k.state = 'idle'; k.dirty = true; }
+
+function step(k, dt) {
+  if (k.state === 'holding') {
+    k.p = Math.min(1, k.p + dt / HOLD);
+    if (k.p >= 1) { k.state = 'sealed'; k.c = 0; }
+    k.dirty = true;
+  } else if (k.state === 'unwinding') {
+    k.p = Math.max(0, k.p - dt * k.unwindFrom / UNWIND);
+    if (k.p <= 0) k.state = 'idle';
+    k.dirty = true;
+  } else if (k.state === 'sealed' && k.c < 1) {
+    k.c = Math.min(1, k.c + dt / k.opt.sealMs);
+    k.dirty = true;
+  }
+}
+
+function draw(k) {
+  const r = k.opt.render(k);
+  k.loom.innerHTML = r.sealedOnly
+    ? '<div class="sealed-text">Sealed</div>'
+    : `<svg width="${r.w * ZOOM}" height="${r.h * ZOOM}" viewBox="0 0 ${r.w} ${r.h}">${r.svg}</svg>`;
+  const sealed = k.state === 'sealed';
+  if (r.hint) {
+    k.hint.textContent = r.hint.text;
+    k.hint.className = 'hint' + (r.hint.sealed ? ' sealed' : '');
+    k.hint.style.opacity = r.hint.opacity ?? 1;
+  } else {
+    k.hint.textContent = '';
+  }
+  k.twotap.classList.toggle('hidden', sealed);
+  k.pulses.classList.toggle('hidden', sealed);
+  const lit = k.state === 'holding' ? Math.floor(k.p * PULSES + 1e-6) : 0;
+  k.dots.forEach((d, i) => d.classList.toggle('on', i < lit));
+}
+
+// ?p=0.6&s=holding&c=0 freezes every loom at one frame, for screenshots.
+const q = new URLSearchParams(location.search);
+const FROZEN = q.has('p');
+if (FROZEN) for (const k of ctrls) { k.p = +q.get('p'); k.state = q.get('s') || 'holding'; k.c = +(q.get('c') || 0); }
+if (q.has('bounds')) { SHOW_BOUNDS = true; document.getElementById('bounds').checked = true; }
+
+let last = performance.now();
+function frame(now) {
+  const dt = (now - last) / SLOW;
+  last = now;
+  for (const k of ctrls) { if (!FROZEN) step(k, dt); if (k.dirty) { draw(k); k.dirty = false; } }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+document.getElementById('zoom').onchange = (e) => { ZOOM = e.target.checked ? 2 : 1; ctrls.forEach((k) => (k.dirty = true)); };
+document.getElementById('slow').onchange = (e) => { SLOW = e.target.checked ? 4 : 1; };
+document.getElementById('bounds').onchange = (e) => { SHOW_BOUNDS = e.target.checked; ctrls.forEach((k) => (k.dirty = true)); };
+</script>
+</body>
+</html>

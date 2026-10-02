@@ -1,32 +1,36 @@
 import * as Haptics from 'expo-haptics';
-import { useEffect, useMemo, useState } from 'react';
-import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AccessibilityInfo, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   cancelAnimation,
   Easing,
   runOnJS,
   useAnimatedProps,
+  useAnimatedStyle,
   useSharedValue,
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import Svg, { G, Path } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { ActionButton } from '../ui/controls';
-import { geometry, polylineLength, ridesOver, warpPath, weftPath, weftPoints } from '../ui/loom';
+import { fellLineLength, fellLinePath, lineAmp } from '../ui/fellLine';
 import { tokens } from '../ui/tokens';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-// The seal is a shuttle pass: holding draws the weft across the warp, and
-// releasing early pulls it back out. Same gesture, same timings, same shared
-// value — only the mark changes.
-const LOOM_W = 168;
-const LOOM_H = 96;
-const WOVEN_ROWS = 4; // cloth already made, above the pass being worked
-const STROKE = 6;
+// The seal is the fell line, made a thing you press: a thread run across the
+// page at the edge between what is read and what is not. Holding draws the weft
+// along it and pulls it taut; releasing early pulls it back out. Same gesture,
+// same timings, same shared value — only the mark changes. The rail's fell
+// meets this line (ThreadRail), so the page and the rail read as one object.
+const ROW_H = 84;
+const LINE_X0 = 13; // the rail's centre, so the line leaves the rail
+const SCROLL_PAD_LEFT = 30; // Flow's ScrollView paddingLeft; the row bleeds back over it
 const PULSES = 6; // haptic pulses over the hold, evenly spaced
 const UNWIND_MS = 220;
+const SETTLE_MS = 300;
+const FADE_MS = 200;
 
 interface SealZoneProps {
   sealed: boolean;
@@ -34,28 +38,32 @@ interface SealZoneProps {
   onSeal: () => void;
   onHoldCancel: () => void;
   onScrollLock: (locked: boolean) => void;
-  /** §14 E1, applied: 'tap' renders the fallback button unconditionally, independent of accessibility state. Defaults to 'hold'. */
+  /** §14 E1, applied: 'tap' renders the pressable pill unconditionally, independent of accessibility state. Defaults to 'hold'. */
   sealMode?: 'hold' | 'tap';
   /** §14 E4, applied — the completion floor: whether today's reading has met the bar to seal yet. Defaults to true (no gate) when omitted. */
   canSeal?: boolean;
   /** §14 E4, applied — which floor is active, so the helper text names the actual bar ("Read to the end" vs "Start reading"). Defaults to 'full_chapter'. */
   floor?: 'full_chapter' | 'one_verse';
+  /** Day number shown on the sealed line ("Sealed · day 12"); null when the day count is hidden. */
+  dayLabel?: number | null;
+  /** Content-Y of the seal line's centre, so the rail's fell can lock onto it. */
+  onLineLayout?: (contentY: number) => void;
 }
 
 /**
  * §05 / §13.4 — the highest-risk code in the app. A LongPress
  * (minDuration ~1.2s, maxDistance 20px so small drift doesn't cancel
- * it) composed with the scroll view via Gesture.Simultaneous so
- * neither steals the other. Scroll is disabled for the duration of
+ * it) on the pill, composed with the scroll view via Gesture.Simultaneous
+ * so neither steals the other. Scroll is disabled for the duration of
  * the hold (onScrollLock) rather than relying on gesture arbitration
- * alone. Release early → the ring unwinds and nothing is logged but
+ * alone. Release early → the line unwinds and nothing is logged but
  * hold_cancel (§06 — the annoyance signal); holding the full duration
  * commits the seal.
  *
  * §04 accessibility floor: every gesture needs a tap fallback. A
  * screen reader flattens gesture-handler's press timing, so with one
- * active (or under reduced motion, where the ring wouldn't animate
- * anyway) this renders a plain button that seals immediately instead.
+ * active (or under reduced motion, where the line wouldn't animate
+ * anyway) the pill is a plain button that seals immediately instead.
  */
 export function SealZone({
   sealed,
@@ -66,10 +74,13 @@ export function SealZone({
   sealMode = 'hold',
   canSeal = true,
   floor = 'full_chapter',
+  dayLabel = null,
+  onLineLayout,
 }: SealZoneProps) {
   const [screenReaderEnabled, setScreenReaderEnabled] = useState(false);
   const [twoTapArmed, setTwoTapArmed] = useState(false);
-  const ringProgress = useSharedValue(0);
+  const ringProgress = useSharedValue(sealed ? 1 : 0);
+  const sealFade = useSharedValue(sealed ? 1 : 0);
   const pulseTick = useSharedValue(0);
 
   useEffect(() => {
@@ -124,157 +135,207 @@ export function SealZone({
 
   const composed = Gesture.Simultaneous(hold, Gesture.Native());
 
-  // The little loom. The live row sits after the woven ones so the pass lands
-  // against finished cloth. react-native-svg has no getTotalLength, so the dash
-  // length is computed from the generated polyline — guessing high would make
-  // the pass finish before the hold does.
-  const loom = useMemo(() => {
-    const g = geometry(LOOM_W, LOOM_H, 7, Array<boolean>(WOVEN_ROWS + 1).fill(true), { pad: 8 });
-    return { g, liveLength: polylineLength(weftPoints(g, WOVEN_ROWS)) };
-  }, []);
+  // react-native-svg has no getTotalLength, so the dash length comes from the
+  // generated polyline at its slackest — guessing high would make the pass
+  // finish before the hold does.
+  const { width: windowWidth } = useWindowDimensions();
+  const [rowWidth, setRowWidth] = useState(windowWidth);
+  const liveLength = useMemo(() => fellLineLength(rowWidth, LINE_X0), [rowWidth]);
+  const baseY = ROW_H / 2;
+  const barePath = useMemo(() => fellLinePath(rowWidth, LINE_X0, lineAmp(0), baseY), [rowWidth, baseY]);
 
   const weftProps = useAnimatedProps(() => ({
-    strokeDashoffset: loom.liveLength * (1 - ringProgress.value),
+    d: fellLinePath(rowWidth, LINE_X0, lineAmp(ringProgress.value), baseY),
+    strokeDashoffset: liveLength * (1 - ringProgress.value),
   }));
 
-  if (sealed) {
-    return (
-      <View style={styles.zone}>
-        <Text style={styles.sealedLabel}>Sealed</Text>
-      </View>
-    );
-  }
+  // Sealed by any route (hold, tap, two taps): pull the line taut if it is not
+  // already, and swap the pill for the day label. Unsealed (a new day) resets.
+  useEffect(() => {
+    if (sealed) {
+      if (reducedMotion) {
+        ringProgress.value = 1;
+        sealFade.value = 1;
+      } else {
+        ringProgress.value = withTiming(1, { duration: SETTLE_MS });
+        sealFade.value = withTiming(1, { duration: FADE_MS });
+      }
+    } else {
+      cancelAnimation(ringProgress);
+      ringProgress.value = 0;
+      sealFade.value = 0;
+    }
+  }, [sealed, reducedMotion, ringProgress, sealFade]);
 
-  if (sealMode === 'tap' || screenReaderEnabled || reducedMotion) {
-    return (
-      <View style={styles.zone}>
-        <Pressable
-          onPress={onSeal}
-          disabled={!canSeal}
-          style={({ pressed }) => [
-            styles.ringFallback,
-            pressed && canSeal && styles.ringPressed,
-            !canSeal && styles.disabled,
-          ]}
-          accessibilityRole="button"
-          accessibilityLabel="Seal today's reading"
-          accessibilityState={{ disabled: !canSeal }}
-        >
-          <Text style={styles.ringLabel}>Seal</Text>
-        </Pressable>
-      </View>
-    );
-  }
+  const pillStyle = useAnimatedStyle(() => {
+    const holding = ringProgress.value > 0 && sealFade.value === 0;
+    return {
+      opacity: 1 - sealFade.value,
+      borderColor: holding ? tokens.color.thread : tokens.color.ink,
+      transform: [{ scale: holding ? 0.985 : 1 }],
+    };
+  });
+  const pillLabelStyle = useAnimatedStyle(() => ({
+    color: ringProgress.value > 0 && sealFade.value === 0 ? tokens.color.thread : tokens.color.ink,
+  }));
+  const sealedStyle = useAnimatedStyle(() => ({ opacity: sealFade.value }));
+
+  // Report the line's content-Y (zone y + row y + half the row) so the rail can
+  // lock onto it. The two layouts arrive separately, children first.
+  const zoneY = useRef<number | null>(null);
+  const rowY = useRef<number | null>(null);
+  const reportLine = () => {
+    if (zoneY.current !== null && rowY.current !== null) onLineLayout?.(zoneY.current + rowY.current + ROW_H / 2);
+  };
+
+  const interactive = sealMode === 'tap' || screenReaderEnabled || reducedMotion;
+
+  const pillBody = <Animated.Text style={[styles.pillLabel, pillLabelStyle]}>{helperText}</Animated.Text>;
 
   return (
-    <View style={styles.zone}>
-      <GestureDetector gesture={composed}>
-        <View style={[styles.ringWrap, !canSeal && styles.disabled]} accessible={false}>
-          <Svg width={LOOM_W} height={LOOM_H}>
-            {/* the warp, strung and waiting */}
-            <G>
-              {Array.from({ length: loom.g.sett.drawnCols }, (_, i) => (
-                <Path
-                  key={`w${i}`}
-                  d={warpPath(loom.g, i, 0, WOVEN_ROWS)}
-                  stroke={tokens.color.warp}
-                  strokeWidth={3}
-                  strokeLinecap="round"
-                  fill="none"
-                />
-              ))}
-            </G>
-            {/* cloth already made */}
-            <G>
-              {Array.from({ length: WOVEN_ROWS }, (_, j) => (
-                <Path
-                  key={`f${j}`}
-                  d={weftPath(loom.g, j)}
-                  stroke={tokens.color.thread}
-                  strokeWidth={3.4}
-                  strokeOpacity={0.9}
-                  strokeLinecap="round"
-                  fill="none"
-                />
-              ))}
-            </G>
-            <G>
-              {Array.from({ length: WOVEN_ROWS }, (_, j) =>
-                Array.from({ length: loom.g.sett.drawnCols }, (_, i) => i)
-                  .filter((i) => ridesOver(i, j))
-                  .map((i) => (
-                    <Path
-                      key={`o${i}-${j}`}
-                      d={warpPath(loom.g, i, j, j)}
-                      stroke={tokens.color.warp}
-                      strokeWidth={3}
-                      strokeLinecap="round"
-                      fill="none"
-                    />
-                  )),
-              )}
-            </G>
-            {/* the pass you are making right now */}
-            <AnimatedPath
-              d={weftPath(loom.g, WOVEN_ROWS)}
-              stroke={tokens.color.thread}
-              strokeWidth={STROKE}
-              fill="none"
-              strokeDasharray={loom.liveLength}
-              animatedProps={weftProps}
-              strokeLinecap="round"
-            />
-          </Svg>
-        </View>
-      </GestureDetector>
-      <Text style={styles.holdLabel}>{helperText}</Text>
-
-      {!twoTapArmed ? (
-        <ActionButton
-          label="Use two taps instead"
-          variant="link"
-          onPress={() => setTwoTapArmed(true)}
-          disabled={!canSeal}
-          style={styles.twoTapLink}
-        />
-      ) : (
-        <View style={styles.twoTapConfirmRow}>
-          <ActionButton
-            label="Seal today"
-            onPress={() => {
-              setTwoTapArmed(false);
-              triggerSuccess();
-            }}
-            disabled={!canSeal}
+    <View
+      style={styles.zone}
+      onLayout={(e) => {
+        zoneY.current = e.nativeEvent.layout.y;
+        reportLine();
+      }}
+    >
+      <View
+        style={styles.row}
+        onLayout={(e) => {
+          rowY.current = e.nativeEvent.layout.y;
+          setRowWidth(e.nativeEvent.layout.width);
+          reportLine();
+        }}
+      >
+        {/* the warp line at rest, and the weft passing along it */}
+        <Svg style={styles.line} width={rowWidth} height={ROW_H} pointerEvents="none" accessible={false}>
+          <Path d={barePath} stroke={tokens.color.warp} strokeWidth={1.6} strokeOpacity={0.45} strokeLinecap="round" fill="none" />
+          <AnimatedPath
+            stroke={tokens.color.thread}
+            strokeWidth={3}
+            strokeOpacity={0.95}
+            fill="none"
+            strokeLinecap="round"
+            strokeDasharray={liveLength}
+            animatedProps={weftProps}
           />
-          <ActionButton label="Cancel" variant="secondary" onPress={() => setTwoTapArmed(false)} />
-        </View>
-      )}
+        </Svg>
+
+        {interactive ? (
+          <Pressable
+            onPress={onSeal}
+            disabled={sealed || !canSeal}
+            style={({ pressed }) => [!canSeal && styles.disabled, pressed && canSeal && styles.pillPressed]}
+            accessibilityRole="button"
+            accessibilityLabel="Seal today's reading"
+            accessibilityState={{ disabled: !canSeal }}
+          >
+            <Animated.View style={[styles.pill, pillStyle]} pointerEvents={sealed ? 'none' : 'auto'}>
+              {pillBody}
+            </Animated.View>
+          </Pressable>
+        ) : (
+          <GestureDetector gesture={composed}>
+            <Animated.View
+              style={[styles.pill, pillStyle, !canSeal && styles.disabled]}
+              accessible={false}
+              pointerEvents={sealed ? 'none' : 'auto'}
+            >
+              {pillBody}
+            </Animated.View>
+          </GestureDetector>
+        )}
+
+        {sealed ? (
+          <Animated.View style={[styles.sealedWrap, sealedStyle]} pointerEvents="none">
+            <Text style={styles.sealedLabel}>{typeof dayLabel === 'number' ? `Sealed · day ${dayLabel}` : 'Sealed'}</Text>
+          </Animated.View>
+        ) : null}
+      </View>
+
+      {!sealed && !interactive ? (
+        !twoTapArmed ? (
+          <ActionButton
+            label="Use two taps instead"
+            variant="link"
+            onPress={() => setTwoTapArmed(true)}
+            disabled={!canSeal}
+            style={styles.twoTapLink}
+          />
+        ) : (
+          <View style={styles.twoTapConfirmRow}>
+            <ActionButton
+              label="Seal today"
+              onPress={() => {
+                setTwoTapArmed(false);
+                triggerSuccess();
+              }}
+              disabled={!canSeal}
+            />
+            <ActionButton label="Cancel" variant="secondary" onPress={() => setTwoTapArmed(false)} />
+          </View>
+        )
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   zone: {
-    minHeight: 220,
+    alignItems: 'stretch',
+    marginTop: tokens.space[4],
+  },
+  row: {
+    marginLeft: -SCROLL_PAD_LEFT,
+    paddingLeft: SCROLL_PAD_LEFT, // keeps the pill centred on the text column
+    height: ROW_H,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
   },
-  ringWrap: {
+  line: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+  },
+  pill: {
+    minHeight: 48,
+    paddingHorizontal: tokens.space[6],
+    borderRadius: tokens.radius.pill,
+    borderWidth: 1,
+    borderColor: tokens.color.ink,
+    backgroundColor: tokens.color.paper,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  holdLabel: {
-    // Sits below the loom rather than centred on it: the mark is now a wide
-    // piece of cloth, and a label over the middle of it is unreadable.
-    marginTop: 14,
+  pillPressed: {
+    transform: [{ scale: 0.985 }],
+  },
+  pillLabel: {
     fontFamily: tokens.font.display,
     fontWeight: '700',
-    fontSize: 13,
+    fontSize: 14,
     color: tokens.color.ink,
   },
+  disabled: {
+    opacity: 0.4,
+  },
+  sealedWrap: {
+    position: 'absolute',
+    alignSelf: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    backgroundColor: tokens.color.paper,
+  },
+  sealedLabel: {
+    fontFamily: tokens.font.mono,
+    fontSize: 13,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    color: tokens.color.thread,
+  },
   twoTapLink: {
+    alignSelf: 'center',
     marginTop: 4,
   },
   twoTapConfirmRow: {
@@ -283,33 +344,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 10,
     marginTop: 8,
-  },
-  ringFallback: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    borderWidth: 3,
-    borderColor: tokens.color.ink,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ringPressed: {
-    borderColor: tokens.color.thread,
-  },
-  disabled: {
-    opacity: 0.4,
-  },
-  ringLabel: {
-    fontFamily: tokens.font.display,
-    fontWeight: '700',
-    fontSize: 15,
-    color: tokens.color.ink,
-  },
-  sealedLabel: {
-    fontFamily: tokens.font.mono,
-    fontSize: 13,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: tokens.color.thread,
   },
 });

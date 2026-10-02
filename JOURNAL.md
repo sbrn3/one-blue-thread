@@ -5,6 +5,16 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## Decision 2026-10-02 — the seal is the fell line (supersedes the open-row plan)
+
+**Decision:** the weave-as-button seal is replaced by a thread across the page
+with an outlined pill; the rail's fell locks onto it and sweeps to the bottom
+once sealed. Rail fix (windowed bare warp, full-height cloth) shipped first.
+**Why:** the weave neither read as a button nor fit the page. **Next:** check on
+device — rail/line alignment on a notched phone, hold feel, tap mode.
+
+---
+
 ## Decision 2026-10-01 — the knot stops promoting Safekeeping and Support
 
 **Decision:** When Safekeeping or Support needs attention, it no longer jumps

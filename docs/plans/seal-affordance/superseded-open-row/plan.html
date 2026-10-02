@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — The open row</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&display=swap" rel="stylesheet">
+<style>
+/* ── One Blue Thread identity — mirrors docs/index.html / src/ui/tokens.ts. Do not swap for generic styles ── */
+:root {
+  --bg:            #FBFAF7;
+  --surface:       #ffffff;
+  --card-bg:       #ffffff;
+  --border:        #E6E5E1;
+  --border-strong: #d8d7d2;
+  --text:          #16161A;
+  --text-2:        #5E5D66;
+  --text-muted:    #9C9BA3;
+  --primary:       #1F3FFF;
+  --primary-dark:  #1732cc;
+  --primary-tint:  #EEF0FF;
+  --success:       #155724;
+  --success-bg:    #d4edda;
+  --warning:       #856404;
+  --warning-bg:    #fff3cd;
+  --danger:        #c0392b;
+  --danger-bg:     #fde8e8;
+  --font-head:     'Newsreader', Georgia, serif;
+  --font-body:     'Schibsted Grotesk', system-ui, -apple-system, sans-serif;
+  --radius:        12px;
+  --shadow:        0 4px 6px rgba(0,0,0,0.08);
+  --shadow-lg:     0 8px 32px rgba(0,0,0,0.16);
+}
+* { box-sizing: border-box; }
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(600px 400px at 0% -5%, rgba(26,58,92,0.06), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2.2rem 1.6rem 4rem;
+}
+h1 { font-family: var(--font-head); font-size: 2rem; font-weight: 400; margin: 0 0 .3rem; letter-spacing: .01em; }
+h2 { font-family: var(--font-head); font-size: 1.25rem; font-weight: 400; color: var(--primary); margin: 1.8rem 0 .8rem; }
+h3 { font-size: .95rem; font-weight: 600; color: var(--text); margin: 1.3rem 0 .4rem; }
+a { color: var(--primary); }
+code { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: .85em; color: var(--primary-dark); background: var(--primary-tint); padding: .1em .4em; border-radius: 5px; }
+.meta { font-size: .82rem; color: var(--text-muted); margin-bottom: 1.6rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.badge { display: inline-block; padding: .25em .7em; border-radius: 999px; font-size: .74rem; font-weight: 600; border: 1px solid var(--border); background: var(--surface); }
+.badge.navy   { color: var(--primary); border-color: var(--primary); background: var(--primary-tint); }
+.badge.green  { color: var(--success); background: var(--success-bg); border-color: #c3e6cb; }
+.badge.yellow { color: var(--warning); background: var(--warning-bg); border-color: #ffeeba; }
+.badge.red    { color: var(--danger);  background: var(--danger-bg);  border-color: #f5c6cb; }
+/* Stat row */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: .8rem; margin-bottom: 2rem; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .9rem 1.1rem; box-shadow: var(--shadow); }
+.stat-value { font-family: var(--font-head); font-size: 1.7rem; color: var(--primary); font-variant-numeric: tabular-nums; }
+.stat-label { font-size: .72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+/* Tabs */
+.tabs { display: flex; gap: .4rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 1.6rem; }
+.tab { padding: .5rem 1rem; border: none; background: none; cursor: pointer; font-family: var(--font-body); font-size: .87rem; color: var(--text-2); border-radius: 8px 8px 0 0; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: var(--text); background: var(--primary-tint); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; background: var(--primary-tint); }
+.panel { display: none; animation: fade .25s ease; }
+.panel.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+/* Checklist */
+.checklist { list-style: none; padding: 0; margin: .5rem 0; }
+.checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; font-size: .9rem; border-bottom: 1px solid var(--border); }
+.checklist li:last-child { border-bottom: none; }
+.checklist input { margin-top: .3rem; flex-shrink: 0; accent-color: var(--primary); width: 16px; height: 16px; }
+.checklist input:checked + span { color: var(--text-muted); text-decoration: line-through; }
+/* Notes / callouts */
+.note { background: var(--warning-bg); border: 1px solid #ffeeba; border-radius: var(--radius); padding: .7rem 1rem; font-size: .86rem; margin: .8rem 0; color: var(--text); }
+.mockup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: .9rem; margin: 1rem 0; }
+.mockup-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); }
+.mockup-card.chosen { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary), var(--shadow-lg); }
+.mockup-card h3 { margin-top: 0; }
+.requirements { font-size: .92rem; line-height: 2; padding-left: 1.3rem; }
+.evidence-table { width: 100%; border-collapse: collapse; margin: .8rem 0 1.2rem; font-size: .84rem; }
+.evidence-table th, .evidence-table td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: left; vertical-align: top; }
+.evidence-table th { background: var(--primary-tint); color: var(--primary); }
+</style>
+</head>
+<body>
+
+<h1>The open row</h1>
+<div class="meta">
+  2026-09-07
+  <span class="badge navy">C3 Parallel</span>
+  <span class="badge navy">10 files</span>
+  <span class="badge navy">4 commits</span>
+  <span class="badge yellow">~3 sessions</span>
+  <span class="badge navy">Aesthetics: direction chosen</span>
+</div>
+
+<div class="stat-row">
+  <div class="stat"><div class="stat-value">10</div><div class="stat-label">Files</div></div>
+  <div class="stat"><div class="stat-value">4</div><div class="stat-label">Commits</div></div>
+  <div class="stat"><div class="stat-value">2</div><div class="stat-label">Test files</div></div>
+  <div class="stat"><div class="stat-value">~3</div><div class="stat-label">Sessions</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="intent" onclick="show('intent')">Intent</button>
+  <button class="tab" data-tab="requirements" onclick="show('requirements')">Requirements</button>
+  <button class="tab" data-tab="aesthetics" onclick="show('aesthetics')">Aesthetics</button>
+  <button class="tab" data-tab="execution" onclick="show('execution')">Execution</button>
+  <button class="tab" data-tab="verify" onclick="show('verify')">Verification</button>
+</div>
+
+<div id="intent" class="panel active">
+  <h2>Problem &amp; Intent</h2>
+
+  <h3>Status, owner &amp; next action</h3>
+  <p><strong>Awaiting approval.</strong> Triggered by the owner reporting that
+  pressing the weave to seal &ldquo;doesn't seem intuitive &mdash; it doesn't look
+  like a button&rdquo;. Next action: owner approves or amends; then S01 in a fresh
+  <code>../thread-open-row</code> worktree. Commit, push, PR and merge each still
+  need explicit authorization.</p>
+
+  <h3>Outcome and constraints</h3>
+  <p>The seal is the app's daily commitment gesture and the thing E1 exists to
+  measure, so it must stay a 1.2s hold that writes the same events. What changes
+  is what the reader touches, and what the screen shows while they do it. The
+  mark today is a hard-coded 7-chapter, 4-row loom in flat indigo
+  (<code>SealZone.tsx</code>, <code>geometry(168, 96, 7, Array(5).fill(true))</code>)
+  &mdash; cloth the reader never wove, contradicting the real bolt rendered 200pt
+  below it, and drawn so that today's row is invisible rather than open.</p>
+  <p>Constraints: offline, single-user, synthetic data only in artifacts; no new
+  dependency, font or icon set; values from <code>src/ui/tokens.ts</code>; motion
+  honours OS reduce-motion; Reanimated worklets stay on the UI thread; Vitest is
+  node-only, so nothing here can be proven by rendering a component.</p>
+
+  <h3>Scope and non-goals</h3>
+  <p><strong>In scope:</strong> the seal's hold path becomes today's <em>open
+  row</em> in the reader's own bolt with a shuttle as the instrument; the seal
+  and weave zones merge into one zone with two states; <code>ThreadRail</code> is
+  fixed to weave its full height and calmed at its true width.</p>
+  <p><strong>Non-goals:</strong> the gesture's timings and events; the tap /
+  screen-reader / reduced-motion fallback and the two-tap link; anything in
+  <code>src/lab/</code>; the knot's compact weave; the translation-credit move
+  (belongs to the parked <code>knot-translation-switch</code> plan).</p>
+
+  <h3>Dependencies and unresolved gates</h3>
+  <p><strong>Gate 1 &mdash; authorization.</strong> Approval of this plan does not
+  authorize commit, push, PR or merge.</p>
+  <p><strong>Gate 2 &mdash; no device in this environment.</strong> Every visual
+  and gesture outcome is owner-verified on a dev build; the suite can only hold
+  the pure geometry. Recorded as a gap, never as a pass.</p>
+  <p><strong>Gate 3 &mdash; worktree hygiene.</strong> Cut from <code>main</code>
+  into a new sibling worktree. The <code>thread-aesthetic-loom</code> worktree
+  holds another session's uncommitted <code>apple-web-pwa</code> work and must be
+  left alone; concurrent worktrees mean PR-ordered merges per
+  <code>AGENTS.md</code>.</p>
+  <p><strong>Decision recorded, not a gate:</strong> under reduced motion the
+  existing plain-button fallback still renders, with the open row above it as a
+  static record. The gap reads without motion &mdash; that is why it is drawn as
+  bare warp rather than animated.</p>
+
+  <h3>Evidence and decisions</h3>
+  <p>Design evidence: <a href="level-up.md">level-up.md</a> (three lateral
+  techniques, the rejected candidates, and &sect;15&ndash;&sect;19 where the
+  direction settled), <a href="grill-summary.md">grill-summary.md</a> (rounds
+  1&ndash;2: keep the hold, permanent affordance, dev build so no trial data is at
+  risk), and the published mockup, S1 &ldquo;The open row&rdquo;.</p>
+  <p>Code evidence: <code>src/flow/SealZone.tsx</code> (the fake loom, the
+  gesture to preserve), <code>src/flow/ThreadRail.tsx</code> (the fell line that
+  already exists), <code>src/ui/loom.ts</code> (<code>geometry</code> already
+  takes <code>{pad, amp, slackCap}</code>; <code>rowPlan</code> clamps pitch at
+  <code>MAX_ROW_PITCH</code> 16), <code>src/ui/Cloth.tsx</code> (the truthful
+  bolt), <code>src/flow/bolt.ts</code> + <code>Flow.tsx:78</code>
+  (<code>bolt</code> is already derived pre-seal), <code>src/ui/dye.ts</code>
+  (<code>dyeFor('mark')</code> &rarr; <code>tokens.dye[4]</code>, woad
+  <code>#3E6B5A</code>), <code>src/knot/Knot.tsx:190</code> (the other
+  <code>WeaveZone</code> caller).</p>
+  <p><strong>Design tokens used:</strong> <code>color.warp #8F8779</code>,
+  <code>color.ink40 #726D5C</code>, <code>color.ink15 #E0DACB</code>,
+  <code>dye[]</code> per book, <code>font.mono</code> JetBrains Mono,
+  <code>seal.holdMs 1200</code>, <code>seal.maxDriftPx 20</code>,
+  <code>control.minTarget 44</code>, <code>space</code>, <code>radius</code>. No
+  new values.</p>
+  <p><strong>Latest-statement reconciliation:</strong> the owner chose S1 and
+  dropped S2/S3; earlier notes proposing a five-row crop (&sect;10) and a raised
+  <code>ROW_PITCH</code> (&sect;17) are superseded by &sect;16 and &sect;18
+  respectively and are <em>not</em> to be built.</p>
+
+  <h3>Documentation effects</h3>
+  <p><code>docs/plans/README.md</code> and <code>STATUS.md</code> gain an entry
+  once approved. <code>docs/CONTEXT.md</code> gains <strong>the open row</strong>
+  and <strong>the shuttle</strong> as glossary terms; <strong>the seal</strong>
+  keeps its definition, since it is still the press-and-hold that commits a day.
+  <code>JOURNAL.md</code> gets one entry per session at wrap-up.</p>
+</div>
+
+<div id="requirements" class="panel">
+  <h2>Requirements (confirmed)</h2>
+  <h3>User stories</h3>
+  <ol class="requirements">
+    <li>As a reader finishing today's chapter, I want the thing I am meant to touch to look like an object I can pick up, so that I do not have to guess that a picture is a control.</li>
+    <li>As a reader, I want the cloth on the seal screen to be <em>my</em> bolt &mdash; my book's chapter count, my days, my book's dye &mdash; so that nothing on the screen is decorative filler.</li>
+    <li>As a reader, I want today drawn as a genuine gap in the cloth, so that the thing I am asked to close is visibly unfinished.</li>
+    <li>As a reader, I want the warp below today to run on into the days I have not read, so that the row reads as threads under tension rather than tally marks.</li>
+    <li>As a reader, I want the shuttle to carry the weft across as I hold, so that the gesture and its result are one movement.</li>
+    <li>As a reader, I want the slack to leave the warp as the pass crosses, so that holding feels like work rather than waiting.</li>
+    <li>As a reader completing the hold, I want the new row to beat up against the cloth, so that committing has a physical end rather than a state flip.</li>
+    <li>As a reader who has just sealed, I want one cloth on screen with today woven into it, so that I never see two looms at once.</li>
+    <li>As a reader, I want the bolt to appear only after I seal, so that the record of days I have read is not shown to me before I have earned today.</li>
+    <li>As a reader, I want the book name and the day count to arrive with the sealed bolt, so that the summary belongs to the finished state.</li>
+    <li>As a reader opening the knot, I want the compact weave summary to keep working exactly as it does now, so that merging the flow zones costs me nothing elsewhere.</li>
+    <li>As a reader scrolling a chapter, I want the rail's cloth to weave the whole way down to its own fell mark, so that the edge does not appear to give up halfway.</li>
+    <li>As a reader, I want the rail's three threads to stay in their own lanes, so that the left edge reads as a narrow cloth rather than a tangle.</li>
+    <li>As a reader reaching the end of the reading, I want the rail's fell to arrive at the open row and stop there, so that the line I have watched descend all session ends on the thing I am asked to close.</li>
+    <li>As a reader, I want the rail to keep tracking scroll exactly as it does today, including under reduced motion, so that a direct-manipulation indicator never lies about position.</li>
+    <li>As a reader who releases the hold early, I want the pass to withdraw and the warp to go slack again, so that abandoning is as legible as committing.</li>
+    <li>As a reader on the first day, I want a short bounded invitation on the shuttle &mdash; three cycles, then still &mdash; so that I learn the movement once without being nagged.</li>
+    <li>As a reader with reduce-motion enabled, I want the open row and its gap to be fully legible with nothing animating, so that the design does not depend on movement.</li>
+    <li>As a reader using a screen reader, I want the instrument to carry the accessible name and role while the cloth is treated as decoration, so that there is exactly one thing to activate.</li>
+    <li>As a reader who has not met the completion floor, I want the disabled state and its helper text to behave exactly as they do today, so that E4's floor still governs when sealing is possible.</li>
+    <li>As the lab (a silent actor), I want <code>seal</code> and <code>hold_cancel</code> written with the same shape, timing and conditions as before, so that E1's arms and the &sect;11 mechanic-friction rung stay comparable across this change.</li>
+    <li>As a reader on a very long book, I want the seal screen to stay a constant size, so that day 60 is as easy to seal as day 6.</li>
+    <li>As a reader on a one-chapter book, I want the open row to still be a sane shape, so that narrow cloth does not produce a broken instrument.</li>
+  </ol>
+
+  <h3>Out of Scope</h3>
+  <ul class="requirements">
+    <li><strong>The gesture itself</strong> &mdash; 1.2s, 20pt drift, six pulses, scroll lock, event writes. Settled in grill round 1: E1 exists to test the hold, so this plan must not pre-empt it.</li>
+    <li><strong>The tap / screen-reader / reduced-motion fallback and the two-tap link</strong> &mdash; they work and are an accessibility floor; untouched.</li>
+    <li><strong>Anything in <code>src/lab/</code></strong> &mdash; no arm, ladder rung or experiment definition changes.</li>
+    <li><strong>The translation credit</strong> at the foot of the scripture &mdash; a real finding (level-up.md &sect;13), but it belongs to the parked <code>knot-translation-switch</code> plan, which owns translation state and copy.</li>
+    <li><strong>&ldquo;Through the reed&rdquo;</strong> &mdash; the rail's warp spreading into the bolt. The strongest image explored, but it redefines what the rail <em>means</em>; revisit after this ships.</li>
+    <li><strong>A component renderer for the suite</strong> &mdash; the standing gap in STATUS; <code>apple-web-pwa</code> S02 owns that route.</li>
+  </ul>
+
+  <h3>Testing Decisions</h3>
+  <ul class="requirements">
+    <li><strong>Seam:</strong> pure geometry only. The visual work is React Native components and the suite is node-only with no renderer, so anything that must be proven is extracted into <code>src/ui/rail.ts</code> and <code>src/ui/openRow.ts</code> as exported functions, and the components stay thin.</li>
+    <li><strong>Prior art:</strong> <code>test/loom.test.ts</code> for pure geometry assertions (no fakes, no db); <code>test/bolt.test.ts</code> for the derived-data seam if a query is ever needed.</li>
+    <li><strong>Regression to encode:</strong> the rail's coverage bug &mdash; assert that the shipped <code>ROW_PITCH</code> 20 formula does <em>not</em> cover a 736pt screen and that the new one does, so it cannot silently return.</li>
+    <li><strong>Guard to re-run:</strong> <code>test/render-path-cost.test.ts</code> &mdash; the seal zone now draws cloth before sealing, so the per-render path budget must be re-checked.</li>
+    <li><strong>Deliberately not unit-tested:</strong> the shuttle's travel animation, haptics, press states, and anything needing a rendered tree or a gesture handler. No renderer exists, and faking one would prove nothing; owner-verified on a dev build instead.</li>
+    <li><strong>Owner spot-check (optional, dev build):</strong> the hold still seals and still cancels on early release; the rail reaches the shuttle at the end of a chapter; the knot's compact weave still renders.</li>
+  </ul>
+</div>
+
+<div id="aesthetics" class="panel">
+  <h2>Aesthetics</h2>
+  <h3>Current-surface extraction</h3>
+  <table class="evidence-table">
+    <thead><tr><th>Layer</th><th>Current measured values/patterns</th><th>Source</th><th>Keep/change and why</th></tr></thead>
+    <tbody>
+      <tr><td>Tokens</td><td>Mark drawn in <code>color.thread #2E3A8C</code> and <code>color.warp #8F8779</code>; ignores <code>dye[]</code> entirely. <code>seal.holdMs 1200</code>, <code>maxDriftPx 20</code>.</td><td><code>SealZone.tsx</code>, <code>tokens.ts</code></td><td><strong>Change:</strong> the cloth takes <code>dyeFor(book)</code> like every other bolt. One book, one dye is what <code>dye.ts</code> exists to enforce; the seal and the rail are the only surfaces ignoring it.</td></tr>
+      <tr><td>Typography</td><td>Helper &ldquo;Hold to seal&rdquo;: <code>font.display</code> 700 / 13 / <code>ink</code>, 14pt below the mark. Sealed state: <code>font.mono</code> 13 / 1px tracking / uppercase / <code>thread</code>.</td><td><code>SealZone.tsx</code> styles</td><td><strong>Change:</strong> the line under the row becomes <code>font.mono</code> 11 / .14em / uppercase / <code>ink40</code> and states a fact. The instruction moves onto the instrument, where the hand is.</td></tr>
+      <tr><td>Spacing and layout</td><td>Zone <code>minHeight 220</code>, everything centred, mark fixed at 168&times;96 in a 390pt screen; the <code>ScrollView</code> carries <code>paddingLeft: 30</code> to clear the rail.</td><td><code>SealZone.tsx</code>, <code>Flow.tsx:649</code></td><td><strong>Change:</strong> width is measured via <code>onLayout</code> like <code>WeaveZone</code>, never fixed. This also removes the off-centre artifact: a 168pt box holds only ~109pt of ink because <code>warpSett</code> caps at <code>MAX_SETT</code> 16.</td></tr>
+      <tr><td>Color and semantics</td><td>Bare warp already means a missed day; the fell line is the app's only progress indicator. The seal's own gap is drawn as nothing &mdash; live weft at <code>strokeDashoffset = length</code>, warp painted straight through today.</td><td><code>docs/CONTEXT.md</code>, <code>SealZone.tsx</code></td><td><strong>Change:</strong> today becomes genuine bare warp with real slack from <code>supportDistances</code>. The most meaningful graphic in the product stops being unused.</td></tr>
+      <tr><td>Components and states</td><td>States: idle / holding / cancelled / sealed / disabled (<code>canSeal</code>) / tap-fallback / screen-reader / reduced-motion. The target is the whole SVG, <code>accessible={false}</code>.</td><td><code>SealZone.tsx</code></td><td><strong>Keep</strong> every state. <strong>Change</strong> the target: the shuttle owns role, name and the 44pt floor; the cloth becomes non-interactive record.</td></tr>
+      <tr><td>Atmosphere and depth</td><td>Depth comes only from genuine over/under occlusion &mdash; no shadows beyond a hairline, no gradients.</td><td><code>tokens.ts</code> header</td><td><strong>Keep.</strong> The open row adds no chrome: no plate, no frame, no card. Bounds come from the cloth's own edges.</td></tr>
+      <tr><td>Motion and interaction</td><td>The only response to touch is the weft drawing over 1.2s; first haptic at 200ms; 220ms unwind on release; the rail's scroll fill is deliberately <em>not</em> gated on reduce-motion.</td><td><code>SealZone.tsx</code>, <code>ThreadRail.tsx</code></td><td><strong>Change:</strong> instant press state + touch-down haptic; shuttle travels with progress; warp tightens; 180ms / 1.5pt beat-up; bounded three-cycle invitation. <strong>Keep</strong> the rail's reduce-motion reasoning verbatim.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Direction questions</h3>
+  <p><strong>Intent &mdash;</strong> a loom mid-work: the warp, the fell, and the
+  shuttle in your hand. An <em>extension</em> of the existing loom language, not a
+  new pattern; the one genuinely new idea is that the instrument and the record
+  are different objects.</p>
+  <p><strong>Hygiene &mdash;</strong> <code>dyeFor(book)</code> for cloth, weft and
+  shuttle; <code>color.warp</code> for bare warp; <code>ink40</code> for the
+  rubric; <code>font.mono</code> for it; <code>seal.*</code> for timings;
+  <code>control.minTarget 44</code> via hitSlop. No new value.</p>
+  <p><strong>Details &mdash;</strong> pressed (shuttle scales .94 in 140ms plus a
+  touch-down haptic); progress (shuttle travels, weft follows, slack leaves the
+  warp); success (beat-up, then the bolt); cancel (withdraw over 220ms, warp goes
+  slack again); disabled (<code>canSeal</code> false &mdash; existing helper text,
+  unchanged); sealed (one bolt, label and caption); reduced motion (static row
+  plus the existing fallback button); screen reader (fallback button, cloth
+  silent); large font scale (the rubric wraps; the cloth is measured, not
+  fixed).</p>
+
+  <h3>Mockups</h3>
+  <div class="mockup-grid">
+    <div class="mockup-card chosen"><h3>S1 &mdash; The open row</h3><p>Chosen by the owner after five rounds. Before the seal: today's row, its fell mark, the warp running on into unread days, and the shuttle at the row's start. After: one bolt with today woven in. The published mockup carries the live 1.2s hold, the rail, and the sealed transition.</p><a href="https://claude.ai/code/artifact/7e1d9e07-9fe6-4378-ace0-ac02cd486c75">Open approved mockup &nearr;</a></div>
+  </div>
+  <p class="note">Chosen direction: <strong>S1, the open row, with the shuttle as
+  the instrument</strong>. Rejected along the way and recorded in
+  <a href="level-up.md">level-up.md</a>: the four container treatments (plate /
+  shuttle-as-ornament / button / plate+shuttle), the batten and the plain button
+  (&sect;15), the sticky and five-row-context variants (&sect;16), and
+  &ldquo;through the reed&rdquo; (&sect;14 &mdash; deferred, not dismissed).
+  Mockups are HTML for iteration speed; every element here is achievable with
+  <code>react-native-svg</code> plus Reanimated.</p>
+</div>
+
+<div id="execution" class="panel">
+  <h2>Execution</h2>
+  <p><strong>Grade C3:</strong> 10 files across <code>src/ui</code> and
+  <code>src/flow</code>, three slices with disjoint ownership, and a shipped
+  component (<code>ThreadRail</code>) changed independently of the feature that
+  motivated it. Not C4 &mdash; this touches none of the protected mechanisms (no
+  event-log migration, no PRNG, no notification scheduling, no backup crypto, no
+  partner hand-off, no destructive reset) and writes no new event.</p>
+  <p>The authoritative file recipes, slice dependencies, commands, budgets,
+  branching strategy, delegation decisions and rollback steps are in
+  <a href="exec.md">exec.md</a>. Live status is recorded only in
+  <a href="PROGRESS.md">PROGRESS.md</a>.</p>
+  <p><strong>S01 &mdash; the rail</strong> weaves its full height and stops
+  tangling; independently shippable, and worth shipping whatever happens to the
+  rest. <strong>S02 &mdash; the open row and the shuttle</strong> replaces the
+  fake loom with today's row in the reader's own cloth and moves the gesture onto
+  an instrument. <strong>S03 &mdash; one zone, two states</strong> merges the
+  weave zone into the seal zone so the screen never carries two cloths. Serial
+  waves, inline execution: the slices are small enough that delegation would cost
+  more than it saves, and delegation is not authorized.</p>
+</div>
+
+<div id="verify" class="panel">
+  <h2>Verification</h2>
+  <ul class="checklist">
+    <li><input type="checkbox"><span><code>npx vitest run test/rail.test.ts test/openRow.test.ts test/loom.test.ts</code> &rarr; the new pure-geometry suites pass, including the rail-coverage regression</span></li>
+    <li><input type="checkbox"><span><code>npx vitest run test/render-path-cost.test.ts</code> &rarr; still inside its bound with the seal zone now drawing cloth before sealing</span></li>
+    <li><input type="checkbox"><span><code>npm test</code> &rarr; whole suite green (365+ at time of writing)</span></li>
+    <li><input type="checkbox"><span><code>npm run typecheck</code> &rarr; clean</span></li>
+    <li><input type="checkbox"><span>CI builds <code>one-blue-thread.apk</code> on push</span></li>
+    <li><input type="checkbox"><span>Owner spot-check on a dev build: hold the shuttle &rarr; today's row closes and the bolt appears; release early &rarr; the pass withdraws and nothing but <code>hold_cancel</code> is written</span></li>
+    <li><input type="checkbox"><span>Owner spot-check: the rail weaves to its fell mark at the end of a chapter, and the fell sits level with the shuttle</span></li>
+    <li><input type="checkbox"><span>Owner spot-check: the knot's compact weave still renders after the flow zones merge</span></li>
+    <li><input type="checkbox"><span>Visual: the built screen matches the approved mockup on one narrow phone width, with reduce-motion on (static open row plus fallback button) and at the OS's largest font scale</span></li>
+  </ul>
+  <p class="note">Automated plus CI is the real gate. No mandatory itemised
+  manual walkthrough: this change touches none of the five areas
+  (<code>AGENTS.md</code> verification policy) where finding out later is unsafe.
+  Recorded gap: no Android device or emulator exists in this environment, so
+  every visual and gesture line above is owner-verified only.</p>
+</div>
+
+<script>
+function show(id){
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+}
+// Persist checklist state per plan file
+const KEY = 'plan-checks-' + location.pathname;
+document.querySelectorAll('.checklist input[type=checkbox]').forEach((cb, i) => {
+  cb.checked = localStorage.getItem(KEY + i) === '1';
+  cb.addEventListener('change', () => localStorage.setItem(KEY + i, cb.checked ? '1' : '0'));
+});
+</script>
+</body>
+</html>

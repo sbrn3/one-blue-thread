@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup — Fell line seal</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400..900;1,400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* Colours are src/ui/tokens.ts ("The Loom"). Phones are drawn at 1 css px = 1 dp. */
+:root {
+  --paper: #F4F1E9; --ink: #1A1A17; --thread: #2E3A8C; --warp: #8F8779;
+  --madder: #B5482F; --ink60: #5B584F; --ink40: #726D5C; --ink15: #E0DACB;
+  --display: 'Schibsted Grotesk', system-ui, sans-serif;
+  --scripture: 'Newsreader', Georgia, serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--ink15); color: var(--ink); font-family: var(--display); }
+code { font-family: var(--mono); font-size: .85em; }
+.mk-bar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; justify-content: space-between;
+  padding: .7rem 1.1rem; background: var(--ink); color: var(--paper);
+  font-family: var(--mono); font-size: .8rem;
+}
+.mk-bar strong { font-weight: 600; }
+.mk-bar .dir { opacity: .7; }
+.mk-options { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+.mk-options label { color: inherit; border: 1px solid currentColor; border-radius: 999px; padding: .3rem .8rem; font-size: .72rem; cursor: pointer; user-select: none; }
+.mk-options label input { margin: 0 .35rem 0 0; vertical-align: -1px; }
+
+.intro { max-width: 980px; margin: 2rem auto 0; padding: 0 1.5rem; font-family: var(--scripture); font-size: 1.08rem; line-height: 1.6; color: var(--ink60); }
+.intro strong { color: var(--ink); font-weight: 600; }
+
+.mk-stage { display: flex; flex-wrap: wrap; gap: 2rem; padding: 2rem 1.5rem 2rem; justify-content: center; align-items: flex-start; }
+.col { width: 390px; max-width: 100%; display: flex; flex-direction: column; gap: .9rem; }
+.opt-label { font-family: var(--mono); font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--thread); margin: 0; text-align: center; }
+.opt-sub { font-size: .85rem; color: var(--ink60); text-align: center; margin: -.4rem 0 0; min-height: 2.6em; }
+
+.phone { position: relative; height: 760px; background: var(--paper); border-radius: 34px; box-shadow: 0 20px 60px rgba(0,0,0,.18); overflow: hidden; }
+.phone.live { outline: 3px solid var(--thread); outline-offset: 6px; }
+.screen { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; padding: 44px 0 60px; }
+.screen::-webkit-scrollbar { display: none; }
+.rail { position: absolute; left: 0; top: 0; width: 26px; height: 100%; pointer-events: none; z-index: 3; }
+.pad { padding: 0 32px; }
+.kicker { font-family: var(--mono); font-size: 12px; letter-spacing: 1.5px; color: var(--ink40); text-transform: uppercase; margin: 0 0 18px; }
+.verse { font-family: var(--scripture); font-size: 19px; line-height: 30px; margin: 0 0 18px; }
+.verse sup { font-family: var(--mono); font-size: 12px; color: var(--ink40); margin-right: 4px; vertical-align: baseline; }
+.attr { font-family: var(--mono); font-size: 11px; line-height: 16px; color: var(--ink40); margin: 24px 0 0; }
+
+.zone { min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; position: relative; }
+.row { position: relative; width: 100%; height: 84px; }
+.press { cursor: pointer; user-select: none; -webkit-user-select: none; touch-action: none; }
+.btn { position: absolute; left: 50%; top: 50%; min-height: 48px; border-radius: 999px; display: flex; align-items: center; justify-content: center; padding: 0 24px; font-weight: 700; font-size: 15px; white-space: nowrap; background: var(--paper); color: var(--ink); border: 1px solid var(--ink); transition: border-color .12s, color .12s; }
+.done { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); background: var(--paper); padding: 4px 12px; white-space: nowrap; font-family: var(--mono); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--thread); opacity: 0; pointer-events: none; }
+.twotap { margin-top: 6px; font-size: 13px; font-weight: 600; color: var(--ink40); text-decoration: underline; text-underline-offset: 3px; min-height: 44px; display: flex; align-items: center; }
+.hidden { visibility: hidden; }
+
+.after { opacity: 0; transition: opacity .5s; display: none; }
+.after.show { display: block; opacity: 1; }
+.weave { padding: 40px 32px; display: flex; flex-direction: column; gap: 20px; }
+.weave-label { font-family: var(--mono); font-size: 12px; letter-spacing: 1.5px; color: var(--ink40); text-transform: uppercase; }
+.weave-cap { font-family: var(--mono); font-size: 11px; letter-spacing: .5px; color: var(--ink40); }
+.dismiss { padding: 24px 32px 40px; text-align: center; }
+.dismiss .pct { font-family: var(--mono); font-size: 13px; color: var(--ink60); margin: 0 0 14px; }
+.dismiss .close { font-style: italic; font-size: 22px; color: var(--ink60); margin: 0; }
+
+.ctrl { display: flex; gap: .4rem; flex-wrap: wrap; justify-content: center; }
+.ctrl button { font-family: var(--mono); font-size: .72rem; background: var(--paper); color: var(--ink); border: 1px solid var(--ink40); border-radius: 999px; padding: .4rem .85rem; cursor: pointer; }
+.ctrl button:hover { border-color: var(--thread); color: var(--thread); }
+
+.notes { max-width: 980px; margin: 0 auto 4rem; padding: 0 1.5rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+.note { background: var(--paper); border-radius: 16px; padding: 1.1rem 1.25rem; font-size: .9rem; line-height: 1.5; }
+.note h4 { font-family: var(--mono); font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink40); margin: 0 0 .5rem; }
+.note ul { margin: 0; padding-left: 1.1rem; }
+.note li { margin-bottom: .35rem; }
+.note pre { font-family: var(--mono); font-size: .75rem; background: var(--ink15); border-radius: 8px; padding: .6rem .7rem; margin: .5rem 0 0; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+
+<div class="mk-bar">
+  <span><strong>Fell line seal</strong> <span class="dir">— direction B, with the rail's fell locked to the seal line</span></span>
+  <nav class="mk-options" aria-label="Mockup options">
+    <label><input type="checkbox" id="slow">Slow ×4</label>
+  </nav>
+</div>
+
+<p class="intro"><strong>Scroll the outlined phone</strong> with your mouse wheel or trackpad. Watch the rail on the left weave down as you read. When the seal line comes up the screen, the rail's fell meets it and the two become one line. <strong>Hold "Hold to seal"</strong> and today's thread runs out of the rail, across the page. Once it's sealed, the rail finishes weaving to the bottom. The other three phones are frozen at key moments for comparison.</p>
+
+<main class="mk-stage" id="stage"></main>
+
+<section class="notes">
+  <div class="note">
+    <h4>The rule</h4>
+    <ul>
+      <li><strong>While reading:</strong> the fell follows scroll progress, as it does now.</li>
+      <li><strong>Once the seal line is on screen:</strong> the fell is whichever is higher, scroll progress or the seal line. The line can't sit below the woven cloth, and the thread always leaves the rail at the fell.</li>
+      <li><strong>After sealing:</strong> the rail weaves the rest of the way down. Today is done.</li>
+    </ul>
+    <pre>fell = sealed ? railHeight
+     : min(progress × railHeight, sealLineY − scrollY)</pre>
+  </div>
+  <div class="note">
+    <h4>Build notes</h4>
+    <ul>
+      <li>ThreadRail already animates its fill height on the UI thread. It needs one more shared value, the seal line's content Y, and SealZone can report that from <code>onLayout</code>. Flow already does the same for <code>scriptureTop</code>/<code>scriptureBottom</code>.</li>
+      <li>The page-wide line is one path. The thread is drawn with <code>strokeDashoffset</code>, exactly as the current seal is, and the "tightening" wobble is a cheap amplitude change.</li>
+      <li>The gesture, 1.2 s timing, haptics, two-tap and tap fallbacks, and reduced-motion handling are all unchanged.</li>
+      <li>The loose-thread fix from earlier (no bare warp under the woven cloth) carries over as-is.</li>
+    </ul>
+  </div>
+</section>
+
+<script>
+const T = { paper:'#F4F1E9', ink:'#1A1A17', thread:'#2E3A8C', warp:'#8F8779', ink40:'#726D5C' };
+const HOLD = 1200, UNWIND = 220, DRIFT = 20, SEAL_MS = 1500, RAIL_H = 760, LINE_IN_ROW = 42, LINE_X0 = 13;
+let SLOW = 1;
+
+// ---- ported from src/ui/loom.ts ----
+function geom(W, H, cols, rows, pad) {
+  const sx = Math.min((W - pad * 2) / (cols + 1), 16);
+  const sy = Math.min(Math.max((H - pad * 2) / (rows + 1), 5), 16);
+  return { cols, sx, sy, pad, amp: 1.8, slackCap: 4.5, dist: new Array(rows).fill(0) };
+}
+function supportDistances(sealed, cap = 4.5) {
+  const n = sealed.length, d = new Array(n).fill(cap);
+  for (let j = 0; j < n; j++) if (sealed[j]) d[j] = 0;
+  for (let j = 1; j < n; j++) d[j] = Math.min(d[j], d[j - 1] + 1);
+  for (let j = n - 2; j >= 0; j--) d[j] = Math.min(d[j], d[j + 1] + 1);
+  return d.map((v) => Math.min(v, cap));
+}
+function distAt(g, y) {
+  const f = (y - g.pad) / g.sy;
+  const a = Math.max(0, Math.min(g.dist.length - 1, Math.floor(f)));
+  const b = Math.min(g.dist.length - 1, a + 1);
+  const t = Math.max(0, Math.min(1, f - a));
+  return g.dist[a] + (g.dist[b] - g.dist[a]) * t;
+}
+function warpX(g, i, y) {
+  const d = Math.min(distAt(g, y), g.slackCap), slack = d / g.slackCap, wl = g.sy * 2.05;
+  return g.pad + i * g.sx + Math.sin(y / wl + i * 0.9) * g.amp * (1 + slack * 2.2) + Math.sin(i * 2.31 + 1.7) * d * 1.05;
+}
+const weftY = (g, j, x) => g.pad + j * g.sy + Math.sin(x / (g.sx * 2.05) + j * 0.7) * g.amp;
+const fx = (n) => Math.round(n * 100) / 100;
+function warpPath(g, i, a, b) {
+  const step = Math.min(3.5, g.sy / 3), ya = g.pad + (a - 0.5) * g.sy, yb = g.pad + (b + 0.5) * g.sy;
+  let d = '';
+  for (let y = ya; y <= yb + 0.001; y += step) d += (d ? 'L' : 'M') + fx(warpX(g, i, y)) + ' ' + fx(y) + ' ';
+  return d.trim();
+}
+function weftPts(g, j) {
+  const step = Math.min(3.5, g.sx / 3), x0 = g.pad - g.pad * 0.6, x1 = g.pad + g.sx * (g.cols - 1) + g.pad * 0.6, p = [];
+  for (let x = x0; x <= x1 + 0.001; x += step) p.push([x, weftY(g, j, x)]);
+  return p;
+}
+const toPath = (p) => p.map(([x, y], i) => (i ? 'L' : 'M') + fx(x) + ' ' + fx(y)).join(' ');
+const over = (i, j) => (i + j) % 2 === 0;
+const P = (d, stroke, w, op = 1, extra = '') => `<path d="${d}" stroke="${stroke}" stroke-width="${w}" stroke-opacity="${op}" stroke-linecap="round" fill="none" ${extra}/>`;
+const dash = (p) => `pathLength="1" stroke-dasharray="1 1" stroke-dashoffset="${fx(1 - p)}"`;
+const clamp = (v) => Math.max(0, Math.min(1, v));
+const easeInOut = (t) => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+// ---- rail: woven and bare layers, each clipped to its side of the fell ----
+const RAIL_ROWS = 48;
+const railWoven = (() => {
+  const g = geom(26, RAIL_H, 3, RAIL_ROWS, 5);
+  let s = '';
+  for (let i = 0; i < 3; i++) s += P(warpPath(g, i, 0, RAIL_ROWS - 1), T.warp, 2.6, 0.95);
+  for (let j = 0; j < RAIL_ROWS; j++) s += P(toPath(weftPts(g, j)), T.thread, 3, 0.9);
+  for (let j = 0; j < RAIL_ROWS; j++) for (let i = 0; i < 3; i++) if (over(i, j)) s += P(warpPath(g, i, j, j), T.warp, 2.6, 0.95);
+  return s;
+})();
+const railBare = (() => {
+  const g = geom(26, RAIL_H, 3, RAIL_ROWS, 5);
+  g.dist = new Array(RAIL_ROWS).fill(4.5);
+  let s = '';
+  for (let i = 0; i < 3; i++) s += P(warpPath(g, i, 0, RAIL_ROWS - 1), T.warp, 2.2, 0.42);
+  return s;
+})();
+const railSVG = (id) => `<svg width="26" height="${RAIL_H}">
+  <defs><clipPath id="rt-${id}"><rect class="clip-top" width="26" height="0"/></clipPath><clipPath id="rb-${id}"><rect class="clip-bot" width="26" y="0" height="${RAIL_H}"/></clipPath></defs>
+  <g clip-path="url(#rb-${id})">${railBare}</g><g clip-path="url(#rt-${id})">${railWoven}</g>
+  <rect class="fell" x="3" y="-1" width="20" height="2" rx="1" fill="${T.thread}" opacity=".55"/></svg>`;
+
+// ---- the book's cloth for the WeaveZone that follows a seal ----
+const HIST = [1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,0,1,1].map(Boolean);
+function boltSVG() {
+  const g = geom(80, 200, 5, 25, 4);
+  g.dist = supportDistances(HIST);
+  let s = '';
+  for (let i = 0; i < g.cols; i++) s += P(warpPath(g, i, 0, 24), T.warp, 2.2);
+  HIST.forEach((on, j) => { if (on) s += P(toPath(weftPts(g, j)), T.thread, 2.6, 0.9); });
+  HIST.forEach((on, j) => { if (on) for (let i = 0; i < g.cols; i++) if (over(i, j)) s += P(warpPath(g, i, j, j), T.warp, 2.2); });
+  return `<svg width="80" height="200">${s}</svg>`;
+}
+const AFTER = `<div class="weave"><div class="weave-label">James · 5 chapters</div>${boltSVG()}<div class="weave-cap">10 of 25 days woven</div></div>
+  <div class="dismiss"><p class="pct">James · 80% through</p><p class="close">Now close the app.</p></div>`;
+
+const VERSES = [
+  [11, 'Don’t speak against one another, brothers. He who speaks against a brother and judges his brother, speaks against the law and judges the law. But if you judge the law, you are not a doer of the law, but a judge.'],
+  [12, 'Only one is the lawgiver, who is able to save and to destroy. But who are you to judge another?'],
+  [13, 'Come now, you who say, “Today or tomorrow let’s go into this city, and spend a year there, trade, and make a profit.”'],
+  [14, 'Whereas you don’t know what your life will be like tomorrow. For what is your life? For you are a vapor that appears for a little time, and then vanishes away.'],
+  [15, 'For you ought to say, “If the Lord wills, we will both live, and do this or that.”'],
+  [16, 'But now you glory in your boasting. All such boasting is evil.'],
+  [17, 'To him therefore who knows to do good, and doesn’t do it, to him it is sin.'],
+];
+
+// ---- phones ----
+const PHONES = [
+  { id: 'live', label: 'Live — scroll and hold', sub: 'Scroll down, then press and hold the pill.', live: true },
+  { id: 'reading', label: '1 · Reading', sub: 'Seal line still off screen. The rail follows scroll progress.', scroll: 0.45 },
+  { id: 'arrived', label: '2 · Line arrives', sub: 'The fell has locked onto the seal line. One continuous edge.', scroll: 1 },
+  { id: 'sealed', label: '3 · Sealed', sub: 'The thread ran out of the rail and across the page. Then the rail wove to the bottom.', scroll: 1, state: 'sealed', p: 1, c: 1 },
+];
+
+const ctrls = [];
+const stage = document.getElementById('stage');
+for (const cfg of PHONES) {
+  const col = document.createElement('section');
+  col.className = 'col';
+  col.innerHTML = `
+    <h3 class="opt-label">${cfg.label}</h3>
+    <p class="opt-sub">${cfg.sub}</p>
+    <div class="phone${cfg.live ? ' live' : ''}">
+      <div class="rail">${railSVG(cfg.id)}</div>
+      <div class="screen">
+        <div class="pad">
+          <p class="kicker">James 4 · sitting 3 of 11</p>
+          ${VERSES.map(([n, t]) => `<p class="verse"><sup>${n}</sup>${t}</p>`).join('')}
+          <p class="attr">World English Bible · public domain</p>
+        </div>
+        <div class="zone" style="margin-top:12px">
+          <div class="row">
+            <svg class="line" width="390" height="84" style="position:absolute;left:0;top:0;overflow:visible"></svg>
+            <div class="btn press">Hold to seal</div>
+            <div class="done">Sealed · day 25</div>
+          </div>
+          <div class="twotap">Use two taps instead</div>
+        </div>
+        <div class="after">${AFTER}</div>
+      </div>
+    </div>
+    ${cfg.live ? `<div class="ctrl"><button data-a="play">▶ Full hold</button><button data-a="early">Let go early</button><button data-a="reset">↺ Reset</button></div>` : ''}`;
+  stage.appendChild(col);
+
+  const q = (s) => col.querySelector(s);
+  const k = {
+    cfg, p: cfg.p || 0, c: cfg.c || 0, state: cfg.state || 'idle', unwindFrom: 0, timer: null, dirty: true,
+    frozen: !cfg.live, railFrom: null, scrolled: false,
+    phone: q('.phone'), screen: q('.screen'), row: q('.row'), line: q('.line'), btn: q('.btn'), done: q('.done'),
+    twotap: q('.twotap'), after: q('.after'), clipTop: q('.clip-top'), clipBot: q('.clip-bot'), fell: q('.fell'),
+  };
+  ctrls.push(k);
+  k.screen.addEventListener('scroll', () => { k.dirty = true; }, { passive: true });
+
+  if (cfg.live) {
+    let start = null;
+    k.btn.addEventListener('pointerdown', (ev) => { k.btn.setPointerCapture(ev.pointerId); start = [ev.clientX, ev.clientY]; press(k); });
+    k.btn.addEventListener('pointermove', (ev) => { if (start && Math.hypot(ev.clientX - start[0], ev.clientY - start[1]) > DRIFT) { start = null; release(k); } });
+    const up = () => { start = null; release(k); };
+    k.btn.addEventListener('pointerup', up);
+    k.btn.addEventListener('pointercancel', up);
+    q('[data-a=play]').onclick = () => { reset(k, false); press(k); };
+    q('[data-a=early]').onclick = () => { reset(k, false); press(k); k.timer = setTimeout(() => release(k), 620 * SLOW); };
+    q('[data-a=reset]').onclick = () => reset(k, true);
+  }
+}
+
+// Frozen phones: scroll into position once fonts have laid the page out.
+document.fonts.ready.then(() => requestAnimationFrame(() => {
+  for (const k of ctrls) {
+    if (k.cfg.scroll == null) continue;
+    const max = k.screen.scrollHeight - k.screen.clientHeight;
+    k.screen.scrollTop = Math.round(max * k.cfg.scroll);
+    if (k.state === 'sealed') { k.railFrom = 0; k.after.classList.add('show'); }
+    k.dirty = true;
+  }
+}));
+
+function press(k) { if (k.state === 'sealed') return; k.state = 'holding'; k.dirty = true; }
+function release(k) { if (k.state !== 'holding') return; k.state = 'unwinding'; k.unwindFrom = k.p; k.dirty = true; }
+function reset(k, toTop) {
+  clearTimeout(k.timer);
+  k.p = 0; k.c = 0; k.state = 'idle'; k.dirty = true; k.scrolled = false; k.railFrom = null;
+  k.after.classList.remove('show');
+  if (toTop) k.screen.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Where the seal line is on screen, and where the fell would be from scroll progress alone.
+function geometryNow(k) {
+  const max = Math.max(1, k.screen.scrollHeight - k.screen.clientHeight);
+  const progressFell = clamp(k.screen.scrollTop / max) * RAIL_H;
+  const lineY = k.row.getBoundingClientRect().top - k.phone.getBoundingClientRect().top + LINE_IN_ROW;
+  return { progressFell, lineY };
+}
+
+function step(k, dt) {
+  if (k.state === 'holding') {
+    k.p = Math.min(1, k.p + dt / HOLD);
+    if (k.p >= 1) { k.state = 'sealed'; k.c = 0; k.railFrom = null; }
+    k.dirty = true;
+  } else if (k.state === 'unwinding') {
+    k.p = Math.max(0, k.p - dt * k.unwindFrom / UNWIND);
+    if (k.p <= 0) k.state = 'idle';
+    k.dirty = true;
+  } else if (k.state === 'sealed' && k.c < 1) {
+    k.c = Math.min(1, k.c + dt / SEAL_MS);
+    k.dirty = true;
+    if (k.c >= 1 && !k.scrolled) {
+      k.scrolled = true;
+      k.after.classList.add('show');
+      setTimeout(() => k.screen.scrollBy({ top: 260, behavior: 'smooth' }), 300 * SLOW);
+    }
+  }
+}
+
+function render(k) {
+  const sealed = k.state === 'sealed';
+  const { progressFell, lineY } = geometryNow(k);
+
+  // the rail
+  let fell = Math.max(0, Math.min(RAIL_H, progressFell, lineY));
+  if (sealed) {
+    if (k.railFrom == null) k.railFrom = fell;
+    fell = k.railFrom + (RAIL_H - k.railFrom) * easeInOut(clamp((k.c - 0.45) / 0.55));
+  }
+  k.clipTop.setAttribute('height', fx(fell));
+  k.clipBot.setAttribute('y', fx(fell));
+  k.clipBot.setAttribute('height', fx(RAIL_H - fell));
+  k.fell.setAttribute('y', fx(fell - 1));
+  k.fell.setAttribute('opacity', sealed && fell > RAIL_H - 2 ? 0 : 0.55);
+
+  // the page-wide line: loose until the pass goes in, taut after
+  const p = sealed ? 1 : k.p;
+  const amp = 2.4 * (1 - easeInOut(p)) + 0.25;
+  const pts = [];
+  for (let x = LINE_X0; x <= 374; x += 3) {
+    const lock = clamp((x - LINE_X0) / 30);
+    pts.push([x, LINE_IN_ROW + (Math.sin(x / 23) * amp + Math.sin(x / 7.3 + 1) * amp * 0.35) * lock]);
+  }
+  const d = toPath(pts);
+  let s = P(d, T.warp, 1.6, 0.45);
+  if (p > 0.001) s += P(d, T.thread, 3, 0.95, dash(p));
+  k.line.innerHTML = s;
+
+  // the pill and its sealed label
+  const k2 = sealed ? easeInOut(clamp((k.c - 0.05) / 0.35)) : 0;
+  const hot = k.state === 'holding' || sealed;
+  k.btn.style.borderColor = hot ? T.thread : T.ink;
+  k.btn.style.color = hot ? T.thread : T.ink;
+  k.btn.style.transform = `translate(-50%,-50%) scale(${k.state === 'holding' ? 0.985 : 1})`;
+  k.btn.style.opacity = 1 - k2;
+  k.btn.style.pointerEvents = sealed ? 'none' : '';
+  k.done.style.opacity = k2;
+  k.twotap.classList.toggle('hidden', sealed);
+}
+
+let last = performance.now();
+function frame(now) {
+  const dt = (now - last) / SLOW;
+  last = now;
+  for (const k of ctrls) {
+    if (!k.frozen) step(k, dt);
+    if (k.dirty) { render(k); k.dirty = false; }
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+document.getElementById('slow').onchange = (e) => { SLOW = e.target.checked ? 4 : 1; };
+</script>
+</body>
+</html>

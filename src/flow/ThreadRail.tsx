@@ -1,8 +1,15 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { useAnimatedStyle, type SharedValue } from 'react-native-reanimated';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+  type SharedValue,
+} from 'react-native-reanimated';
 import Svg, { G, Path } from 'react-native-svg';
-import { geometry, ridesOver, warpPath, weftPath } from '../ui/loom';
+import { warpPath, weftPath } from '../ui/loom';
+import { RAIL_WIDTH, railFell, railGeometry } from '../ui/rail';
 import { tokens } from '../ui/tokens';
 
 // §04 — the rail on the left edge tracks scroll position; reading progress IS
@@ -14,11 +21,9 @@ import { tokens } from '../ui/tokens';
 // cloth. Everything above it you have read; everything below is still slack.
 //
 // The cloth is painted once and revealed by animating the HEIGHT of a clipping
-// view, so nothing on the UI thread has to touch SVG props.
-
-const RAIL_WIDTH = 26;
-const ROW_PITCH = 20;
-const WARP_THREADS = 3;
+// view, so nothing on the UI thread has to touch SVG props. The bare warp is
+// windowed to the region below the fell, so slack thread never paints under the
+// cloth.
 
 interface ThreadRailProps {
   scrollY: SharedValue<number>;
@@ -26,54 +31,90 @@ interface ThreadRailProps {
   layoutHeight: SharedValue<number>;
   /** The actual safe content height (post safe-area-inset) — see Flow.tsx's onLayout measurement. Full window height overcounted the status bar/home-indicator as rail. */
   railHeight: number;
+  /** Content-Y of the seal line (-1 until measured). The fell can never pass it. */
+  sealLineY: SharedValue<number>;
+  /** Where the ScrollView's viewport starts on screen (the top safe-area inset). */
+  viewportTop: number;
+  /** Once sealed, the fell sweeps on to the bottom of the rail. */
+  sealed: boolean;
+  reducedMotion: boolean;
 }
 
-export function ThreadRail({ scrollY, contentHeight, layoutHeight, railHeight }: ThreadRailProps) {
+const SWEEP_MS = 600;
+
+export function ThreadRail({
+  scrollY,
+  contentHeight,
+  layoutHeight,
+  railHeight,
+  sealLineY,
+  viewportTop,
+  sealed,
+  reducedMotion,
+}: ThreadRailProps) {
   const windowHeight = railHeight;
 
-  const { bare, woven } = useMemo(() => {
-    const rows = Math.max(2, Math.ceil(windowHeight / ROW_PITCH) + 1);
-    // Two passes of the same geometry: one with nothing woven (slack warp, what
-    // lies ahead) and one fully woven (what has been read).
-    const slack = geometry(RAIL_WIDTH, windowHeight, WARP_THREADS, Array<boolean>(rows).fill(false), {
-      pad: 5,
-    });
-    const cloth = geometry(RAIL_WIDTH, windowHeight, WARP_THREADS, Array<boolean>(rows).fill(true), {
-      pad: 5,
-    });
-    return { bare: { g: slack, rows }, woven: { g: cloth, rows } };
-  }, [windowHeight]);
+  // 0 until the day is sealed, then the fell runs on down to the bottom. Already
+  // sealed on mount (or reduced motion) it simply is there.
+  const sealedSweep = useSharedValue(sealed ? 1 : 0);
+  useEffect(() => {
+    if (!sealed) sealedSweep.value = 0;
+    else if (reducedMotion) sealedSweep.value = 1;
+    else sealedSweep.value = withTiming(1, { duration: SWEEP_MS, easing: Easing.inOut(Easing.cubic) });
+  }, [sealed, reducedMotion, sealedSweep]);
 
-  const fillStyle = useAnimatedStyle(() => {
+  const fellPx = () => {
+    'worklet';
     const scrollable = Math.max(1, contentHeight.value - layoutHeight.value);
-    // Deliberately NOT gated on reduced motion. This is a direct-manipulation
-    // indicator, like a scrollbar, not an animation: snapping it to 100% would
-    // show a reduced-motion reader fully woven cloth and no fell line at the
-    // top of an unread chapter, which is the one thing the rail must never do.
     const progress = Math.min(1, Math.max(0, scrollY.value / scrollable));
-    return { height: `${progress * 100}%` };
+    const lineY = sealLineY.value < 0 ? null : viewportTop + sealLineY.value - scrollY.value;
+    return railFell(progress * windowHeight, lineY, windowHeight, sealedSweep.value);
+  };
+
+  const { bare, woven } = useMemo(
+    () => ({ bare: railGeometry(windowHeight, false), woven: railGeometry(windowHeight, true) }),
+    [windowHeight],
+  );
+
+  // Deliberately NOT gated on reduced motion. This is a direct-manipulation
+  // indicator, like a scrollbar, not an animation: snapping it to 100% would
+  // show a reduced-motion reader fully woven cloth and no fell line at the
+  // top of an unread chapter, which is the one thing the rail must never do.
+  const fillStyle = useAnimatedStyle(() => ({ height: fellPx() }));
+
+  // The bare warp lives only below the fell: a window whose top follows the
+  // fell, with the Svg counter-offset so its paths keep their coordinates.
+  const bareWindowStyle = useAnimatedStyle(() => {
+    const fell = fellPx();
+    return { top: fell, height: windowHeight - fell };
   });
+  const bareOffsetStyle = useAnimatedStyle(() => ({ top: -fellPx() }));
 
   const cols = bare.g.sett.drawnCols;
 
   return (
     <View style={[styles.rail, { height: windowHeight }]} pointerEvents="none">
       {/* what is ahead of you: bare warp, slack and faint */}
-      <Svg style={StyleSheet.absoluteFill} width={RAIL_WIDTH} height={windowHeight}>
-        {Array.from({ length: cols }, (_, i) => (
-          <Path
-            key={`b${i}`}
-            d={warpPath(bare.g, i, 0, bare.rows - 1)}
-            stroke={tokens.color.warp}
-            strokeWidth={2.2}
-            strokeOpacity={0.42}
-            strokeLinecap="round"
-            fill="none"
-          />
-        ))}
-      </Svg>
+      <Animated.View style={[styles.clipBelow, bareWindowStyle]}>
+        <Animated.View style={[styles.absolute, bareOffsetStyle]}>
+          <Svg width={RAIL_WIDTH} height={windowHeight}>
+            {Array.from({ length: cols }, (_, i) => (
+              <Path
+                key={`b${i}`}
+                d={warpPath(bare.g, i, 0, bare.rows - 1)}
+                stroke={tokens.color.warp}
+                strokeWidth={1.8}
+                strokeOpacity={0.3}
+                strokeLinecap="round"
+                fill="none"
+              />
+            ))}
+          </Svg>
+        </Animated.View>
+      </Animated.View>
 
-      {/* what you have read: cloth, revealed down to the fell line */}
+      {/* what you have read: cloth, revealed down to the fell line. No
+          over/under interlace — at 26pt it is illegible mush. */}
       <Animated.View style={[styles.clip, fillStyle]}>
         <Svg width={RAIL_WIDTH} height={windowHeight}>
           <G>
@@ -82,8 +123,8 @@ export function ThreadRail({ scrollY, contentHeight, layoutHeight, railHeight }:
                 key={`w${i}`}
                 d={warpPath(woven.g, i, 0, woven.rows - 1)}
                 stroke={tokens.color.warp}
-                strokeWidth={2.6}
-                strokeOpacity={0.95}
+                strokeWidth={2}
+                strokeOpacity={0.55}
                 strokeLinecap="round"
                 fill="none"
               />
@@ -95,29 +136,12 @@ export function ThreadRail({ scrollY, contentHeight, layoutHeight, railHeight }:
                 key={`f${j}`}
                 d={weftPath(woven.g, j)}
                 stroke={tokens.color.thread}
-                strokeWidth={3}
-                strokeOpacity={0.9}
+                strokeWidth={2.6}
+                strokeOpacity={0.85}
                 strokeLinecap="round"
                 fill="none"
               />
             ))}
-          </G>
-          <G>
-            {Array.from({ length: woven.rows }, (_, j) =>
-              Array.from({ length: cols }, (_, i) => i)
-                .filter((i) => ridesOver(i, j))
-                .map((i) => (
-                  <Path
-                    key={`o${i}-${j}`}
-                    d={warpPath(woven.g, i, j, j)}
-                    stroke={tokens.color.warp}
-                    strokeWidth={2.6}
-                    strokeOpacity={0.95}
-                    strokeLinecap="round"
-                    fill="none"
-                  />
-                )),
-            )}
           </G>
         </Svg>
       </Animated.View>
@@ -144,6 +168,17 @@ const styles = StyleSheet.create({
     left: 0,
     width: RAIL_WIDTH,
     overflow: 'hidden',
+  },
+  clipBelow: {
+    position: 'absolute',
+    left: 0,
+    width: RAIL_WIDTH,
+    overflow: 'hidden',
+  },
+  absolute: {
+    position: 'absolute',
+    left: 0,
+    width: RAIL_WIDTH,
   },
   fell: {
     position: 'absolute',
