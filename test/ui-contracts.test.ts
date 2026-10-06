@@ -192,3 +192,26 @@ describe('ui-contracts (docs/plans/app-quality-foundations, Slice 7)', () => {
     }
   });
 });
+
+// docs/plans/recall-cloze-ladder — the recall cards and the narrowed probe.
+describe('recall cloze ladder contracts', () => {
+  const flow = (name: string) => codeOf(join(SRC, 'flow', name));
+
+  it('ProbeZone shows the whole span, never truncated', () => {
+    expect(flow('ProbeZone.tsx')).not.toContain('numberOfLines');
+  });
+
+  it('RecallZone draws cloze cards with an accessible paragraph label and step bars', () => {
+    const src = flow('RecallZone.tsx');
+    expect(src).toContain("from '../memory/cloze'");
+    expect(src).toContain('hintStyle');
+    expect(src).toContain('Step ${step} of 4');
+    expect(src).toContain('blank, starts with');
+  });
+
+  it('nothing in /src/memory uses Math.random (the hidden words are seeded)', () => {
+    for (const f of walk(join(SRC, 'memory'))) {
+      expect(codeOf(f), toRepoPath(f)).not.toContain('Math.random');
+    }
+  });
+});

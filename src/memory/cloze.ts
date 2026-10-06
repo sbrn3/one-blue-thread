@@ -2,7 +2,7 @@ import { ladderStep, MAX_RUNG } from './ladder';
 
 // Cloze cards (docs/plans/recall-cloze-ladder): hide some "key words"
 // of a passage. Selection is deterministic — a local FNV-1a hash of the
-// passage id and word index, never Math.random — and the ladder step is
+// passage id and word index, never an unseeded RNG — and the ladder step is
 // NOT part of the hash, so each step's hidden set contains the previous
 // step's and the two rungs of a step hide the identical set.
 // /src/memory must not import /src/lab, so the hash lives here.

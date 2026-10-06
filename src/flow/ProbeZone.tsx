@@ -8,22 +8,32 @@ import type { ProbeGrade } from '../lab/probe';
 interface ProbeZoneProps {
   book: string;
   chapter: number;
-  getChapterText: () => Promise<string>;
+  verseStart: number;
+  verseEnd: number;
+  marked: boolean; // the span is a verse the reader marked
+  getSpanText: () => Promise<string>;
   onGrade: (grade: ProbeGrade) => void;
 }
 
 /**
- * §10/E9 — the next-day recall probe. Free recall on YESTERDAY's
- * chapter (distinct from RecallZone's Leitner passages), reveal, one
- * of four self-grades. Consequence-free, same guarantee as ordinary
- * recall: grading never touches seal, streak, weave, or dose.
+ * §10/E9 — the next-day recall probe. Free recall on a few verses of
+ * YESTERDAY's chapter (distinct from RecallZone's Leitner passages),
+ * reveal, one of four self-grades. Consequence-free, same guarantee as
+ * ordinary recall: grading never touches seal, streak, weave, or dose.
  */
-export function ProbeZone({ book, chapter, getChapterText, onGrade }: ProbeZoneProps) {
+export function ProbeZone({ book, chapter, verseStart, verseEnd, marked, getSpanText, onGrade }: ProbeZoneProps) {
   const [revealed, setRevealed] = useState<string | null>(null);
   const [graded, setGraded] = useState(false);
 
+  const single = verseStart === verseEnd;
+  const range = single ? `${verseStart}` : `${verseStart}–${verseEnd}`;
+
   const reveal = async () => {
-    setRevealed(await getChapterText());
+    try {
+      setRevealed(await getSpanText());
+    } catch {
+      // stay on the prompt; Reveal can be pressed again
+    }
   };
 
   const grade = (g: ProbeGrade) => {
@@ -42,15 +52,18 @@ export function ProbeZone({ book, chapter, getChapterText, onGrade }: ProbeZoneP
   return (
     <View style={styles.zone}>
       <Text style={styles.prompt}>
-        Yesterday you read {bookName(book)} {chapter}. What do you remember?
+        Yesterday you read {bookName(book)} {chapter}.{' '}
+        {single ? `Do you remember verse ${verseStart}?` : `What do you remember of verses ${range}?`}
       </Text>
+      <Text style={styles.reference}>
+        {bookName(book)} {chapter}:{range}
+      </Text>
+      {marked && <Text style={styles.markedLabel}>● you marked this</Text>}
       {revealed === null ? (
         <ActionButton label="Reveal" variant="secondary" onPress={() => void reveal()} style={styles.revealBtn} />
       ) : (
         <>
-          <Text style={styles.revealed} numberOfLines={6}>
-            {revealed}
-          </Text>
+          <Text style={styles.revealed}>{revealed}</Text>
           <View style={styles.gradeRow}>
             <ChoiceChip label="Held it" onPress={() => grade('held')} />
             <ChoiceChip label="Partly" onPress={() => grade('partial')} />
@@ -79,6 +92,17 @@ const styles = StyleSheet.create({
     fontFamily: tokens.font.display,
     fontSize: 15,
     color: tokens.color.ink,
+  },
+  reference: {
+    fontFamily: tokens.font.mono,
+    fontSize: 13,
+    letterSpacing: 0.5,
+    color: tokens.color.ink40,
+  },
+  markedLabel: {
+    fontFamily: tokens.font.mono,
+    fontSize: 12,
+    color: tokens.color.madder,
   },
   revealBtn: {
     alignSelf: 'flex-start',
