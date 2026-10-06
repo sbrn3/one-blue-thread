@@ -63,18 +63,14 @@ export function RecallZone({ passages, getVerseText, onGrade, onSkip }: RecallZo
   };
 
   useEffect(() => {
-    let live = true;
     for (const p of passages) {
       if (texts[p.id] !== undefined || loading.current.has(p.id)) continue;
       loading.current.add(p.id);
       void load(p).then((t) => {
         loading.current.delete(p.id);
-        if (live && t !== null) setTexts((prev) => ({ ...prev, [p.id]: t }));
+        if (t !== null) setTexts((prev) => ({ ...prev, [p.id]: t }));
       });
     }
-    return () => {
-      live = false;
-    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [passages]);
 
