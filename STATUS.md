@@ -91,6 +91,12 @@ all three bundled typefaces, and sat idle instead of pinning a core.
 
 ## Active plans
 
+- **recall-cloze-ladder** — 📋 approved 2026-10-06 (C4, independent Smart Review done), not
+  started. Recall passages become cloze cards on a ladder, and the next-day probe
+  asks about specific verses you read (#40, #41). Migration V12 is additive; the
+  dose analysis will count only span-level probe grades. Worktree
+  `thread-recall-cloze-ladder` on `feat/recall-cloze-ladder`; commit/push/PR not
+  yet authorized. See `docs/plans/recall-cloze-ladder/`.
 - **one-blue-thread-rebrand** — ✅ shipped in `v0.6.0` (PR #18, `2118227`).
   Public name, notification title, backup filenames, onboarding, knot, website
   and release artifact all renamed; the Android package, Expo slug, database,

@@ -78,3 +78,20 @@ to be confused with the everyday tier's "Practice" row, which is the cue.
 
 **The cue** — the one if-then sentence ("After X, I read in Y") that the whole
 product is built to deliver.
+
+## Memory
+
+**Cloze card** — a recall card for a memory passage with some of its key words
+hidden. You try to fill the gaps, reveal, and grade yourself.
+
+**Key words** — the words of a passage that a cloze card may hide: every word
+that is not a common English function word.
+
+**The ladder** — how much a cloze card hides as a passage is reviewed more
+times: a few key words first, then most of them, finally the whole passage.
+Each amount is met twice, first with letter stubs and then with plain gaps. A
+"Lost it" grade steps the ladder back one rung.
+
+**The probe span** — the few verses the next-day probe asks about: a verse you
+marked in yesterday's chapter, otherwise a short run chosen by the trial seed,
+always inside the verses you actually read.
