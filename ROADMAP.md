@@ -28,6 +28,10 @@ _(none)_
 
 ## Shipped
 
+- ✅ 2026-10-06 — **Recall cloze ladder + narrowed next-day probe** (#40, #41,
+  PR #45, `v0.8.0`). Recall passages hide a few key words, then more, then the
+  whole passage (letter stubs, then plain gaps); the E9 probe asks about up to 3
+  verses you read instead of a whole chapter. Migration V12, additive.
 - ✅ 2026-09-22 — **Start-over control as a circular seal-style button**
   (#31, PR #35, reclassified from issue then implemented same day). The
   hold-to-erase control read as a loom illustration, not a control; replaced
