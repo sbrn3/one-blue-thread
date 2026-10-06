@@ -19,10 +19,10 @@ import { eyeballDates, isSrbaiDue, saveSrbai, type SrbaiAnswers } from '../lab/s
 import { buildYearReview, isYearReviewDue, type YearReviewReport } from '../lab/analysis/yearReview';
 import { computeStreak, meta } from '../log/log';
 import type { Services } from '../services';
+import { useMemoryEpoch } from '../state/memoryEpoch';
 import { useSession } from '../state/session';
 import { logicalToday } from '../log/time';
 import type { Grade, Passage } from '../log/types';
-import { DAILY_RECALL_CAP } from '../memory/leitner';
 import { bundledChapterCount } from '../text';
 import { ArrivalZone } from './ArrivalZone';
 import { LapseZone } from './LapseZone';
@@ -314,21 +314,49 @@ export function Flow({ services }: FlowProps) {
       .filter((article): article is NonNullable<typeof article> => article !== null);
   }, [contextVerse, sittingVerses, study]);
 
+  // docs/plans/recall-settings — library changes (adds, deletes, learning a
+  // mark) bump this so the reading screen re-reads; see memoryEpoch.ts.
+  const memoryEpoch = useMemoryEpoch((st) => st.epoch);
+  const bumpMemory = useMemoryEpoch((st) => st.bump);
+  const setShownToday = useMemoryEpoch((st) => st.setShownToday);
+
+  // The book-end offer: the marks as they stood when the book finished.
+  // Learning one keeps it in the list (shown "Learning ✓"); deleting one in
+  // the library removes it.
   useEffect(() => {
     setCandidates(session.justFinishedBook ? memory.candidates(session.justFinishedBook) : []);
   }, [session.justFinishedBook, memory]);
+  useEffect(() => {
+    setCandidates((prev) => {
+      if (prev.length === 0) return prev;
+      const alive = new Set([...memory.learned(), ...memory.marked()].map((p) => p.id));
+      const next = prev.filter((p) => alive.has(p.id));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [memoryEpoch, memory]);
+  const learnedIds = useMemo(
+    () => new Set(memory.learned().map((p) => p.id)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [memory, memoryEpoch, candidates],
+  );
 
   // §04 zone 5 / §21 — the book-end promotion choice. Reset for every newly
   // finished book so an old resolution can't silently satisfy a new one.
   const [promotionResolved, setPromotionResolved] = useState(false);
+  const [promotionMessage, setPromotionMessage] = useState<string | null>(null);
   useEffect(() => {
     setPromotionResolved(false);
+    setPromotionMessage(null);
   }, [session.justFinishedBook]);
-  const handleSkipPromotion = useCallback(() => setPromotionResolved(true), []);
+  // docs/plans/recall-settings — the book end is an offer: learn none, one or
+  // several, then Done.
+  const handleFinishPromotion = useCallback(() => setPromotionResolved(true), []);
 
   const refreshChapterCandidates = useCallback(() => {
     setChapterCandidates(memory.candidatesForChapter(session.book, session.chapter));
-  }, [memory, session.book, session.chapter]);
+    // memoryEpoch: a mark learned or deleted in the library refreshes the highlights.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memory, session.book, session.chapter, memoryEpoch]);
 
   useEffect(() => {
     refreshChapterCandidates();
@@ -381,11 +409,15 @@ export function Flow({ services }: FlowProps) {
 
   const handlePromote = useCallback(
     (id: number) => {
-      memory.promote(id, today);
-      setCandidates((prev) => prev.filter((c) => c.id !== id));
-      setPromotionResolved(true);
+      const result = memory.promote(id, today);
+      if (result.ok) {
+        setPromotionMessage(null);
+        bumpMemory();
+      } else {
+        setPromotionMessage(result.reason === 'duplicate' ? "You're already learning that passage." : 'That passage is gone.');
+      }
     },
-    [memory, today],
+    [memory, today, bumpMemory],
   );
 
   const handlePickNextBook = useCallback(
@@ -396,18 +428,40 @@ export function Flow({ services }: FlowProps) {
   );
 
   // §04 zone 1b — only if due; the zone does not exist otherwise.
+  // docs/plans/recall-settings — up to the reader's daily cap, and the set is
+  // frozen for the day: grading a card never pulls the next due one in.
+  // On a library change (epoch) the shown cards are re-read — deleted ones
+  // go, ones graded in the library go, ones graded here stay (shown done) —
+  // and new due cards are added only while fewer than the cap were shown
+  // today, so raising the cap adds cards.
   const [dueToday, setDueToday] = useState<Passage[]>([]);
   const recallShownLogged = useRef(false);
+  const shownToday = useRef<{ date: string; ids: number[] }>({ date: '', ids: [] });
+  const zoneGraded = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     if (session.status !== 'ready') return;
-    const due = memory.due(today).slice(0, DAILY_RECALL_CAP);
-    setDueToday(due);
-    if (due.length > 0 && !recallShownLogged.current) {
+    if (shownToday.current.date !== today) {
+      shownToday.current = { date: today, ids: [] };
+      zoneGraded.current = new Set();
+    }
+    const shown = shownToday.current.ids;
+    const cap = memory.recallCap();
+    for (const p of memory.due(today)) {
+      if (shown.length >= cap) break;
+      if (!shown.includes(p.id)) shown.push(p.id);
+    }
+    const byId = new Map(memory.learned().map((p) => [p.id, p]));
+    const visible = shown
+      .map((id) => byId.get(id))
+      .filter((p): p is Passage => !!p && ((p.due_date !== null && p.due_date <= today) || zoneGraded.current.has(p.id)));
+    setDueToday(visible);
+    setShownToday([...shown]);
+    if (visible.length > 0 && !recallShownLogged.current) {
       recallShownLogged.current = true;
       log.write({ type: 'recall_shown' });
     }
-  }, [session.status, memory, today, log]);
+  }, [session.status, memory, today, log, memoryEpoch, setShownToday]);
 
   const getVerseText = useCallback(
     async (p: Passage) => {
@@ -422,6 +476,7 @@ export function Flow({ services }: FlowProps) {
 
   const handleGradeRecall = useCallback(
     (id: number, grade: Grade) => {
+      zoneGraded.current.add(id); // stays on screen as done; deliberately no epoch bump
       memory.grade(id, grade, today);
     },
     [memory, today],
@@ -628,8 +683,10 @@ export function Flow({ services }: FlowProps) {
               justFinishedBook={session.justFinishedBook}
               candidates={candidates}
               onPromote={handlePromote}
+              learnedIds={learnedIds}
+              promotionMessage={promotionMessage}
               promotionResolved={promotionResolved}
-              onSkipPromotion={handleSkipPromotion}
+              onFinishPromotion={handleFinishPromotion}
               needsNextBookPick={session.nextBookNeeded}
               onPickNextBook={handlePickNextBook}
               pendingReport={pendingReport}

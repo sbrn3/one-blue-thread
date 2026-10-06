@@ -17,9 +17,13 @@ interface DismissalZoneProps {
   /** Unpromoted candidates from the just-finished book (§21) — offered once, at book end. */
   candidates: Passage[];
   onPromote: (id: number) => void;
-  /** True once the reader promoted a candidate or explicitly chose "Not this time" — hides the prompt either way. */
+  /** Offered marks already being learned — shown "Learning ✓" (docs/plans/recall-settings: pick none, one or several). */
+  learnedIds: Set<number>;
+  /** A refused "Learn this" (already learning that range, or the mark is gone). */
+  promotionMessage: string | null;
+  /** True once the reader tapped Done — hides the prompt. */
   promotionResolved: boolean;
-  onSkipPromotion: () => void;
+  onFinishPromotion: () => void;
   /** True whenever the next-book queue is empty (§04) — persists across days until picked, not gated by justFinishedBook. */
   needsNextBookPick: boolean;
   onPickNextBook: (bookId: string) => void;
@@ -52,8 +56,10 @@ export function DismissalZone({
   justFinishedBook,
   candidates,
   onPromote,
+  learnedIds,
+  promotionMessage,
   promotionResolved,
-  onSkipPromotion,
+  onFinishPromotion,
   needsNextBookPick,
   onPickNextBook,
   pendingReport,
@@ -77,18 +83,29 @@ export function DismissalZone({
 
       {justFinishedBook && candidates.length > 0 && !promotionResolved && (
         <View style={styles.promoteBlock}>
-          <Text style={styles.promoteLabel}>Carry one passage forward to memorise?</Text>
-          {candidates.map((p) => (
-            <Pressable
-              key={p.id}
-              style={styles.candidateRow}
-              onPress={() => onPromote(p.id)}
-              accessibilityRole="button"
-            >
-              <Text style={styles.candidateText}>{reference(justFinishedBook, p)}</Text>
-            </Pressable>
-          ))}
-          <ActionButton label="Not this time" variant="link" onPress={onSkipPromotion} />
+          <Text style={styles.promoteLabel}>Learn any of what you marked?</Text>
+          {candidates.map((p) => {
+            const learning = learnedIds.has(p.id);
+            const ref = reference(justFinishedBook, p);
+            return (
+              <Pressable
+                key={p.id}
+                style={[styles.candidateRow, learning && styles.candidateLearning]}
+                onPress={() => onPromote(p.id)}
+                disabled={learning}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: learning }}
+                accessibilityLabel={learning ? `${ref}, learning` : `Learn ${ref}`}
+              >
+                <Text style={styles.candidateText}>
+                  {ref}
+                  {learning ? '  · Learning ✓' : '  · Learn this'}
+                </Text>
+              </Pressable>
+            );
+          })}
+          {promotionMessage ? <Text style={styles.promotionMessage}>{promotionMessage}</Text> : null}
+          <ActionButton label="Done" variant="secondary" onPress={onFinishPromotion} />
         </View>
       )}
 
@@ -167,6 +184,15 @@ const styles = StyleSheet.create({
     fontFamily: tokens.font.display,
     fontSize: 14,
     color: tokens.color.ink,
+  },
+  candidateLearning: {
+    backgroundColor: tokens.color.dyeSoft,
+    borderColor: tokens.color.thread,
+  },
+  promotionMessage: {
+    fontFamily: tokens.font.mono,
+    fontSize: 12,
+    color: tokens.color.madder,
   },
   queueBlock: {
     width: '100%',
