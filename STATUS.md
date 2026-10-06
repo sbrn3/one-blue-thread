@@ -91,7 +91,7 @@ all three bundled typefaces, and sat idle instead of pinning a core.
 
 ## Active plans
 
-- **recall-settings** — 🔨 approved 2026-10-07 (C4, Smart Review done), building on
+- **recall-settings** — ✅ built 2026-10-07 (C4, Smart Review + final audit done) on
   `feat/recall-settings`. A memory library in the knot (add any passage, edit,
   start over, delete, review now, daily cap), optional multi-pick book end, and
   the probe stops using marks. Migration V13 is additive. See

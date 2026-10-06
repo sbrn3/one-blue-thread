@@ -102,6 +102,6 @@ to learn yet. "Learn this" turns one into a memory passage.
 **The daily cap** — how many due memory passages the reading screen shows in a
 day (1–10, default 2). The library can review beyond it.
 
-**The probe span** — the few verses the next-day probe asks about: a verse you
-marked in yesterday's chapter, otherwise a short run chosen by the trial seed,
-always inside the verses you actually read.
+**The probe span** — the few verses the next-day probe asks about: a short run
+chosen by the trial seed, always inside the verses you actually read. It never
+looks at your marks; memory work and the probe run separately.

@@ -84,6 +84,7 @@ export function MemoryModal({ visible, memory, text, today, reducedMotion, onClo
   const [pageText, setPageText] = useState<{ key: string; text: string | null; failed: boolean } | null>(null);
   const chapters = useRef(new Map<string, Verse[]>());
   const headingRef = useRef<Text>(null);
+  const pickerBack = useRef<(() => void) | null>(null);
 
   const learned = useMemo(() => (visible ? memory.learned() : []), [visible, memory, tick]);
   const marked = useMemo(() => (visible ? memory.marked() : []), [visible, memory, tick]);
@@ -150,6 +151,7 @@ export function MemoryModal({ visible, memory, text, today, reducedMotion, onClo
 
   const back = useCallback(() => {
     if (screen.kind === 'list') onClose();
+    else if (screen.kind === 'picker' && pickerBack.current) pickerBack.current();
     else if (screen.kind === 'picker' && screen.mode === 'edit' && screen.id !== undefined) go({ kind: 'passage', id: screen.id });
     else go({ kind: 'list' });
   }, [screen, onClose, go]);
@@ -167,8 +169,7 @@ export function MemoryModal({ visible, memory, text, today, reducedMotion, onClo
     if (screen.mode === 'add') result = memory.add(ref, today);
     else if (screen.mode === 'edit' && screen.id !== undefined) result = memory.editRange(screen.id, ref.verseStart, ref.verseEnd);
     else if (screen.mode === 'learn' && screen.id !== undefined) {
-      result = memory.editRange(screen.id, ref.verseStart, ref.verseEnd);
-      if (result.ok) result = memory.promote(screen.id, today);
+      result = memory.learnRange(screen.id, ref.verseStart, ref.verseEnd, today);
     } else return;
     const why = refusal(result, label);
     if (why) {
@@ -291,10 +292,10 @@ export function MemoryModal({ visible, memory, text, today, reducedMotion, onClo
             ) : (
               <>
                 {current.promoted_at !== null && <Bars step={ladderStep(effectiveRung(current.rung, current.box))} />}
-                {pageText?.failed ? (
+                {pageText?.key === currentKey && pageText.failed ? (
                   <Text style={styles.message}>Couldn&apos;t load the text. It will show when you practise.</Text>
                 ) : (
-                  <Text style={styles.passageText}>{pageText?.text ?? 'Loading…'}</Text>
+                  <Text style={styles.passageText}>{(pageText?.key === currentKey && pageText.text) || 'Loading…'}</Text>
                 )}
                 {text.attribution() ? <Text style={styles.attribution}>{text.attribution()}</Text> : null}
                 <View style={styles.facts}>
@@ -400,8 +401,10 @@ export function MemoryModal({ visible, memory, text, today, reducedMotion, onClo
               text={text}
               initial={screen.initial}
               message={message}
+              onSelectionChange={() => setMessage(null)}
+              backRef={pickerBack}
               onConfirm={onConfirmPicker}
-              onCancel={back}
+              onCancel={() => (screen.mode === 'edit' && screen.id !== undefined ? go({ kind: 'passage', id: screen.id }) : go({ kind: 'list' }))}
             />
           </View>
         )}

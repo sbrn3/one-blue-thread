@@ -310,6 +310,19 @@ describe('Memory (§13.3 /src/memory, §21)', () => {
       expect(memory.editRange(999, 1, 1)).toEqual({ ok: false, reason: 'missing' });
     });
 
+    it('learnRange() refuses a duplicate before touching the mark', () => {
+      const { db, memory } = setup();
+      memory.add(ref(1, 2), '2026-07-14');
+      memory.markCandidate({ book: 'psalms', chapter: 23, verseStart: 1, verseEnd: 1 }, () => 1);
+      const [mark] = memory.marked();
+      expect(memory.learnRange(mark.id, 1, 2, '2026-07-14')).toEqual({ ok: false, reason: 'duplicate' });
+      expect(row(db, mark.id)).toMatchObject({ verse_start: 1, verse_end: 1 });
+      expect(db.all("SELECT * FROM events WHERE type = 'passage_edited'")).toHaveLength(0);
+      expect(memory.learnRange(mark.id, 1, 3, '2026-07-14')).toEqual({ ok: true, id: mark.id });
+      expect(row(db, mark.id)).toMatchObject({ verse_start: 1, verse_end: 3, due_date: '2026-07-14' });
+      expect(memory.marked()).toHaveLength(0);
+    });
+
     it('reset() starts over: box 1, rung 1, due today, held_since cleared', () => {
       const { db, memory } = setup();
       const r = memory.add(ref(1, 1), '2026-07-14');

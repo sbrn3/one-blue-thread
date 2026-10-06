@@ -145,6 +145,26 @@ export class Memory {
     return { ok: true, id };
   }
 
+  /**
+   * "Learn this" from the library: set a mark's range and learn it in one
+   * step. Checked first and applied in one transaction, so a refusal never
+   * leaves a half-edited mark or a stray passage_edited event.
+   */
+  learnRange(id: number, verseStart: number, verseEnd: number, today: string, now: () => number = Date.now): PassageResult {
+    const row = this.db.get<Passage>('SELECT * FROM passages WHERE id = ?', [id]);
+    if (!row) return { ok: false, reason: 'missing' };
+    if (!validRange(verseStart, verseEnd)) return { ok: false, reason: 'invalid' };
+    if (row.promoted_at !== null) return this.editRange(id, verseStart, verseEnd);
+    const next = { book: row.book, chapter: row.chapter, verse_start: verseStart, verse_end: verseEnd };
+    if (this.isLearned(next, id)) return { ok: false, reason: 'duplicate' };
+    let result: PassageResult = { ok: false, reason: 'missing' };
+    this.db.tx(() => {
+      const edited = this.editRange(id, verseStart, verseEnd);
+      result = edited.ok ? this.promote(id, today, now) : edited;
+    });
+    return result;
+  }
+
   /** Start over: box 1, rung 1, due today. */
   reset(id: number, today: string): void {
     const row = this.db.get<Passage>('SELECT * FROM passages WHERE id = ?', [id]);

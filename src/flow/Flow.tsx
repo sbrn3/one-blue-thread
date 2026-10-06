@@ -442,8 +442,16 @@ export function Flow({ services }: FlowProps) {
   useEffect(() => {
     if (session.status !== 'ready') return;
     if (shownToday.current.date !== today) {
-      shownToday.current = { date: today, ids: [] };
+      // Restored from meta so an app restart mid-day keeps the same set.
+      let saved: { date: string; ids: number[] } | null = null;
+      try {
+        saved = JSON.parse(meta.get(db, 'recall_shown_today') ?? 'null');
+      } catch {
+        saved = null;
+      }
+      shownToday.current = saved && saved.date === today && Array.isArray(saved.ids) ? saved : { date: today, ids: [] };
       zoneGraded.current = new Set();
+      recallShownLogged.current = false;
     }
     const shown = shownToday.current.ids;
     const cap = memory.recallCap();
@@ -457,11 +465,12 @@ export function Flow({ services }: FlowProps) {
       .filter((p): p is Passage => !!p && ((p.due_date !== null && p.due_date <= today) || zoneGraded.current.has(p.id)));
     setDueToday(visible);
     setShownToday([...shown]);
+    meta.set(db, 'recall_shown_today', JSON.stringify({ date: today, ids: shown }));
     if (visible.length > 0 && !recallShownLogged.current) {
       recallShownLogged.current = true;
       log.write({ type: 'recall_shown' });
     }
-  }, [session.status, memory, today, log, memoryEpoch, setShownToday]);
+  }, [session.status, memory, today, log, db, memoryEpoch, setShownToday]);
 
   const getVerseText = useCallback(
     async (p: Passage) => {

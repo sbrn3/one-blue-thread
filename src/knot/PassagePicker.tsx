@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef, type MutableRefObject } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { PassageRef } from '../memory/memory';
 import { bookName, type Book } from '../text/canon';
@@ -19,6 +19,10 @@ interface PassagePickerProps {
   message?: string | null;
   onConfirm: (ref: PassageRef) => void;
   onCancel: () => void;
+  /** Called when the reader changes chapter or selection — lets the caller clear a stale refusal. */
+  onSelectionChange?: () => void;
+  /** Set to this picker's own step-back, so the host's hardware back steps through the picker. */
+  backRef?: MutableRefObject<(() => void) | null>;
 }
 
 type Step = { kind: 'books' } | { kind: 'chapters'; book: string } | { kind: 'verses'; book: string; chapter: number };
@@ -33,7 +37,7 @@ const TITLE: Record<PickerMode, string> = { add: 'Add a passage', edit: 'Edit ve
  * inside one chapter. Rendered as a screen inside MemoryModal, never as its
  * own Modal (test/ui-contracts.test.ts).
  */
-export function PassagePicker({ mode, text, initial, message, onConfirm, onCancel }: PassagePickerProps) {
+export function PassagePicker({ mode, text, initial, message, onConfirm, onCancel, onSelectionChange, backRef }: PassagePickerProps) {
   const [step, setStep] = useState<Step>(
     initial ? { kind: 'verses', book: initial.book, chapter: initial.chapter } : { kind: 'books' },
   );
@@ -42,6 +46,7 @@ export function PassagePicker({ mode, text, initial, message, onConfirm, onCance
   const [verses, setVerses] = useState<Verse[] | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const listRef = useRef<FlatList<Verse>>(null);
 
   const books = useMemo(() => filterBooks(query).filter((b) => bundledChapterCount(b.id) > 0), [query]);
 
@@ -72,6 +77,21 @@ export function PassagePicker({ mode, text, initial, message, onConfirm, onCance
     } else if (step.kind === 'chapters') setStep({ kind: 'books' });
     else onCancel();
   }, [step, initial, onCancel]);
+
+  useEffect(() => {
+    if (!backRef) return;
+    backRef.current = back;
+    return () => {
+      backRef.current = null;
+    };
+  }, [back, backRef]);
+
+  // A refusal belongs to the range it refused.
+  const stepKey = step.kind === 'verses' ? `${step.book}:${step.chapter}` : step.kind;
+  useEffect(() => {
+    onSelectionChange?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stepKey, sel.start, sel.end]);
 
   const range = selectedRange(sel);
   const confirm = () => {
@@ -159,8 +179,14 @@ export function PassagePicker({ mode, text, initial, message, onConfirm, onCance
               data={verses}
               keyExtractor={(v) => String(v.verse)}
               style={styles.list}
+              extraData={sel}
+              initialNumToRender={initial ? Math.min(verses.length, initial.end + 10) : 20}
               initialScrollIndex={initial ? Math.max(0, Math.min(initial.start - 2, verses.length - 1)) : undefined}
-              onScrollToIndexFailed={() => undefined}
+              onScrollToIndexFailed={({ index, averageItemLength }) => {
+                listRef.current?.scrollToOffset({ offset: index * averageItemLength, animated: false });
+                setTimeout(() => listRef.current?.scrollToIndex({ index, animated: false }), 50);
+              }}
+              ref={listRef}
               renderItem={({ item }) => {
                 const on = isSelected(sel, item.verse);
                 return (
