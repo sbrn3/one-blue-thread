@@ -9,10 +9,14 @@ import { ActionButton, ChoiceChip } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 
 interface RecallZoneProps {
-  passages: Passage[]; // already capped at DAILY_RECALL_CAP by the caller
+  passages: Passage[]; // the reading screen passes up to the reader's daily cap; the memory library passes its review queue
   getVerseText: (p: Passage) => Promise<string>;
   onGrade: (id: number, grade: Grade) => void;
   onSkip: () => void;
+  /** Shown once every card is graded or skipped. */
+  doneLabel?: string;
+  /** Drop the zone's own side padding when it sits inside a padded sheet (the memory library). */
+  flush?: boolean;
 }
 
 function reference(p: Passage): string {
@@ -24,6 +28,11 @@ function reference(p: Passage): string {
 function hiddenLabel(t: Extract<ClozeToken, { hidden: true }>, style: 'stub' | 'gap' | 'none'): string {
   if (style === 'stub') return `${t.lead}${t.stub}${'–'.repeat(Math.max(2, t.width - 1))}${t.trail}`;
   return `${t.lead}${'_'.repeat(Math.max(3, t.width))}${t.trail}`;
+}
+
+/** Text is cached per passage AND range, so an edited passage never shows its old verses. */
+function textKey(p: Passage): string {
+  return `${p.id}:${p.verse_start}-${p.verse_end}`;
 }
 
 /** One label for the whole paragraph — a nested-Text tree is read as a single node. */
@@ -43,12 +52,12 @@ function paragraphLabel(clozeTokens: ClozeToken[], style: 'stub' | 'gap' | 'none
  * zone at all when nothing is due — there is deliberately no empty state.
  * (docs/plans/recall-cloze-ladder)
  */
-export function RecallZone({ passages, getVerseText, onGrade, onSkip }: RecallZoneProps) {
-  const [texts, setTexts] = useState<Record<number, string>>({});
+export function RecallZone({ passages, getVerseText, onGrade, onSkip, doneLabel = 'Recall done for today.', flush = false }: RecallZoneProps) {
+  const [texts, setTexts] = useState<Record<string, string>>({});
   const [revealedIds, setRevealedIds] = useState<Set<number>>(new Set());
   const [done, setDone] = useState<Set<number>>(new Set());
   const [skipped, setSkipped] = useState(false);
-  const loading = useRef<Set<number>>(new Set());
+  const loading = useRef<Set<string>>(new Set());
 
   const remaining = passages.filter((p) => !done.has(p.id));
 
@@ -64,11 +73,12 @@ export function RecallZone({ passages, getVerseText, onGrade, onSkip }: RecallZo
 
   useEffect(() => {
     for (const p of passages) {
-      if (texts[p.id] !== undefined || loading.current.has(p.id)) continue;
-      loading.current.add(p.id);
+      const k = textKey(p);
+      if (texts[k] !== undefined || loading.current.has(k)) continue;
+      loading.current.add(k);
       void load(p).then((t) => {
-        loading.current.delete(p.id);
-        if (t !== null) setTexts((prev) => ({ ...prev, [p.id]: t }));
+        loading.current.delete(k);
+        if (t !== null) setTexts((prev) => ({ ...prev, [k]: t }));
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -78,17 +88,17 @@ export function RecallZone({ passages, getVerseText, onGrade, onSkip }: RecallZo
   const clozes = useMemo(() => {
     const out: Record<number, ClozeToken[] | null> = {};
     for (const p of passages) {
-      const t = texts[p.id];
+      const t = texts[textKey(p)];
       out[p.id] = t === undefined ? null : toCloze(t, effectiveRung(p.rung, p.box), p.id);
     }
     return out;
   }, [passages, texts]);
 
   const reveal = async (p: Passage) => {
-    if (texts[p.id] === undefined) {
+    if (texts[textKey(p)] === undefined) {
       const t = (await load(p)) ?? (await load(p)); // one retry
       if (t === null) return; // stay on the card; Reveal can be pressed again
-      setTexts((prev) => ({ ...prev, [p.id]: t }));
+      setTexts((prev) => ({ ...prev, [textKey(p)]: t }));
     }
     setRevealedIds((prev) => new Set(prev).add(p.id));
   };
@@ -105,14 +115,14 @@ export function RecallZone({ passages, getVerseText, onGrade, onSkip }: RecallZo
 
   if (skipped || remaining.length === 0) {
     return (
-      <View style={styles.zone}>
-        <Text style={styles.done}>Recall done for today.</Text>
+      <View style={[styles.zone, flush && styles.flush]}>
+        <Text style={styles.done}>{doneLabel}</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.zone}>
+    <View style={[styles.zone, flush && styles.flush]}>
       {remaining.map((p) => {
         const rung = effectiveRung(p.rung, p.box);
         const step = ladderStep(rung);
@@ -139,7 +149,7 @@ export function RecallZone({ passages, getVerseText, onGrade, onSkip }: RecallZo
                 ))}
               </Text>
             )}
-            {!isRevealed && !cloze && texts[p.id] !== undefined && (
+            {!isRevealed && !cloze && texts[textKey(p)] !== undefined && (
               <Text style={styles.fromMemory}>Say it from memory</Text>
             )}
             {isRevealed ? (
@@ -152,7 +162,7 @@ export function RecallZone({ passages, getVerseText, onGrade, onSkip }: RecallZo
                           {t.hidden ? <Text style={styles.hint}>{t.text}</Text> : t.text}
                         </Text>
                       ))
-                    : texts[p.id]}
+                    : texts[textKey(p)]}
                 </Text>
                 <View style={styles.gradeRow}>
                   <ChoiceChip label="Held it" onPress={() => grade(p, 'held')} />
@@ -182,6 +192,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingVertical: 24,
     gap: 16,
+  },
+  flush: {
+    paddingHorizontal: 0,
+    paddingVertical: 8,
   },
   card: {
     gap: 10,

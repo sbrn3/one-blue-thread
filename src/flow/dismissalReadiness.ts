@@ -9,7 +9,7 @@ export interface DismissalReadinessInput {
   needsNextBookPick: boolean;
   /** §21, W5 — unpromoted candidates exist from the book just finished. */
   hasPromotionChoice: boolean;
-  /** True once the reader promoted one candidate, or explicitly chose "Not this time". */
+  /** True once the reader tapped Done on the book-end offer (learning none, one or several marks). */
   promotionResolved: boolean;
 }
 

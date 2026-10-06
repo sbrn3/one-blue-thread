@@ -30,7 +30,7 @@ describe('resolveTodaysProbe (§10/E9 — the next-day recall probe)', () => {
     // fireRate=1 forces the fire branch deterministically, isolating this
     // assertion from weightedPick's specific seed/threshold behaviour.
     const probe = resolveTodaysProbe(db, '2026-07-14', 'fixed-seed', 1);
-    expect(probe).toMatchObject({ book: 'john', chapter: 3, marked: false });
+    expect(probe).toMatchObject({ book: 'john', chapter: 3 });
     expect(probe!.verseEnd - probe!.verseStart).toBeLessThanOrEqual(2);
     const row = db.get<{ fired: number; book: string; chapter: number; verses_read: number; verse_start: number; verse_end: number; marked: number }>(
       "SELECT fired, book, chapter, verses_read, verse_start, verse_end, marked FROM probes WHERE local_date = '2026-07-14'",

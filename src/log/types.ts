@@ -17,7 +17,12 @@ export type EventType =
   | 'knot_open'
   | 'weave_view'
   | 'candidate_marked' // a verse/range struck you mid-read (§21) — the E4 signal
-  | 'passage_promoted' // one per book, at book end
+  | 'passage_promoted' // a mark chosen to learn — from the memory library or the book end
+  | 'passage_added' // memory library: a passage picked from anywhere. Consequence-free.
+  | 'passage_edited' // memory library: verse range changed. Consequence-free.
+  | 'passage_reset' // memory library: started over (box 1, rung 1). Consequence-free.
+  | 'passage_deleted' // memory library: removed. The row is gone; this event keeps the record.
+  | 'recall_cap_changed' // memory library: daily cap changed; the value lives in meta.recall_cap
   | 'recall_shown'
   | 'recall_graded' // held | partial | lost. Consequence-free.
   | 'recall_skipped' // one tap. Never penalised, never blocks the seal.
@@ -104,4 +109,5 @@ export interface Passage {
   last_grade: Grade | null;
   held_since: string | null; // first entry to box 5 → drives the 60d metric
   rung: number | null; // cloze ladder step 1–7; NULL = derive from box
+  source: 'added' | null; // NULL = marked while reading; 'added' = the library's picker
 }

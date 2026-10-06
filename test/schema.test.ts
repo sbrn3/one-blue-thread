@@ -45,7 +45,7 @@ describe('schema + migration harness (W1)', () => {
        VALUES ('John', 3, 16, 17, 1, 2, 3)`,
     );
     migrate(db);
-    expect(schemaVersion(db)).toBe(12);
+    expect(schemaVersion(db)).toBe(MIGRATIONS.length);
     expect(db.get<{ rung: number | null }>('SELECT rung FROM passages')?.rung).toBeNull();
     for (const [t, cols] of [
       ['probes', ['verse_start', 'verse_end', 'marked']],
@@ -56,7 +56,22 @@ describe('schema + migration harness (W1)', () => {
       for (const c of cols) expect(names).toContain(c);
     }
     migrate(db);
-    expect(schemaVersion(db)).toBe(12);
+    expect(schemaVersion(db)).toBe(MIGRATIONS.length);
+  });
+
+  it('v13 adds passages.source, NULL for existing rows', () => {
+    const db = openTestDb();
+    for (const stmt of MIGRATIONS.slice(0, 12).flat()) db.run(stmt);
+    db.run('PRAGMA user_version = 12');
+    db.run(
+      `INSERT INTO passages (book, chapter, verse_start, verse_end, marked_at, promoted_at, box, rung)
+       VALUES ('John', 3, 16, 17, 1, 2, 3, 4)`,
+    );
+    migrate(db);
+    expect(schemaVersion(db)).toBe(MIGRATIONS.length);
+    expect(db.get<{ source: string | null; rung: number }>('SELECT source, rung FROM passages')).toEqual({ source: null, rung: 4 });
+    migrate(db);
+    expect(schemaVersion(db)).toBe(MIGRATIONS.length);
   });
 
   it('partner table admits exactly one row (a dyad, not a group)', () => {

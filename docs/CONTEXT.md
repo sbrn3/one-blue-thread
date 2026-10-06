@@ -92,6 +92,16 @@ times: a few key words first, then most of them, finally the whole passage.
 Each amount is met twice, first with letter stubs and then with plain gaps. A
 "Lost it" grade steps the ladder back one rung.
 
-**The probe span** — the few verses the next-day probe asks about: a verse you
-marked in yesterday's chapter, otherwise a short run chosen by the trial seed,
-always inside the verses you actually read.
+**The memory library** — the Memory sheet in the knot's everyday tier: every
+memory passage, where each is on the ladder and when it is next due, plus the
+marked list. Passages are added, edited, reset, reviewed and deleted here.
+
+**The marked list** — verses you marked while reading that you have not chosen
+to learn yet. "Learn this" turns one into a memory passage.
+
+**The daily cap** — how many due memory passages the reading screen shows in a
+day (1–10, default 2). The library can review beyond it.
+
+**The probe span** — the few verses the next-day probe asks about: a short run
+chosen by the trial seed, always inside the verses you actually read. It never
+looks at your marks; memory work and the probe run separately.

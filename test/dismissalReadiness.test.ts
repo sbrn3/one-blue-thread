@@ -35,7 +35,7 @@ describe('isDismissalReady (§04 zone 5 — the terminal gate)', () => {
     expect(isDismissalReady({ ...allClear, hasPromotionChoice: true, promotionResolved: false })).toBe(false);
   });
 
-  it('is ready once the promotion choice resolves — promote or "Not this time" both count', () => {
+  it('is ready once the book-end offer is resolved — Done, after learning none, one or several', () => {
     expect(isDismissalReady({ ...allClear, hasPromotionChoice: true, promotionResolved: true })).toBe(true);
   });
 

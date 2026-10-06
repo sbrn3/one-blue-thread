@@ -8,7 +8,6 @@ export interface DailyProbe {
   chapter: number;
   verseStart: number; // the span asked about — at most MAX_SPAN verses inside the verses actually read
   verseEnd: number;
-  marked: boolean; // the span is a verse the reader marked
 }
 
 export type ProbeGrade = 'held' | 'partial' | 'lost' | 'skipped';
@@ -25,10 +24,11 @@ const MAX_SPAN = 3;
  * sealed, its read range was never recorded, or the roll came up
  * 'skip').
  *
- * The question is a span of at most MAX_SPAN verses inside the verses
- * actually read: a verse the reader marked wins, else a seeded start.
- * (docs/plans/recall-cloze-ladder — a whole chapter a day later is not
- * something anyone can recall.)
+ * The question is a seeded span of at most MAX_SPAN verses inside the
+ * verses actually read (docs/plans/recall-cloze-ladder — a whole chapter
+ * a day later is not something anyone can recall). It deliberately
+ * ignores the reader's marks: memory work and this experiment run in
+ * parallel and never steer each other (docs/plans/recall-settings).
  */
 export function resolveTodaysProbe(db: SqlDb, date: string, trialSeed: string, fireRate = 0.6): DailyProbe | null {
   const existing = db.get<{
@@ -37,8 +37,7 @@ export function resolveTodaysProbe(db: SqlDb, date: string, trialSeed: string, f
     chapter: number | null;
     verse_start: number | null;
     verse_end: number | null;
-    marked: number | null;
-  }>('SELECT fired, book, chapter, verse_start, verse_end, marked FROM probes WHERE local_date = ?', [date]);
+  }>('SELECT fired, book, chapter, verse_start, verse_end FROM probes WHERE local_date = ?', [date]);
   if (existing) {
     // A row written before the span columns existed (fired=1, no span) has nothing to show.
     return existing.fired && existing.book && existing.chapter && existing.verse_start && existing.verse_end
@@ -47,7 +46,6 @@ export function resolveTodaysProbe(db: SqlDb, date: string, trialSeed: string, f
           chapter: existing.chapter,
           verseStart: existing.verse_start,
           verseEnd: existing.verse_end,
-          marked: existing.marked === 1,
         }
       : null;
   }
@@ -83,30 +81,16 @@ export function resolveTodaysProbe(db: SqlDb, date: string, trialSeed: string, f
     return null;
   }
 
-  // A verse the reader marked inside the verses actually read wins; else a seeded span.
-  const mark = db.get<{ verse_start: number; verse_end: number }>(
-    `SELECT verse_start, verse_end FROM passages
-      WHERE book = ? AND chapter = ? AND verse_start >= ? AND verse_end <= ?
-      ORDER BY marked_at, id LIMIT 1`,
-    [priorDay.book, priorDay.chapter, first, last],
-  );
-  let verseStart: number;
-  let verseEnd: number;
-  if (mark) {
-    verseStart = mark.verse_start;
-    verseEnd = Math.min(mark.verse_end, mark.verse_start + MAX_SPAN - 1);
-  } else {
-    const len = last - first + 1;
-    const span = Math.min(MAX_SPAN, len);
-    verseStart = first + Math.floor(seededUniform(trialSeed, `E9span:${date}`) * (len - span + 1));
-    verseEnd = verseStart + span - 1;
-  }
+  const len = last - first + 1;
+  const span = Math.min(MAX_SPAN, len);
+  const verseStart = first + Math.floor(seededUniform(trialSeed, `E9span:${date}`) * (len - span + 1));
+  const verseEnd = verseStart + span - 1;
 
   db.run(
     'INSERT INTO probes (local_date, fired, book, chapter, verses_read, verse_start, verse_end, marked, grade) VALUES (?, 1, ?, ?, ?, ?, ?, ?, NULL)',
-    [date, priorDay.book, priorDay.chapter, priorDay.verses_read, verseStart, verseEnd, mark ? 1 : 0],
+    [date, priorDay.book, priorDay.chapter, priorDay.verses_read, verseStart, verseEnd, 0],
   );
-  return { book: priorDay.book, chapter: priorDay.chapter, verseStart, verseEnd, marked: !!mark };
+  return { book: priorDay.book, chapter: priorDay.chapter, verseStart, verseEnd };
 }
 
 export function gradeProbe(db: SqlDb, date: string, grade: ProbeGrade): void {

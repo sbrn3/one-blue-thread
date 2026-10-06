@@ -266,8 +266,14 @@ const V12: string[] = [
   `ALTER TABLE events ADD COLUMN verse_last INTEGER`,
 ];
 
+// v13 — recall-settings (docs/plans/recall-settings): where a memory
+// passage came from. NULL = marked while reading (every existing row);
+// 'added' = the memory library's passage picker. Only NULL rows are E4
+// marks. Additive.
+const V13: string[] = [`ALTER TABLE passages ADD COLUMN source TEXT`];
+
 // Index = schema version - 1. New migrations append; nothing is edited.
-export const MIGRATIONS: string[][] = [V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12];
+export const MIGRATIONS: string[][] = [V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13];
 
 export function migrate(db: SqlDb): void {
   const row = db.get<{ user_version: number }>('PRAGMA user_version');

@@ -5,6 +5,26 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## 2026-10-07 — memory library built (recall-settings)
+
+Built the plan from the 2026-10-06 decision below:
+- migration V13 (`passages.source`);
+- the Memory API (any number per book, add, edit, start over, delete, daily cap);
+- the probe no longer reads marks;
+- the passage picker;
+- the library sheet in the knot;
+- a reading-screen recall set frozen per day, and a multi-pick book end.
+
+The Smart Review's 3 HIGH findings shaped the build: the frozen daily set, one shared duplicate check, and the contract entries moving with the picker. Next: owner device check.
+**Branch:** feat/recall-settings
+
+## Decision 2026-10-06 — memory passages become a library you control; the probe stops using marks
+
+**Decision:** memory passages get a library in the knot (see all, add any passage via a book/chapter/verse picker, edit the range, reset, delete, review now). The §21 "one promoted passage per book, at book end" rule is dropped: promote any time, and the book-end prompt stays as an optional offer of that book's marks. The daily cap becomes a setting (1–10, default 2). The E9 probe stops preferring marked verses and uses only the seeded span; picker-added passages do not count as E4 marks.
+**Why:** a fixed one-per-book choice made at book end can't fix a range picked too short or too long, or learn a passage you didn't read that day. Keeping the experiments (E4, E9) independent of library actions keeps their data clean.
+**Consequences:** §21's scarcity is gone, so recall load is bounded only by the cap. Probe spans after this change no longer favour marks — a second E9 boundary after the 2026-10-02 one. E4 marks-per-chapter and the R6 held-60-days count still read the passages table, so deleting or starting over a passage changes their past values. This is accepted, because those are reader-owned corrections.
+**Branch:** grill/recall-settings
+
 ## 2026-10-06 — recall cloze ladder built (#40, #41)
 
 Built the plan from the 2026-10-02 decision below: migration V12, cloze engine

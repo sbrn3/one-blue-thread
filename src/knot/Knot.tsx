@@ -24,6 +24,7 @@ import { getProfile } from '../lab/profile';
 import { computeStreak, meta } from '../log/log';
 import { logicalToday } from '../log/time';
 import type { Services } from '../services';
+import { useMemoryEpoch } from '../state/memoryEpoch';
 import { tokens } from '../ui/tokens';
 import { ChapterStrip } from './ChapterStrip';
 import { ChapterViewer } from './ChapterViewer';
@@ -32,6 +33,8 @@ import { DisclosureSection } from './DisclosureSection';
 import { type HistoryEntry } from './history';
 import { HistoryModal } from './HistoryModal';
 import { KnotIcon } from './KnotIcon';
+import { MemoryModal } from './MemoryModal';
+import { MemoryStrip } from './MemoryStrip';
 import { MoreSection, type MoreSectionKey } from './MoreSection';
 
 interface KnotProps {
@@ -45,7 +48,8 @@ type SectionKey = 'practice' | 'more';
 /**
  * §04 — the knot: the app's sole persistent control, present on every
  * screen. docs/plans/knot-opener-icon: a gear opener over an everyday tier
- * (the compact weave, Practice — open by default — and reading history) and
+ * (the compact weave, Practice — open by default — the memory library
+ * (docs/plans/recall-settings), and reading history) and
  * one "More" disclosure holding the rare tier, grouped Preferences, Your
  * data, About. The sheet looks and orders itself the same every time:
  * nothing is promoted or auto-expanded; only Support carries a "Needs
@@ -60,6 +64,7 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
   const [open, setOpen] = useState(false);
   const cueState = useCue(cue);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [memoryOpen, setMemoryOpen] = useState(false);
   const [viewingEntry, setViewingEntry] = useState<HistoryEntry | null>(null);
   const [paused, setPaused] = useState(() => meta.get(db, 'paused') === '1');
 
@@ -125,6 +130,15 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
     if (!open) return false;
     return db.all(`SELECT 1 FROM days WHERE sealed = 1 AND book IS NOT NULL LIMIT 1`).length > 0;
   }, [open, db]);
+
+  // The Memory row's counts — re-read on open and whenever the library or
+  // the reading screen changes a passage (the epoch).
+  const memoryEpoch = useMemoryEpoch((st) => st.epoch);
+  const memoryCounts = useMemo(() => {
+    if (!open) return { due: 0, total: 0 };
+    const learned = services.memory.learned();
+    return { due: learned.filter((p) => p.due_date !== null && p.due_date <= today).length, total: learned.length };
+  }, [open, services.memory, today, memoryEpoch]);
 
   // Re-read on every open — a Support-worthy error may have happened since
   // the knot was last opened.
@@ -253,6 +267,8 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
                 <CueEditor cue={cueState} onSave={handleCueSave} />
               </DisclosureSection>
 
+              <MemoryStrip due={memoryCounts.due} total={memoryCounts.total} onOpen={() => setMemoryOpen(true)} />
+
               <ChapterStrip hasHistory={hasHistory} onOpen={() => setHistoryOpen(true)} />
 
               <DisclosureSection
@@ -286,6 +302,15 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
               reducedMotion={reducedMotion}
               onClose={() => setHistoryOpen(false)}
               onSelectEntry={handleSelectHistoryEntry}
+            />
+
+            <MemoryModal
+              visible={memoryOpen}
+              memory={services.memory}
+              text={text}
+              today={today}
+              reducedMotion={reducedMotion}
+              onClose={() => setMemoryOpen(false)}
             />
 
             <ChapterViewer entry={viewingEntry} text={text} reducedMotion={reducedMotion} onClose={() => setViewingEntry(null)} />
