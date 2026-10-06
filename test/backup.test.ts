@@ -146,6 +146,20 @@ describe('dump/restore (§16.9)', () => {
     expect(restoreDb.get<{ value: string }>("SELECT value FROM meta WHERE key = 'trial_seed'")?.value).toBe('42');
   });
 
+  it('restores a pre-v12 dump (no ladder/span columns) into the current schema', () => {
+    const db = openTestDb();
+    migrate(db);
+    const dump = buildDump(db);
+    dump.tables.passages.push({
+      id: 1, book: 'John', chapter: 3, verse_start: 16, verse_end: 17,
+      marked_at: 1, promoted_at: 2, box: 3, due_date: '2026-01-01', last_grade: null, held_since: null,
+    });
+    expect(() => restoreDump(db, dump)).not.toThrow();
+    const row = db.get<{ box: number; rung: number | null }>('SELECT box, rung FROM passages')!;
+    expect(row.box).toBe(3);
+    expect(row.rung).toBeNull(); // effective rung is derived from box, not backfilled
+  });
+
   it('wipes existing rows before restoring, not appending to them', () => {
     const db = openTestDb();
     migrate(db);

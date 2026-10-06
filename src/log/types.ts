@@ -43,6 +43,8 @@ export interface AppEvent {
   exp_arm: string | null; // 'A' | 'B'
   verses_count: number | null; // §07 — the physical dose of a seal event. Verses, never chapters.
   target_verses: number | null; // §07 — that day's target, if a fixed one was active (E10/ladder); null in seed mode
+  verse_first: number | null; // seal only — first verse of the session chapter actually read
+  verse_last: number | null; // seal only — last verse of the session chapter actually read
   build_sha: string; // stamped by the writer
 }
 
@@ -61,6 +63,8 @@ export type EventInput = { type: EventType } & Partial<
     | 'exp_arm'
     | 'verses_count'
     | 'target_verses'
+    | 'verse_first'
+    | 'verse_last'
   >
 >;
 
@@ -76,6 +80,8 @@ export interface Day {
   dose: Dose;
   verses_read: number | null;
   target_verses: number | null;
+  first_verse: number | null; // first verse of the chapter actually read (NULL on legacy days)
+  last_verse: number | null;
   exp_id: string | null;
   exp_arm: string | null;
   disturbed: number;
@@ -97,4 +103,5 @@ export interface Passage {
   due_date: string | null;
   last_grade: Grade | null;
   held_since: string | null; // first entry to box 5 → drives the 60d metric
+  rung: number | null; // cloze ladder step 1–7; NULL = derive from box
 }

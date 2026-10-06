@@ -57,6 +57,36 @@ describe('Log.write (W1)', () => {
     expect(db.all('SELECT * FROM days')).toHaveLength(1);
   });
 
+  it('seal verse range lands in days.first_verse/last_verse; absent stays NULL', () => {
+    const ts = Date.UTC(2026, 6, 14, 12, 0, 0);
+    const { log } = setup(() => ts);
+    const date = logicalDate(ts);
+    log.write({ type: 'reading_start', book: 'John', chapter: 3 });
+    log.write({ type: 'seal', book: 'John', chapter: 3, before_nudge: 1, verse_first: 18, verse_last: 36 });
+    log.rebuildDays('2026-01-01');
+    log.rebuildDays('2026-01-01'); // idempotent
+    let d = log.daysBetween(date, date)[0];
+    expect([d.first_verse, d.last_verse]).toEqual([18, 36]);
+
+    const later = setup(() => ts);
+    later.log.write({ type: 'reading_start', book: 'John', chapter: 3 });
+    later.log.write({ type: 'seal', book: 'John', chapter: 3, before_nudge: 1 });
+    later.log.rebuildDays('2026-01-01');
+    d = later.log.daysBetween(date, date)[0];
+    expect([d.first_verse, d.last_verse]).toEqual([null, null]);
+  });
+
+  it('a seal for a different chapter than reading_start does not record a range', () => {
+    const ts = Date.UTC(2026, 6, 14, 12, 0, 0);
+    const { log } = setup(() => ts);
+    const date = logicalDate(ts);
+    log.write({ type: 'reading_start', book: 'John', chapter: 3 });
+    log.write({ type: 'seal', book: 'John', chapter: 4, before_nudge: 1, verse_first: 1, verse_last: 5 });
+    log.rebuildDays('2026-01-01');
+    const d = log.daysBetween(date, date)[0];
+    expect([d.first_verse, d.last_verse]).toEqual([null, null]);
+  });
+
   it('meta get/set round-trips (watermark discipline)', () => {
     const { db } = setup();
     expect(meta.get(db, 'watermark')).toBeNull();
