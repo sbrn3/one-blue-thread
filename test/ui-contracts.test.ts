@@ -55,6 +55,7 @@ const INTERACTIVE_CALLER_ALLOWLIST = new Set<string>([
   'src/knot/HistoryModal.tsx',
   'src/knot/Knot.tsx',
   'src/knot/PartnerSection.tsx',
+  'src/knot/PassagePicker.tsx',
   'src/knot/TranslationSection.tsx',
   'src/onboarding/screens/AnchorScreen.tsx',
   'src/onboarding/screens/PlaceScreen.tsx',
@@ -196,6 +197,10 @@ describe('ui-contracts (docs/plans/app-quality-foundations, Slice 7)', () => {
 // docs/plans/recall-cloze-ladder — the recall cards and the narrowed probe.
 describe('recall cloze ladder contracts', () => {
   const flow = (name: string) => codeOf(join(SRC, 'flow', name));
+
+  it('PassagePicker is a screen inside the memory library, never its own Modal', () => {
+    expect(flow('../knot/PassagePicker.tsx')).not.toMatch(/<Modal/);
+  });
 
   it('ProbeZone shows the whole span, never truncated', () => {
     expect(flow('ProbeZone.tsx')).not.toContain('numberOfLines');
