@@ -103,19 +103,25 @@ describe('Memory (§13.3 /src/memory, §21)', () => {
     void db;
   });
 
-  it('promote() rejects a second promoted passage for the same book', () => {
+  it('promote() allows several passages from one book (recall-settings drops one-per-book)', () => {
     const { memory } = setup();
     memory.markCandidate({ book: 'john', chapter: 3, verseStart: 16, verseEnd: 16 }, () => 1);
     memory.markCandidate({ book: 'john', chapter: 1, verseStart: 1, verseEnd: 1 }, () => 2);
     const [first, second] = memory.candidates('john');
 
-    memory.promote(second.id, '2026-07-14');
-    expect(() => memory.promote(first.id, '2026-07-14')).toThrow(/already has a promoted passage/);
+    expect(memory.promote(second.id, '2026-07-14')).toEqual({ ok: true, id: second.id });
+    expect(memory.promote(first.id, '2026-07-14')).toEqual({ ok: true, id: first.id });
+    expect(memory.learned()).toHaveLength(2);
   });
 
-  it('promote() throws for an unknown id', () => {
+  it('promote() refuses an unknown id and a range already being learned', () => {
     const { memory } = setup();
-    expect(() => memory.promote(999, '2026-07-14')).toThrow(/No such passage/);
+    expect(memory.promote(999, '2026-07-14')).toEqual({ ok: false, reason: 'missing' });
+    expect(memory.add({ book: 'john', chapter: 3, verseStart: 16, verseEnd: 17 }, '2026-07-14').ok).toBe(true);
+    memory.markCandidate({ book: 'john', chapter: 3, verseStart: 16, verseEnd: 17 }, () => 5);
+    const [mark] = memory.candidates('john');
+    expect(memory.promote(mark.id, '2026-07-14')).toEqual({ ok: false, reason: 'duplicate' });
+    expect(memory.learned()).toHaveLength(1);
   });
 
   it('due() returns promoted passages at or before the date, caller caps at 2', () => {
@@ -240,5 +246,127 @@ describe('Memory (§13.3 /src/memory, §21)', () => {
     }
 
     expect(JSON.stringify(run('held'))).toBe(JSON.stringify(run('lost')));
+  });
+
+  describe('memory library (recall-settings)', () => {
+    const ref = (verseStart: number, verseEnd: number) => ({ book: 'psalms', chapter: 23, verseStart, verseEnd });
+    const row = (db: ReturnType<typeof setup>['db'], id: number) =>
+      db.get<{ box: number; rung: number | null; due_date: string; held_since: string | null; verse_start: number; verse_end: number; source: string | null; last_grade: string | null }>(
+        'SELECT box, rung, due_date, held_since, verse_start, verse_end, source, last_grade FROM passages WHERE id = ?',
+        [id],
+      );
+
+    it('add() learns any passage, due today, marked as a picker add, and logs', () => {
+      const { db, memory } = setup();
+      const r = memory.add(ref(1, 3), '2026-07-14', () => 9);
+      expect(r.ok).toBe(true);
+      if (!r.ok) return;
+      expect(row(db, r.id)).toMatchObject({ box: 1, due_date: '2026-07-14', source: 'added', verse_start: 1, verse_end: 3 });
+      expect(memory.due('2026-07-14').map((p) => p.id)).toEqual([r.id]);
+      expect(db.all("SELECT * FROM events WHERE type = 'passage_added'")).toHaveLength(1);
+    });
+
+    it('add() refuses a duplicate and an invalid range, writing nothing', () => {
+      const { db, memory } = setup();
+      memory.add(ref(1, 3), '2026-07-14');
+      expect(memory.add(ref(1, 3), '2026-07-14')).toEqual({ ok: false, reason: 'duplicate' });
+      expect(memory.add(ref(4, 2), '2026-07-14')).toEqual({ ok: false, reason: 'invalid' });
+      expect(memory.add(ref(0, 2), '2026-07-14')).toEqual({ ok: false, reason: 'invalid' });
+      expect(db.all('SELECT * FROM passages')).toHaveLength(1);
+      expect(db.all("SELECT * FROM events WHERE type = 'passage_added'")).toHaveLength(1);
+    });
+
+    it('editRange() keeps the schedule and steps the ladder back one', () => {
+      const { db, memory } = setup();
+      const r = memory.add(ref(1, 1), '2026-07-14');
+      if (!r.ok) throw new Error('add failed');
+      db.run("UPDATE passages SET box = 3, rung = 5, due_date = '2026-08-01', held_since = NULL WHERE id = ?", [r.id]);
+      expect(memory.editRange(r.id, 1, 3)).toEqual({ ok: true, id: r.id });
+      expect(row(db, r.id)).toMatchObject({ verse_start: 1, verse_end: 3, box: 3, due_date: '2026-08-01', rung: 4 });
+      expect(db.all("SELECT * FROM events WHERE type = 'passage_edited'")).toHaveLength(1);
+    });
+
+    it('editRange() on a legacy passage derives its rung from the box first', () => {
+      const { db, memory } = setup();
+      memory.markCandidate({ book: 'john', chapter: 3, verseStart: 16, verseEnd: 16 }, () => 1);
+      const [{ id }] = memory.candidates('john');
+      memory.promote(id, '2026-07-14');
+      db.run('UPDATE passages SET box = 4, rung = NULL WHERE id = ?', [id]); // derived rung 7
+      memory.editRange(id, 16, 17);
+      expect(row(db, id)?.rung).toBe(6);
+    });
+
+    it('editRange() on a mark changes only the range; refuses duplicates and bad ranges', () => {
+      const { db, memory } = setup();
+      memory.markCandidate({ book: 'psalms', chapter: 23, verseStart: 4, verseEnd: 4 }, () => 1);
+      const [mark] = memory.marked();
+      expect(memory.editRange(mark.id, 4, 6).ok).toBe(true);
+      expect(row(db, mark.id)).toMatchObject({ verse_start: 4, verse_end: 6, rung: null });
+      const a = memory.add(ref(1, 1), '2026-07-14');
+      const b = memory.add(ref(2, 2), '2026-07-14');
+      if (!a.ok || !b.ok) throw new Error('add failed');
+      expect(memory.editRange(b.id, 1, 1)).toEqual({ ok: false, reason: 'duplicate' });
+      expect(memory.editRange(b.id, 3, 1)).toEqual({ ok: false, reason: 'invalid' });
+      expect(memory.editRange(999, 1, 1)).toEqual({ ok: false, reason: 'missing' });
+    });
+
+    it('reset() starts over: box 1, rung 1, due today, held_since cleared', () => {
+      const { db, memory } = setup();
+      const r = memory.add(ref(1, 1), '2026-07-14');
+      if (!r.ok) throw new Error('add failed');
+      db.run("UPDATE passages SET box = 5, rung = 7, due_date = '2026-09-01', held_since = '2026-07-20', last_grade = 'held' WHERE id = ?", [r.id]);
+      memory.reset(r.id, '2026-08-01');
+      expect(row(db, r.id)).toMatchObject({ box: 1, rung: 1, due_date: '2026-08-01', held_since: null, last_grade: null });
+      expect(db.all("SELECT * FROM events WHERE type = 'passage_reset'")).toHaveLength(1);
+    });
+
+    it('remove() deletes a learned passage or a mark, and logs', () => {
+      const { db, memory } = setup();
+      const r = memory.add(ref(1, 1), '2026-07-14');
+      memory.markCandidate({ book: 'john', chapter: 3, verseStart: 16, verseEnd: 16 }, () => 1);
+      if (!r.ok) throw new Error('add failed');
+      memory.remove(r.id);
+      memory.remove(memory.marked()[0].id);
+      memory.remove(12345); // no-op
+      expect(db.all('SELECT * FROM passages')).toHaveLength(0);
+      expect(db.all("SELECT * FROM events WHERE type = 'passage_deleted'")).toHaveLength(2);
+    });
+
+    it('marked() lists only reading marks; picker adds never count as E4 marks', () => {
+      const { db, log, memory } = setup();
+      memory.markCandidate({ book: 'john', chapter: 3, verseStart: 16, verseEnd: 16 }, () => Date.parse('2026-07-14T12:00:00Z'));
+      memory.add(ref(1, 3), '2026-07-14', () => Date.parse('2026-07-14T12:00:00Z'));
+      memory.markCandidate({ book: 'psalms', chapter: 23, verseStart: 1, verseEnd: 1 }, () => Date.parse('2026-07-14T12:00:00Z'));
+      memory.remove(memory.learned()[0].id); // drop the picker add, then add it again
+      memory.add(ref(1, 3), '2026-07-14', () => Date.parse('2026-07-14T12:00:00Z'));
+      expect(memory.marked()).toHaveLength(2);
+      db.run("INSERT INTO days (local_date, sealed, dose, book, chapter) VALUES ('2026-07-14', 1, 'full_chapter', 'john', 3)");
+      void log;
+      expect(memory.marksPerChapter('2026-07-14', '2026-07-14')).toBe(2); // 2 reading marks, the add excluded
+    });
+
+    it('recallCap() defaults to 2, clamps 1..10, persists, and logs a change', () => {
+      const { db, log, memory } = setup();
+      expect(memory.recallCap()).toBe(2);
+      expect(memory.setRecallCap(0)).toBe(1);
+      expect(memory.setRecallCap(99)).toBe(10);
+      expect(new Memory(db, log).recallCap()).toBe(10);
+      memory.setRecallCap(10); // unchanged — no event
+      expect(db.all("SELECT * FROM events WHERE type = 'recall_cap_changed'")).toHaveLength(2);
+    });
+
+    it('no library action touches days or probes', () => {
+      const { db, memory } = setup();
+      db.run("INSERT INTO days (local_date, sealed, dose) VALUES ('2026-07-13', 1, 'full_chapter')");
+      db.run("INSERT INTO probes (local_date, fired) VALUES ('2026-07-14', 0)");
+      const before = JSON.stringify([db.all('SELECT * FROM days'), db.all('SELECT * FROM probes')]);
+      const r = memory.add(ref(1, 1), '2026-07-14');
+      if (!r.ok) throw new Error('add failed');
+      memory.editRange(r.id, 1, 2);
+      memory.reset(r.id, '2026-07-14');
+      memory.setRecallCap(5);
+      memory.remove(r.id);
+      expect(JSON.stringify([db.all('SELECT * FROM days'), db.all('SELECT * FROM probes')])).toBe(before);
+    });
   });
 });

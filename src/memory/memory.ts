@@ -1,9 +1,15 @@
 import type { SqlDb } from '../log/db';
+import { meta } from '../log/log';
 import type { Log } from '../log/log';
 import { logicalDate } from '../log/time';
 import type { Grade, Passage } from '../log/types';
-import { reschedule } from './leitner';
+import { DAILY_RECALL_CAP, MAX_RECALL_CAP, reschedule } from './leitner';
 import { effectiveRung, nextRung } from './ladder';
+
+/** The outcome of anything that makes or changes a learned passage; refusals are shown, never thrown. */
+export type PassageResult =
+  | { ok: true; id: number }
+  | { ok: false; reason: 'duplicate' | 'invalid' | 'missing' };
 
 export interface PassageRef {
   book: string;
@@ -69,22 +75,121 @@ export class Memory {
     );
   }
 
-  /** One promoted passage per book — throws if this book already has one (§13.2). */
-  promote(id: number, today: string, now: () => number = Date.now): void {
+  /**
+   * A mark becomes a memory passage — from the library's "Learn this" or the
+   * book end. Any number per book (docs/plans/recall-settings drops §21's
+   * one-per-book rule); refused only if the row is gone or that exact range
+   * is already being learned.
+   */
+  promote(id: number, today: string, now: () => number = Date.now): PassageResult {
     const row = this.db.get<Passage>('SELECT * FROM passages WHERE id = ?', [id]);
-    if (!row) throw new Error(`No such passage: ${id}`);
-
-    const existing = this.db.get<{ c: number }>(
-      'SELECT COUNT(*) as c FROM passages WHERE book = ? AND promoted_at IS NOT NULL',
-      [row.book],
-    );
-    if ((existing?.c ?? 0) > 0) throw new Error(`${row.book} already has a promoted passage`);
+    if (!row) return { ok: false, reason: 'missing' };
+    if (row.promoted_at !== null) return { ok: true, id };
+    if (this.isLearned(row, id)) return { ok: false, reason: 'duplicate' };
 
     this.db.run('UPDATE passages SET promoted_at = ?, due_date = ? WHERE id = ?', [now(), today, id]);
     this.log.write({ type: 'passage_promoted', book: row.book, chapter: row.chapter });
+    return { ok: true, id };
   }
 
-  /** Caller caps at DAILY_RECALL_CAP; the zone does not render when nothing is due. */
+  /** Every learned passage, soonest due first. */
+  learned(): Passage[] {
+    return this.db.all<Passage>(
+      'SELECT * FROM passages WHERE promoted_at IS NOT NULL ORDER BY due_date, book, chapter, verse_start, id',
+    );
+  }
+
+  /** Verses marked while reading and not yet learned, newest first. */
+  marked(): Passage[] {
+    return this.db.all<Passage>(
+      'SELECT * FROM passages WHERE promoted_at IS NULL AND source IS NULL ORDER BY marked_at DESC, id DESC',
+    );
+  }
+
+  /** The memory library's picker: learn any passage, read today or not. Not an E4 mark. */
+  add(r: PassageRef, today: string, now: () => number = Date.now): PassageResult {
+    if (!validRange(r.verseStart, r.verseEnd)) return { ok: false, reason: 'invalid' };
+    if (this.isLearned({ book: r.book, chapter: r.chapter, verse_start: r.verseStart, verse_end: r.verseEnd }, null)) {
+      return { ok: false, reason: 'duplicate' };
+    }
+    const t = now();
+    this.db.run(
+      `INSERT INTO passages (book, chapter, verse_start, verse_end, marked_at, promoted_at, box, due_date, source)
+       VALUES (?, ?, ?, ?, ?, ?, 1, ?, 'added')`,
+      [r.book, r.chapter, r.verseStart, r.verseEnd, t, t, today],
+    );
+    const id = this.db.get<{ id: number }>('SELECT last_insert_rowid() AS id')?.id ?? 0;
+    this.log.write({ type: 'passage_added', book: r.book, chapter: r.chapter });
+    return { ok: true, id };
+  }
+
+  /**
+   * Fix a range picked too short or too long. A learned passage keeps its
+   * schedule; its cloze ladder steps back one so the new words get stubs.
+   */
+  editRange(id: number, verseStart: number, verseEnd: number): PassageResult {
+    const row = this.db.get<Passage>('SELECT * FROM passages WHERE id = ?', [id]);
+    if (!row) return { ok: false, reason: 'missing' };
+    if (!validRange(verseStart, verseEnd)) return { ok: false, reason: 'invalid' };
+    if (verseStart === row.verse_start && verseEnd === row.verse_end) return { ok: true, id };
+    const next = { book: row.book, chapter: row.chapter, verse_start: verseStart, verse_end: verseEnd };
+    if (row.promoted_at !== null && this.isLearned(next, id)) return { ok: false, reason: 'duplicate' };
+
+    if (row.promoted_at !== null) {
+      const rung = Math.max(1, effectiveRung(row.rung, row.box) - 1);
+      this.db.run('UPDATE passages SET verse_start = ?, verse_end = ?, rung = ? WHERE id = ?', [verseStart, verseEnd, rung, id]);
+    } else {
+      this.db.run('UPDATE passages SET verse_start = ?, verse_end = ? WHERE id = ?', [verseStart, verseEnd, id]);
+    }
+    this.log.write({ type: 'passage_edited', book: row.book, chapter: row.chapter });
+    return { ok: true, id };
+  }
+
+  /** Start over: box 1, rung 1, due today. */
+  reset(id: number, today: string): void {
+    const row = this.db.get<Passage>('SELECT * FROM passages WHERE id = ?', [id]);
+    if (!row) return;
+    this.db.run(
+      'UPDATE passages SET box = 1, rung = 1, due_date = ?, last_grade = NULL, held_since = NULL WHERE id = ?',
+      [today, id],
+    );
+    this.log.write({ type: 'passage_reset', book: row.book, chapter: row.chapter });
+  }
+
+  /** Delete a passage (learned or marked). The event keeps the record. */
+  remove(id: number): void {
+    const row = this.db.get<Passage>('SELECT * FROM passages WHERE id = ?', [id]);
+    if (!row) return;
+    this.db.run('DELETE FROM passages WHERE id = ?', [id]);
+    this.log.write({ type: 'passage_deleted', book: row.book, chapter: row.chapter });
+  }
+
+  /** How many due passages the reading screen shows each day. */
+  recallCap(): number {
+    const raw = Number(meta.get(this.db, 'recall_cap'));
+    return Number.isFinite(raw) && raw > 0 ? clampCap(raw) : DAILY_RECALL_CAP;
+  }
+
+  setRecallCap(n: number): number {
+    const cap = clampCap(n);
+    if (cap === this.recallCap() && meta.get(this.db, 'recall_cap') !== null) return cap;
+    meta.set(this.db, 'recall_cap', String(cap));
+    this.log.write({ type: 'recall_cap_changed' });
+    return cap;
+  }
+
+  private isLearned(
+    r: Pick<Passage, 'book' | 'chapter' | 'verse_start' | 'verse_end'>,
+    excludeId: number | null,
+  ): boolean {
+    return !!this.db.get<{ id: number }>(
+      `SELECT id FROM passages
+        WHERE promoted_at IS NOT NULL AND book = ? AND chapter = ? AND verse_start = ? AND verse_end = ? AND id != ?`,
+      [r.book, r.chapter, r.verse_start, r.verse_end, excludeId ?? -1],
+    );
+  }
+
+  /** The reading screen shows up to recallCap(); the zone does not render when nothing is due. */
   due(date: string): Passage[] {
     return this.db.all<Passage>(
       'SELECT * FROM passages WHERE promoted_at IS NOT NULL AND due_date <= ? ORDER BY due_date',
@@ -125,7 +230,8 @@ export class Memory {
    */
   marksPerChapter(from: string, to: string): number {
     const marksInRange = this.db
-      .all<Passage>('SELECT * FROM passages')
+      // Picker adds are not marks — only verses marked while reading count.
+      .all<Passage>('SELECT * FROM passages WHERE source IS NULL')
       .filter((p) => {
         const d = logicalDate(p.marked_at);
         return d >= from && d <= to;
@@ -139,4 +245,12 @@ export class Memory {
     if (!chapters || chapters.c === 0) return 0;
     return marksInRange / chapters.c;
   }
+}
+
+function validRange(start: number, end: number): boolean {
+  return Number.isInteger(start) && Number.isInteger(end) && start >= 1 && end >= start;
+}
+
+function clampCap(n: number): number {
+  return Math.min(MAX_RECALL_CAP, Math.max(1, Math.round(n)));
 }
