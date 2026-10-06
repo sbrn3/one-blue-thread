@@ -10,7 +10,6 @@ interface ProbeZoneProps {
   chapter: number;
   verseStart: number;
   verseEnd: number;
-  marked: boolean; // the span is a verse the reader marked
   getSpanText: () => Promise<string>;
   onGrade: (grade: ProbeGrade) => void;
 }
@@ -21,7 +20,7 @@ interface ProbeZoneProps {
  * reveal, one of four self-grades. Consequence-free, same guarantee as
  * ordinary recall: grading never touches seal, streak, weave, or dose.
  */
-export function ProbeZone({ book, chapter, verseStart, verseEnd, marked, getSpanText, onGrade }: ProbeZoneProps) {
+export function ProbeZone({ book, chapter, verseStart, verseEnd, getSpanText, onGrade }: ProbeZoneProps) {
   const [revealed, setRevealed] = useState<string | null>(null);
   const [graded, setGraded] = useState(false);
 
@@ -58,7 +57,6 @@ export function ProbeZone({ book, chapter, verseStart, verseEnd, marked, getSpan
       <Text style={styles.reference}>
         {bookName(book)} {chapter}:{range}
       </Text>
-      {marked && <Text style={styles.markedLabel}>● you marked this</Text>}
       {revealed === null ? (
         <ActionButton label="Reveal" variant="secondary" onPress={() => void reveal()} style={styles.revealBtn} />
       ) : (
@@ -98,11 +96,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     letterSpacing: 0.5,
     color: tokens.color.ink40,
-  },
-  markedLabel: {
-    fontFamily: tokens.font.mono,
-    fontSize: 12,
-    color: tokens.color.madder,
   },
   revealBtn: {
     alignSelf: 'flex-start',

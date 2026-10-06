@@ -576,7 +576,6 @@ export function Flow({ services }: FlowProps) {
             chapter={probe.chapter}
             verseStart={probe.verseStart}
             verseEnd={probe.verseEnd}
-            marked={probe.marked}
             getSpanText={getProbeSpanText}
             onGrade={handleGradeProbe}
           />
