@@ -31,6 +31,23 @@ device — rail/line alignment on a notched phone, hold feel, tap mode.
 
 ---
 
+## 2026-10-02 — knot-opener-icon shipped as v0.7.0 (PR #42)
+
+Grilled, planned (C3, `docs/plans/knot-opener-icon/`), built and released in one
+sitting: gear opener, stable knot (Preferences / Your data / About, nothing
+promoted, backup demoted), translation switch (absorbed the parked
+`knot-translation-switch`), "Report a problem" link, and fixes for Start over
+and cue saving. Decisions are in the 2026-10-01 entry below and the translation
+plan's 2026-09-05 one.
+
+Next session needs to know: **neither fix has run on a device.** Start over's
+cause is a hypothesis (the long-press sits in an RN Modal and needed its own
+`GestureHandlerRootView`; a pre-wipe failure now shows an error instead of being
+silent). The cue bug was two separate state copies (`Flow` and `Knot`); it is now
+one `CueService.subscribe`/`useCue`. NIV and ESV have still never run against a
+live key: pasting one into Translation is the first real test. Night mode and
+its Appearance row remain a separate, unstarted grill. Branch: `main`.
+
 ## Decision 2026-10-01 — the knot stops promoting Safekeeping and Support
 
 **Decision:** When Safekeeping or Support needs attention, it no longer jumps
