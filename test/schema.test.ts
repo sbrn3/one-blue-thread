@@ -36,6 +36,29 @@ describe('schema + migration harness (W1)', () => {
     expect(schemaVersion(db)).toBe(MIGRATIONS.length);
   });
 
+  it('v12 adds the cloze ladder + probe span columns without touching old rows', () => {
+    const db = openTestDb();
+    for (const stmt of MIGRATIONS.slice(0, 11).flat()) db.run(stmt);
+    db.run('PRAGMA user_version = 11');
+    db.run(
+      `INSERT INTO passages (book, chapter, verse_start, verse_end, marked_at, promoted_at, box)
+       VALUES ('John', 3, 16, 17, 1, 2, 3)`,
+    );
+    migrate(db);
+    expect(schemaVersion(db)).toBe(12);
+    expect(db.get<{ rung: number | null }>('SELECT rung FROM passages')?.rung).toBeNull();
+    for (const [t, cols] of [
+      ['probes', ['verse_start', 'verse_end', 'marked']],
+      ['days', ['first_verse', 'last_verse']],
+      ['events', ['verse_first', 'verse_last']],
+    ] as const) {
+      const names = db.all<{ name: string }>(`PRAGMA table_info(${t})`).map((c) => c.name);
+      for (const c of cols) expect(names).toContain(c);
+    }
+    migrate(db);
+    expect(schemaVersion(db)).toBe(12);
+  });
+
   it('partner table admits exactly one row (a dyad, not a group)', () => {
     const db = openTestDb();
     migrate(db);

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup — Cloze recall ladder</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* Mirrors src/ui/tokens.ts ("The Loom") — NOT the stale template palette.
+   Mockups are HTML for iteration speed; the build is React Native StyleSheet.
+   Every direction is achievable with RN <Text> runs (+ nested Text for gaps). */
+:root {
+  --paper: #F4F1E9; --ink: #1A1A17; --thread: #2E3A8C; --warp: #8F8779; --madder: #B5482F;
+  --dyeSoft: #E7E9F4; --ink60: #5B584F; --ink40: #726D5C; --ink15: #E0DACB;
+  --markSoft: rgba(46,58,140,.08);
+  --display: 'Schibsted Grotesk', system-ui, sans-serif;
+  --scripture: 'Newsreader', Georgia, serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: #d9d3c2; color: var(--ink); font-family: var(--display); }
+.mk-bar { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; justify-content: space-between; padding: .7rem 1.1rem; background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: .8rem; }
+.mk-bar .dir { opacity: .7; }
+.mk-options { display: flex; flex-wrap: wrap; gap: .35rem; }
+.mk-options a { color: inherit; border: 1px solid currentColor; border-radius: 999px; padding: .3rem .8rem; font-size: .72rem; text-decoration: none; }
+section.opt { padding: 2rem 1.5rem 1rem; max-width: 1500px; margin: 0 auto; }
+section.opt > h2 { font-family: var(--mono); font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--thread); margin: 0 0 .3rem; }
+section.opt > p.why { max-width: 70ch; color: var(--ink60); margin: 0 0 1.4rem; font-size: .92rem; line-height: 1.55; }
+.stage { display: flex; flex-wrap: wrap; gap: 1.6rem; }
+.phone { width: 360px; max-width: 100%; background: var(--paper); border-radius: 30px; box-shadow: 0 14px 44px rgba(0,0,0,.16); padding: 18px 0 26px; }
+.phone .cap { font-family: var(--mono); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink40); padding: 0 32px 10px; }
+.arrival { padding: 6px 32px 14px; font-family: var(--mono); font-size: 12px; color: var(--ink40); border-bottom: 1px solid var(--ink15); margin-bottom: 8px; }
+
+/* ── the zone: RecallZone.styles — padding 32/24, gap 16; card gap 10 ── */
+.zone { padding: 24px 32px; display: flex; flex-direction: column; gap: 16px; }
+.card { display: flex; flex-direction: column; gap: 10px; padding-bottom: 16px; border-bottom: 1px solid var(--ink15); }
+.ref { font-family: var(--mono); font-size: 13px; letter-spacing: .5px; color: var(--ink40); display: flex; justify-content: space-between; align-items: baseline; }
+.rung { font-size: 11px; display: inline-flex; gap: 4px; align-items: center; }
+.rung i { width: 14px; height: 3px; background: var(--ink15); display: block; }
+.rung i.on { background: var(--thread); }
+.verse { font-family: var(--scripture); font-style: italic; font-size: 18px; line-height: 27px; color: var(--ink); margin: 0; }
+.btn, .chip { font-family: var(--display); font-size: 15px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; padding: 0 18px; cursor: pointer; border: 1px solid var(--thread); background: transparent; color: var(--thread); }
+.btn.link { border: 0; color: var(--ink60); padding: 0; justify-content: flex-start; text-decoration: underline; }
+.chip { border-color: var(--ink15); color: var(--ink); background: var(--paper); }
+.chip:hover { background: var(--dyeSoft); }
+.btn { align-self: flex-start; }
+.grades { display: flex; gap: 8px; flex-wrap: wrap; }
+[hidden] { display: none !important; }
+.hint { font-family: var(--mono); font-size: 12px; color: var(--ink40); }
+
+/* ── A · inline gaps: the word's width is kept, a ruled slot replaces it ── */
+.gapA { display: inline-block; border-bottom: 1.5px solid var(--thread); color: transparent; user-select: none; min-width: 1.5ch; line-height: .95; }
+.filledA { color: var(--thread); font-style: italic; }
+
+/* ── B · cloth strips: a hidden word is a strip of weft; tap one to peek ── */
+.stripB { display: inline-block; height: .75em; background: var(--dyeSoft); border: 1px solid var(--thread); border-radius: 3px; vertical-align: -.04em; color: transparent; user-select: none; cursor: pointer; margin: 0 1px; }
+.stripB.peek { background: transparent; color: var(--thread); border-style: dashed; height: auto; }
+.filledB { color: var(--thread); }
+
+/* ── C · stub: first letter kept, the rest dashed ── */
+.stubC { color: var(--thread); letter-spacing: .08em; }
+.stubC b { font-weight: 600; letter-spacing: 0; }
+
+/* ── whole passage (rung 7+): identical to today's card — reference, Reveal ── */
+.empty { height: 54px; border-radius: 10px; border: 1px dashed var(--ink15); display: flex; align-items: center; padding: 0 14px; font-family: var(--mono); font-size: 12px; color: var(--ink40); }
+
+/* ── probe ── */
+.prompt { font-family: var(--display); font-size: 16px; line-height: 24px; color: var(--ink); margin: 0; }
+.span { background: var(--markSoft); border-left: 2px solid var(--madder); padding: 2px 0 2px 10px; }
+.reveal-in { animation: fade .18s ease; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .reveal-in { animation: none; } }
+.legend { max-width: 70ch; font-size: .82rem; color: var(--ink60); margin: 1rem 0 0; line-height: 1.5; }
+.legend code { font-family: var(--mono); background: var(--dyeSoft); padding: 1px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<div class="mk-bar">
+  <span><strong>Cloze recall ladder</strong> <span class="dir">— issues #40 + #41 · synthetic marks, WEB text</span></span>
+  <nav class="mk-options" aria-label="Mockup views">
+    <a href="#chosen">Chosen · A+C</a>
+    <a href="#option-a">A · Inline gaps</a>
+    <a href="#option-b">B · Cloth strips</a>
+    <a href="#option-c">C · Letter stubs</a>
+    <a href="#probe">Narrowed probe</a>
+  </nav>
+</div>
+
+<section class="opt" id="chosen">
+  <h2>Chosen direction — A + C blend</h2>
+  <p class="why">Each amount of hiding is met twice: the first review at that amount shows letter stubs (the easier step), the next shows plain inline gaps. Reviews 1 and 2 hide the same few words, 3 and 4 about half, 5 and 6 nearly all; from review 7 the whole passage is hidden and there is nothing to stub. “Lost it” steps back one review position, so you meet the easier stubs again on the way back up.</p>
+  <div class="stage" id="stageD"></div>
+</section>
+
+<section class="opt" id="option-a">
+  <h2>Option A — Inline gaps</h2>
+  <p class="why">The verse stays set in Newsreader italic; each hidden key word becomes a ruled slot the same width as the word (like a worksheet blank). Nothing to learn: tap Reveal, the gaps fill in thread blue, grade yourself. Closest to today's card, so it adds the least new interaction.</p>
+  <div class="stage" id="stageA"></div>
+</section>
+
+<section class="opt" id="option-b">
+  <h2>Option B — Cloth strips (tap to peek)</h2>
+  <p class="why">Hidden words are small strips of undyed-then-dyed weft, matching the app's textile voice. Tapping one strip peeks that single word (a hint) without ending the attempt, so a half-remembered word can be checked cheaply. Adds a per-word interaction and a possible honesty question: does a peek cap the grade?</p>
+  <div class="stage" id="stageB"></div>
+</section>
+
+<section class="opt" id="option-c">
+  <h2>Option C — Letter stubs</h2>
+  <p class="why">Each hidden word keeps its first letter and dashes for the rest (“l— ”, “p—”). The strongest memory cue, so it suits the early rungs, but it makes the lowest rungs easier than A or B and leaks word length on every rung. It can't be used on the whole-passage rung, which falls back to a blank card.</p>
+  <div class="stage" id="stageC"></div>
+</section>
+
+<section class="opt" id="probe">
+  <h2>Narrowed next-day probe (#40)</h2>
+  <p class="why">Today's probe says “Yesterday you read John 3. What do you remember?” and reveals the chapter. The narrowed probe names a short span with its reference. When you marked a verse in that chapter, it asks about that verse (shown with the same madder mark the reading screen uses for a kept verse); otherwise a seeded run of about three verses. Free recall and the four self-grades are unchanged.</p>
+  <div class="stage" id="stageP"></div>
+</section>
+
+<p class="legend" style="padding:0 1.5rem 2rem;max-width:1500px;margin:0 auto">
+  Rungs shown: review 1 (about a fifth of key words hidden), review 3 (about half), review 5 (nearly all), review 7+ (whole passage). Click <code>Reveal</code> on any card. “Key words” here = any word not in a small English function-word list; which ones hide is a seeded spread, so a different review number hides a different set. Reduced-motion: the reveal is an instant swap (no animation is built, so reduced motion needs nothing).
+</p>
+
+<script>
+const VERSE = "For God so loved the world, that he gave his only born Son, that whoever believes in him should not perish, but have eternal life. For God didn’t send his Son into the world to judge the world, but that the world should be saved through him.";
+const STOP = new Set("a an and are as at be but by for from had has have he her him his i if in into is it its me my not of on or our she should so than that the their them then there they this to was we were what when which who whoever will with you your didn’t only".split(" "));
+// small deterministic hash — the real build seeds from (passage id, review) with no Math.random
+function h(n){ n = (n ^ 61) ^ (n >>> 16); n = n + (n << 3); n = n ^ (n >>> 4); n = Math.imul(n, 0x27d4eb2d); return (n ^ (n >>> 15)) >>> 0; }
+const words = VERSE.split(" ");
+const clean = w => w.replace(/[^A-Za-z’']/g, "").toLowerCase();
+const keyIdx = words.map((w,i)=>i).filter(i => !STOP.has(clean(words[i])) && clean(words[i]).length > 2);
+
+function hiddenFor(review, passageId=7){
+  const pct = review <= 2 ? .2 : review <= 4 ? .5 : review <= 6 ? .85 : 0;
+  if (review >= 7) return null;               // whole passage rung
+  const n = Math.max(1, Math.round(keyIdx.length * pct));
+  const order = keyIdx.map(i => [h(i * 31 + passageId), i]).sort((a,b)=>a[0]-b[0]);
+  return new Set(order.slice(0, n).map(x => x[1]));
+}
+function splitPunct(w){ const m = w.match(/^(.*?)([.,;:]*)$/); return [m[1], m[2]]; }
+
+function renderVerse(style, hidden, revealed){
+  return words.map((w,i)=>{
+    if (!hidden || !hidden.has(i)) return w;
+    const [core, tail] = splitPunct(w);
+    if (revealed){
+      const cls = style==='B' ? 'filledB' : style==='A' ? 'filledA' : 'stubC';
+      return `<span class="${cls}">${core}</span>${tail}`;
+    }
+    if (style==='A') return `<span class="gapA" style="width:${core.length*0.5}em">${core}</span>${tail}`;
+    if (style==='B') return `<span class="stripB" data-w="${core}" style="width:${Math.max(1.2,core.length*0.42)}em">${core}</span>${tail}`;
+    return `<span class="stubC"><b>${core[0]}</b>${"–".repeat(Math.max(1,core.length-1))}</span>${tail}`;
+  }).join(" ");
+}
+
+function card(style, review){
+  const hidden = hiddenFor(review);
+  const total = 4, step = review<=2?1:review<=4?2:review<=6?3:4;
+  const el = document.createElement("div");
+  el.className = "phone";
+  const bars = [1,2,3,4].map(i=>`<i class="${i<=step?'on':''}"></i>`).join("");
+  const cap = review>=7 ? "Review 7+ · whole passage" : `Review ${review}`;
+  el.innerHTML = `
+    <div class="cap">${cap}</div>
+    <div class="arrival">Tuesday · John</div>
+    <div class="zone">
+      <div class="card">
+        <div class="ref"><span>John 3:16-17</span><span class="rung" aria-label="Step ${step} of 4">${bars}</span></div>
+        <p class="verse" data-body></p>
+        <button class="btn" data-reveal>Reveal</button>
+        <div class="grades" data-grades hidden>
+          <button class="chip">Held it</button><button class="chip">Partly</button><button class="chip">Lost it</button>
+        </div>
+      </div>
+      <button class="btn link">Skip</button>
+    </div>`;
+  const body = el.querySelector("[data-body]");
+  const draw = rev => {
+    if (hidden === null && !rev) { body.outerHTML = `<div class="empty" data-body>Say it from memory</div>`; return; }
+    const target = el.querySelector("[data-body]");
+    if (hidden === null && rev){ target.outerHTML = `<p class="verse reveal-in" data-body>${VERSE}</p>`; return; }
+    target.outerHTML = `<p class="verse ${rev?'reveal-in':''}" data-body>${renderVerse(style, hidden, rev)}</p>`;
+  };
+  draw(false);
+  el.addEventListener("click", e => {
+    const peek = e.target.closest(".stripB");
+    if (peek && !peek.classList.contains("peek")){ peek.classList.add("peek"); peek.style.width = "auto"; return; }
+    if (e.target.closest("[data-reveal]")){
+      draw(true);
+      el.querySelector("[data-reveal]").hidden = true;
+      el.querySelector("[data-grades]").hidden = false;
+    }
+  });
+  return el;
+}
+
+function stage(id, style, reviews){
+  const s = document.getElementById(id);
+  reviews.forEach(r => s.appendChild(card(style, r)));
+}
+// blend: odd review → stubs (C), even review → plain gaps (A); same hidden set for the pair
+const sd = document.getElementById("stageD");
+[1,2,3,4,7].forEach(r => sd.appendChild(card(r % 2 === 1 ? "C" : "A", r)));
+stage("stageA", "A", [1,3,5,7]);
+stage("stageB", "B", [1,3,5]);
+stage("stageC", "C", [1,3,5,7]);
+
+// ── probe ──
+function probeCard(kind){
+  const el = document.createElement("div");
+  el.className = "phone";
+  const cap = kind==='old' ? "Today (the problem)" : kind==='marked' ? "Narrowed · you marked a verse" : "Narrowed · no mark, seeded span";
+  const prompt = kind==='old'
+    ? "Yesterday you read John 3. What do you remember?"
+    : kind==='marked'
+    ? "Yesterday you read John 3. Do you remember verse 16?"
+    : "Yesterday you read John 3. What do you remember of verses 5–7?";
+  const text = kind==='old'
+    ? "There was a man of the Pharisees named Nicodemus, a ruler of the Jews. The same came to him by night… (36 verses)"
+    : kind==='marked'
+    ? "For God so loved the world, that he gave his only born Son, that whoever believes in him should not perish, but have eternal life."
+    : "Jesus answered, “Most assuredly I tell you, unless one is born of water and spirit, he can’t enter into the Kingdom of God. That which is born of the flesh is flesh. That which is born of the Spirit is spirit.”";
+  const ref = kind==='old' ? "" : kind==='marked' ? "John 3:16" : "John 3:5-7";
+  el.innerHTML = `
+    <div class="cap">${cap}</div>
+    <div class="arrival">Wednesday · John</div>
+    <div class="zone"><div class="card">
+      <p class="prompt">${prompt}</p>
+      ${ref ? `<div class="ref"><span>${ref}</span>${kind==='marked'?'<span style="color:var(--madder)">● you marked this</span>':''}</div>` : ""}
+      <button class="btn" data-reveal>Reveal</button>
+      <div data-out></div>
+      <div class="grades" data-grades hidden>
+        <button class="chip">Held it</button><button class="chip">Partly</button><button class="chip">Lost it</button>
+      </div>
+      <button class="btn link">Skip</button>
+    </div></div>`;
+  el.addEventListener("click", e => {
+    if (!e.target.closest("[data-reveal]")) return;
+    el.querySelector("[data-out]").innerHTML = `<p class="verse reveal-in ${kind==='marked'?'span':''}">${text}</p>`;
+    e.target.closest("[data-reveal]").hidden = true;
+    el.querySelector("[data-grades]").hidden = false;
+  });
+  return el;
+}
+const sp = document.getElementById("stageP");
+["old","marked","seeded"].forEach(k => sp.appendChild(probeCard(k)));
+</script>
+</body>
+</html>

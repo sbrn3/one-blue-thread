@@ -91,6 +91,11 @@ all three bundled typefaces, and sat idle instead of pinning a core.
 
 ## Active plans
 
+- **recall-cloze-ladder** — ✅ built (C4, independent diff audit done), PR open/merged per
+  `JOURNAL.md`. Recall passages are cloze cards on a seven-rung ladder, and the
+  next-day probe asks about up to 3 verses you read (#40, #41). Migration V12 is
+  additive. Owner device check outstanding (see `OUTCOME.md`). See
+  `docs/plans/recall-cloze-ladder/`.
 - **one-blue-thread-rebrand** — ✅ shipped in `v0.6.0` (PR #18, `2118227`).
   Public name, notification title, backup filenames, onboarding, knot, website
   and release artifact all renamed; the Android package, Expo slug, database,

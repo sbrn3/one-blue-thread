@@ -42,8 +42,10 @@ export function analyzeDoseCurve(db: SqlDb): DoseCurvePoint[] {
     // The recall signal for a dose assigned on date D is the probe
     // fired on D+1 (E9 probes yesterday's reading).
     const nextDayDates = dates.map((d) => addDays(d, 1));
+    // Only span-level probes (verse_start set) count: older chapter-level
+    // grades answered a harder question and are excluded, not pooled.
     const grades = db.all<{ grade: string }>(
-      `SELECT grade FROM probes WHERE fired = 1 AND grade IS NOT NULL AND local_date IN (${placeholders(n)})`,
+      `SELECT grade FROM probes WHERE fired = 1 AND grade IS NOT NULL AND verse_start IS NOT NULL AND local_date IN (${placeholders(n)})`,
       nextDayDates,
     );
     const recallScore =

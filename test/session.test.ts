@@ -166,6 +166,31 @@ describe('session store — verse-normalized dose (§07, Phase 1)', () => {
   });
 });
 
+describe('session store — verse range read (recall-cloze-ladder)', () => {
+  const verses = (chapter: number, from: number, to: number): Verse[] =>
+    Array.from({ length: to - from + 1 }, (_, i) => ({ book: 'genesis', chapter, verse: from + i, text: 'x' }));
+
+  async function sealWith(sitting: Verse[]) {
+    const { db, log, text } = setup();
+    useSession.setState({ status: 'ready', book: 'genesis', chapter: 1, sittingIndex: 0, sittings: [sitting], portionChapters: [1] });
+    log.write({ type: 'reading_start', book: 'genesis', chapter: 1 });
+    await useSession.getState().seal(db, log, text, '2026-07-14');
+    return db.get<{ first_verse: number | null; last_verse: number | null }>("SELECT first_verse, last_verse FROM days WHERE local_date = '2026-07-14'");
+  }
+
+  it('records the verses actually read in a later sitting', async () => {
+    expect(await sealWith(verses(1, 18, 36))).toEqual({ first_verse: 18, last_verse: 36 });
+  });
+
+  it('records 1..n for a first sitting', async () => {
+    expect(await sealWith(verses(1, 1, 17))).toEqual({ first_verse: 1, last_verse: 17 });
+  });
+
+  it('a multi-chapter portion records only the session chapter span', async () => {
+    expect(await sealWith([...verses(1, 30, 31), ...verses(2, 1, 5)])).toEqual({ first_verse: 30, last_verse: 31 });
+  });
+});
+
 // A rejecting/deferred TextProvider fake, for the failure and race paths
 // below — `loadPortion` only ever awaits `getChapter`.
 function rejectingText(message: string): TextProvider {

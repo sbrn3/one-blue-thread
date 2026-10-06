@@ -14,6 +14,7 @@ const passage = (box: number, held_since: string | null = null): Passage => ({
   due_date: null,
   last_grade: null,
   held_since,
+  rung: null,
 });
 
 describe('Leitner scheduler (§21 — deliberately not Anki)', () => {

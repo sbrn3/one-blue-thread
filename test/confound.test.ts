@@ -19,6 +19,8 @@ function event(type: AppEvent['type']): AppEvent {
     exp_arm: null,
     verses_count: null,
     target_verses: null,
+    verse_first: null,
+    verse_last: null,
     build_sha: 'test',
   };
 }

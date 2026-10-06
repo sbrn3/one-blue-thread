@@ -144,6 +144,34 @@ describe('Memory (§13.3 /src/memory, §21)', () => {
     expect(graded).toHaveLength(1);
   });
 
+  it('grade() walks the cloze ladder without changing Leitner scheduling', () => {
+    const { db, memory } = setup();
+    memory.markCandidate({ book: 'john', chapter: 3, verseStart: 16, verseEnd: 16 }, () => 1);
+    const [{ id }] = memory.candidates('john');
+    memory.promote(id, '2026-07-01');
+    const row = () => db.get<{ rung: number | null; box: number; due_date: string }>('SELECT rung, box, due_date FROM passages WHERE id = ?', [id])!;
+    expect(row().rung).toBeNull();
+
+    memory.grade(id, 'held', '2026-07-01');
+    expect([row().rung, row().box, row().due_date]).toEqual([2, 2, '2026-07-04']);
+    memory.grade(id, 'partial', '2026-07-04');
+    expect([row().rung, row().box, row().due_date]).toEqual([2, 2, '2026-07-07']);
+    memory.grade(id, 'lost', '2026-07-07');
+    expect([row().rung, row().box, row().due_date]).toEqual([1, 1, '2026-07-08']);
+    memory.grade(id, 'lost', '2026-07-08');
+    expect(row().rung).toBe(1);
+  });
+
+  it('grade() on a legacy passage derives its rung from the box', () => {
+    const { db, memory } = setup();
+    memory.markCandidate({ book: 'john', chapter: 3, verseStart: 16, verseEnd: 16 }, () => 1);
+    const [{ id }] = memory.candidates('john');
+    memory.promote(id, '2026-07-01');
+    db.run('UPDATE passages SET box = 3 WHERE id = ?', [id]); // pre-ladder passage, rung NULL
+    memory.grade(id, 'held', '2026-07-01');
+    expect(db.get<{ rung: number }>('SELECT rung FROM passages WHERE id = ?', [id])?.rung).toBe(6);
+  });
+
   it('grade() is a dead end for lost — back to box 1, due tomorrow', () => {
     const { memory } = setup();
     memory.markCandidate({ book: 'john', chapter: 3, verseStart: 16, verseEnd: 16 }, () => 1);

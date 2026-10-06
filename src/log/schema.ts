@@ -248,8 +248,26 @@ const V11: string[] = [
   `ALTER TABLE decisions ADD COLUMN bandit_updated INTEGER DEFAULT 0`,
 ];
 
+// v12 — recall-cloze-ladder (#40, #41; docs/plans/recall-cloze-ladder).
+// passages.rung is the cloze ladder step; NULL means not yet on the
+// ladder — the effective rung is derived from box, so there is no
+// backfill UPDATE (a restored backup must behave like an upgrade).
+// probes.verse_start/verse_end/marked record the span E9 asked about;
+// days.first_verse/last_verse (from events.verse_first/verse_last at
+// seal) record which verses were actually read. All additive.
+const V12: string[] = [
+  `ALTER TABLE passages ADD COLUMN rung INTEGER`,
+  `ALTER TABLE probes ADD COLUMN verse_start INTEGER`,
+  `ALTER TABLE probes ADD COLUMN verse_end INTEGER`,
+  `ALTER TABLE probes ADD COLUMN marked INTEGER`,
+  `ALTER TABLE days ADD COLUMN first_verse INTEGER`,
+  `ALTER TABLE days ADD COLUMN last_verse INTEGER`,
+  `ALTER TABLE events ADD COLUMN verse_first INTEGER`,
+  `ALTER TABLE events ADD COLUMN verse_last INTEGER`,
+];
+
 // Index = schema version - 1. New migrations append; nothing is edited.
-export const MIGRATIONS: string[][] = [V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11];
+export const MIGRATIONS: string[][] = [V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12];
 
 export function migrate(db: SqlDb): void {
   const row = db.get<{ user_version: number }>('PRAGMA user_version');

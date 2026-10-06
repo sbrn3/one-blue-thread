@@ -126,6 +126,9 @@ export const useSession = create<SessionState>((set, get) => ({
   async seal(db, log, text, today) {
     const { book, chapter, sittingIndex, sittings, portionChapters } = get();
     const versesInSitting = sittings[sittingIndex]?.length ?? 0;
+    // The verses of the session chapter actually read — the next-day probe
+    // may only ask about these (recall-cloze-ladder).
+    const readNums = (sittings[sittingIndex] ?? []).filter((v) => v.chapter === chapter).map((v) => v.verse);
     const target = todaysTarget(db, today);
 
     log.write({
@@ -135,6 +138,7 @@ export const useSession = create<SessionState>((set, get) => ({
       sitting: sittingIndex,
       before_nudge: 1, // no nudge system yet — always "before" until W6b
       verses_count: versesInSitting,
+      ...(readNums.length > 0 ? { verse_first: Math.min(...readNums), verse_last: Math.max(...readNums) } : {}),
       ...(target !== null ? { target_verses: target } : {}),
     });
     log.rebuildDays(today);

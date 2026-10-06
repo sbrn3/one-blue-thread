@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — Recall cloze ladder + narrowed probe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&display=swap" rel="stylesheet">
+<style>
+/* ── One Blue Thread identity — mirrors docs/index.html / src/ui/tokens.ts. Do not swap for generic styles ── */
+:root {
+  --bg:            #FBFAF7;
+  --surface:       #ffffff;
+  --card-bg:       #ffffff;
+  --border:        #E6E5E1;
+  --border-strong: #d8d7d2;
+  --text:          #16161A;
+  --text-2:        #5E5D66;
+  --text-muted:    #9C9BA3;
+  --primary:       #1F3FFF;
+  --primary-dark:  #1732cc;
+  --primary-tint:  #EEF0FF;
+  --success:       #155724;
+  --success-bg:    #d4edda;
+  --warning:       #856404;
+  --warning-bg:    #fff3cd;
+  --danger:        #c0392b;
+  --danger-bg:     #fde8e8;
+  --font-head:     'Newsreader', Georgia, serif;
+  --font-body:     'Schibsted Grotesk', system-ui, -apple-system, sans-serif;
+  --radius:        12px;
+  --shadow:        0 4px 6px rgba(0,0,0,0.08);
+  --shadow-lg:     0 8px 32px rgba(0,0,0,0.16);
+}
+* { box-sizing: border-box; }
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(600px 400px at 0% -5%, rgba(26,58,92,0.06), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2.2rem 1.6rem 4rem;
+}
+h1 { font-family: var(--font-head); font-size: 2rem; font-weight: 400; margin: 0 0 .3rem; letter-spacing: .01em; }
+h2 { font-family: var(--font-head); font-size: 1.25rem; font-weight: 400; color: var(--primary); margin: 1.8rem 0 .8rem; }
+h3 { font-size: .95rem; font-weight: 600; color: var(--text); margin: 1.3rem 0 .4rem; }
+a { color: var(--primary); }
+code { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: .85em; color: var(--primary-dark); background: var(--primary-tint); padding: .1em .4em; border-radius: 5px; }
+.meta { font-size: .82rem; color: var(--text-muted); margin-bottom: 1.6rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.badge { display: inline-block; padding: .25em .7em; border-radius: 999px; font-size: .74rem; font-weight: 600; border: 1px solid var(--border); background: var(--surface); }
+.badge.navy   { color: var(--primary); border-color: var(--primary); background: var(--primary-tint); }
+.badge.green  { color: var(--success); background: var(--success-bg); border-color: #c3e6cb; }
+.badge.yellow { color: var(--warning); background: var(--warning-bg); border-color: #ffeeba; }
+.badge.red    { color: var(--danger);  background: var(--danger-bg);  border-color: #f5c6cb; }
+/* Stat row */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: .8rem; margin-bottom: 2rem; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .9rem 1.1rem; box-shadow: var(--shadow); }
+.stat-value { font-family: var(--font-head); font-size: 1.7rem; color: var(--primary); font-variant-numeric: tabular-nums; }
+.stat-label { font-size: .72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+/* Tabs */
+.tabs { display: flex; gap: .4rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 1.6rem; }
+.tab { padding: .5rem 1rem; border: none; background: none; cursor: pointer; font-family: var(--font-body); font-size: .87rem; color: var(--text-2); border-radius: 8px 8px 0 0; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: var(--text); background: var(--primary-tint); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; background: var(--primary-tint); }
+.panel { display: none; animation: fade .25s ease; }
+.panel.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+/* Checklist */
+.checklist { list-style: none; padding: 0; margin: .5rem 0; }
+.checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; font-size: .9rem; border-bottom: 1px solid var(--border); }
+.checklist li:last-child { border-bottom: none; }
+.checklist input { margin-top: .3rem; flex-shrink: 0; accent-color: var(--primary); width: 16px; height: 16px; }
+.checklist input:checked + span { color: var(--text-muted); text-decoration: line-through; }
+/* Notes / callouts */
+.note { background: var(--warning-bg); border: 1px solid #ffeeba; border-radius: var(--radius); padding: .7rem 1rem; font-size: .86rem; margin: .8rem 0; color: var(--text); }
+.mockup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: .9rem; margin: 1rem 0; }
+.mockup-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); }
+.mockup-card.chosen { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary), var(--shadow-lg); }
+.mockup-card h3 { margin-top: 0; }
+.requirements { font-size: .92rem; line-height: 2; padding-left: 1.3rem; }
+.evidence-table { width: 100%; border-collapse: collapse; margin: .8rem 0 1.2rem; font-size: .84rem; }
+.evidence-table th, .evidence-table td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: left; vertical-align: top; }
+.evidence-table th { background: var(--primary-tint); color: var(--primary); }
+</style>
+</head>
+<body>
+
+<h1>Recall cloze ladder + narrowed probe</h1>
+<div class="meta">
+  2026-10-02 · issues #40 + #41
+  <span class="badge navy">C4</span>
+  <span class="badge navy">~26 files</span>
+  <span class="badge navy">6 commits</span>
+  <span class="badge yellow">~3 sessions</span>
+  <span class="badge green">Smart Review: independent review done, findings resolved</span>
+  <span class="badge navy">Aesthetics: A+C blend chosen</span>
+  <span class="badge green">Approved 2026-10-06</span>
+</div>
+
+<div class="stat-row">
+  <div class="stat"><div class="stat-value">26</div><div class="stat-label">Files</div></div>
+  <div class="stat"><div class="stat-value">6</div><div class="stat-label">Commits</div></div>
+  <div class="stat"><div class="stat-value">9</div><div class="stat-label">Test files</div></div>
+  <div class="stat"><div class="stat-value">5</div><div class="stat-label">Slices</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="intent" onclick="show('intent')">Intent</button>
+  <button class="tab" data-tab="requirements" onclick="show('requirements')">Requirements</button>
+  <button class="tab" data-tab="aesthetics" onclick="show('aesthetics')">Aesthetics</button>
+  <button class="tab" data-tab="execution" onclick="show('execution')">Execution</button>
+  <button class="tab" data-tab="review" onclick="show('review')">Smart Review</button>
+  <button class="tab" data-tab="verify" onclick="show('verify')">Verification</button>
+</div>
+
+<div id="intent" class="panel active">
+  <h2>Problem &amp; Intent</h2>
+  <h3>Status, owner &amp; next action</h3>
+  <p><strong>Approved 2026-10-06</strong> by the owner, with the Gate 3 defaults, the E9 outcome change, and the independent review agent. Owner: the reader/developer. Trigger: issues #40 (spaced repetition asks for a whole chapter) and #41 (cloze deletion), taken as one change after a grill session (its scratch summary was removed on approval; every decision is recorded in this plan). Commit, push, PR, merge and deploy are <strong>not</strong> authorized by this approval. Next action: run S01 in the feature worktree.</p>
+
+  <h3>Outcome and constraints</h3>
+  <p><strong>Problem.</strong> Memorising a passage means being asked about <em>specific verses</em> and being helped up to recalling the whole thing. Today a due passage shows only a reference and then everything, and the next-day probe (E9) asks the reader to recall <em>yesterday's whole chapter</em> a day after one reading. That is too large to answer, and it read as a bug (#40).</p>
+  <p><strong>Outcome.</strong> (1) A due memory passage becomes a <em>cloze card</em>: a few key words hidden at first, more over time, finally the whole passage hidden (#41), with letter stubs as the easier first step at each amount. (2) The next-day probe asks about a short, named span of verses the reader actually read, preferring a verse they marked (#40).</p>
+  <p><strong>Constraints.</strong> Offline, single-user, nothing leaves the device. §13.6: <code>events</code> append-only, migrations additive-only, no <code>Math.random()</code>, <code>/src/memory</code> never imports <code>/src/lab</code>, and a recall grade can never touch seal, streak, weave or dose. Scripture-first voice: no generated prose. The Leitner scheduler (§21, "deliberately not Anki"), its fixed intervals and the 2-a-day cap are unchanged.</p>
+
+  <h3>Scope and non-goals</h3>
+  <p><strong>In:</strong> cloze engine and ladder; a <code>rung</code> per passage; recall card UI; recording the verse range read at seal; the narrowed E9 probe and its UI; a guard so the dose analysis does not pool old and new probe grades. <strong>Non-goals:</strong> Anki-style scheduling or ease factors; typed answers; changing Leitner intervals or the cap; cloze on the probe; more than one promoted passage per book; non-English stop words.</p>
+
+  <h3>Dependencies and unresolved gates</h3>
+  <ul class="requirements">
+    <li><strong>Gate 1 — branch/worktree:</strong> sibling worktree <code>../thread-recall-cloze-ladder</code> on <code>feat/recall-cloze-ladder</code> from <code>origin/main</code> (approved). Commit, push, PR and merge still need explicit authorization.</li>
+    <li><strong>Gate 2 — Smart Review:</strong> done. An independent read-only reviewer ran on 2026-10-06; every finding and its resolution is in the Smart Review tab.</li>
+    <li><strong>Gate 3 — defaults to confirm:</strong> Partly holds the rung; existing passages keep <code>rung</code> NULL and their effective rung is derived from <code>box</code> (1→1, 2→3, 3→5, 4–5→7) until they are first graded; a legacy day with no recorded read range is not probed; the dose analysis counts only span-level probe grades.</li>
+    <li><strong>Gate 3b — E9 outcome change:</strong> accepted with the plan approval. Old and new probe grades are not comparable (see Evidence) and are kept apart in the dose analysis.</li>
+    <li><strong>Gate 4 — uncommitted grill docs on <code>main</code></strong> (<code>docs/CONTEXT.md</code>, <code>JOURNAL.md</code>, this folder): copy them into the feature worktree (local <code>main</code> is behind <code>origin/main</code> and both sides edited the same docs, so no pull).</li>
+    <li>No external dependency; no new package.</li>
+  </ul>
+
+  <h3>Evidence and decisions</h3>
+  <ul class="requirements">
+    <li><code>src/flow/RecallZone.tsx</code> shows <code>reference(p)</code> then Reveal; the revealed text is already filtered to the verse range in <code>Flow.getVerseText</code> (<code>Flow.tsx</code>:412), so #40 is not in recall.</li>
+    <li><code>src/flow/ProbeZone.tsx</code> prompt: "Yesterday you read {book} {chapter}. What do you remember?" and then reveals the chapter (<code>getProbeChapterText</code>, <code>Flow.tsx</code>:452). This is the source of #40.</li>
+    <li><code>src/lab/probe.ts</code> <code>resolveTodaysProbe</code> rolls <code>weightedPick(trialSeed, 'E9:'+date, …)</code>, then persists a <code>probes</code> row keyed by date. The arm key stays untouched, so fire/skip assignment is identical.</li>
+    <li><strong>No read range is stored today:</strong> <code>days</code> has only <code>chapter</code> and <code>verses_read</code> (a count), and sittings can start mid-chapter. A span drawn from "verses 1..n" could ask about verses never read, so S01/S03 record <code>first_verse</code>/<code>last_verse</code> at seal.</li>
+    <li><strong>Outcome-variable change:</strong> <code>src/lab/analysis/dose.ts</code> (~line 46) averages <code>probes.grade</code> as <code>recallScore</code> per dose arm. A 3-verse span is easier than a chapter, so pooling would corrupt the comparison; legacy rows are excluded via <code>verse_start IS NOT NULL</code>.</li>
+    <li><code>src/memory/leitner.ts</code> <code>reschedule</code> and <code>Memory.grade</code> (<code>memory.ts</code>:94); the <code>passages</code> schema (<code>schema.ts</code>:92) has no review counter, so V12 adds <code>rung</code>.</li>
+    <li><code>test/boundaries.test.ts</code>:45 forbids <code>/src/memory</code> importing <code>/src/lab</code>, so cloze word selection carries its own FNV-1a hash (deterministic, no <code>Math.random</code>); only the probe, which lives in <code>/src/lab</code>, uses <code>seededUniform</code>.</li>
+    <li>Decision already journaled: <code>JOURNAL.md</code> "Decision 2026-10-02 — the next-day probe asks about a few verses, not the chapter". Grill answers: cloze only, Leitner kept; ladder driven by reviews seen; key words = non-stop-words; tap-to-reveal self-grade; probe span = marked verse else seeded; A+C blend; rung bars kept.</li>
+    <li>Latest-user-statement reconciliation: the user chose "A and C working together"; read as stubs first, plain gaps second, at each amount (confirm at Gate 3).</li>
+  </ul>
+
+  <h3>Documentation effects</h3>
+  <p><code>docs/CONTEXT.md</code> (terms already added; update if the rung/step wording changes), <code>ROADMAP.md</code>, <code>STATUS.md</code> and <code>docs/plans/README.md</code> (only after approval), the build-session <code>JOURNAL.md</code> entry, and closing #40/#41 on release. <code>docs/what-thread-asks-you.html</code> describes the recall card and probe to the reader and needs a short update.</p>
+</div>
+
+<div id="requirements" class="panel">
+  <h2>Requirements (confirmed)</h2>
+  <h3>User stories</h3>
+  <ol class="requirements">
+    <li>As a reader with a due passage, I want the first reviews to hide only a few key words, so that I'm eased into recalling it.</li>
+    <li>As a reader, I want the card to hide more as I review it more, ending with the whole passage hidden, so that it helps me memorise over time.</li>
+    <li>As a reader, I want the first review at each amount to show the first letter of each hidden word and the next to show plain gaps, so that each step starts easier.</li>
+    <li>As a reader, I want "Held it" to move me up, "Partly" to hold my place and "Lost it" to step me back one, so that the card follows how I'm doing without punishing a bad day.</li>
+    <li>As a reader, I want Reveal to fill in the full text and then to self-grade with Held/Partly/Lost, and Skip to still work in one tap, so that nothing about answering changes.</li>
+    <li>As a reader, I want the Leitner schedule, the 2-a-day cap and the "nothing due, no zone" behaviour unchanged, and I want a recall grade never to touch seal, streak, weave or dose.</li>
+    <li>As a reader, I want the next-day probe to name specific verses with their reference, so that I'm never asked to recall a whole chapter.</li>
+    <li>As a reader who marked a verse in yesterday's chapter, I want the probe to ask about that verse and say so, so that it asks about what I cared about.</li>
+    <li>As a reader, I want the probe to ask only about verses I actually read (including a later sitting of a chapter), so that I'm never quizzed on text I never saw.</li>
+    <li>As a reader, I want the same day always to give the same probe, and probes to fire on the same days as before, so that revisiting the screen can't re-roll it and the experiment is unchanged.</li>
+    <li>As an existing user, I want my passages, boxes and due dates to survive the upgrade, and a well-learned passage not to restart from the easiest step, including after I restore a backup onto a fresh install, so that updating costs me nothing.</li>
+    <li>As an existing user, I want the first day after upgrading (no stored read range) to simply have no probe, so that nothing breaks.</li>
+    <li>As a screen-reader user, I want hidden words announced as "blank" (stubs with their first letter) and the ladder bars announced as "Step n of 4", so that the card is operable without sight.</li>
+    <li>As an offline reader, I want the cloze card and probe to work from the active translation with no network, and a loading or failed text fetch to fall back to the plain reference card, so that recall never blocks my reading.</li>
+    <li>As the lab (a silent actor), I want probe grades from before and after this change kept apart in the dose analysis, so that the recall outcome stays interpretable.</li>
+    <li>As a reader who opened the app on the day I updated, I want that day's probe either to ask about specific verses or not to appear, never to show a broken prompt.</li>
+  </ol>
+  <h3>Out of Scope</h3>
+  <ul class="requirements">
+    <li>Anki scheduling, ease factors, a larger daily queue: the grill kept §21.</li>
+    <li>Typing answers and automatic checking: the app does not judge the reader.</li>
+    <li>Cloze on the probe: it stays free recall so E9 measures the same kind of thing.</li>
+    <li>Part-of-speech tagging or non-English stop-word lists.</li>
+    <li>Letting the reader choose difficulty, or a peek-a-word interaction (Option B).</li>
+  </ul>
+  <h3>Testing Decisions</h3>
+  <ul class="requirements">
+    <li>Test the pure seams: <code>ladder.ts</code>, <code>cloze.ts</code>, <code>Memory.grade</code>, <code>resolveTodaysProbe</code>, the seal-to-days range copy, the migration, and the dose query. Closest priors: <code>test/leitner.test.ts</code>, <code>test/memory.test.ts</code>, <code>test/probe.test.ts</code>, <code>test/schema.test.ts</code>, <code>test/dose-analysis.test.ts</code>; the DB fake is <code>test/util/testDb.ts</code>.</li>
+    <li>Keep a golden assertion that the E9 fire/skip arm for a fixed seed is unchanged (no PRNG drift). The existing probe, dose-analysis and Leitner fixtures are <em>updated</em> for the new columns and types, not deleted; their behavioural assertions stay.</li>
+    <li>New cases the review required: restoring a pre-update backup, a pre-update fired probe row on the upgrade day, a probe range shorter than 3 verses, and a mark removed after the probe resolved.</li>
+    <li>No component rendering (Vitest is logic-only); <code>test/ui-contracts.test.ts</code> walks the source for the structural guarantees.</li>
+    <li>Not unit-testable: how the gaps and stubs look and wrap, and the real recall feel. Those are covered by the dev-build visual check and the checklist below.</li>
+  </ul>
+</div>
+
+<div id="aesthetics" class="panel">
+  <h2>Aesthetics</h2>
+  <h3>Current-surface extraction</h3>
+  <table class="evidence-table">
+    <thead><tr><th>Layer</th><th>Current measured values/patterns</th><th>Source</th><th>Keep/change and why</th></tr></thead>
+    <tbody>
+      <tr><td>Tokens</td><td>paper #F4F1E9, ink #1A1A17, thread #2E3A8C, madder #B5482F, dyeSoft #E7E9F4, ink15 #E0DACB, ink40 #726D5C, markSoft rgba(46,58,140,.08)</td><td><code>src/ui/tokens.ts</code></td><td>Keep. Answers and gaps use <code>thread</code>; the "you marked this" cue uses <code>madder</code> (a mark you made).</td></tr>
+      <tr><td>Typography</td><td>Scripture: Newsreader italic 18/27; reference: JetBrains Mono 13, letter-spacing .5; body: Schibsted Grotesk</td><td><code>RecallZone.tsx</code> styles</td><td>Keep; hidden words keep the same type, so the card reads as the verse with holes.</td></tr>
+      <tr><td>Spacing and layout</td><td>Zone padding 32/24, gap 16; card gap 10, bottom hairline <code>ink15</code>; chips wrap with gap 8; 44pt targets</td><td><code>RecallZone.tsx</code>, <code>tokens.space/control</code></td><td>Keep; add one bar group right-aligned on the reference row.</td></tr>
+      <tr><td>Color and semantics</td><td>ink on paper; thread = the dyed weft, madder = a mark you made</td><td><code>tokens.ts</code> header comment</td><td>Keep; gaps and stubs in thread, never red/green correctness colours.</td></tr>
+      <tr><td>Components and states</td><td><code>ActionButton</code> (Reveal, Skip link), <code>ChoiceChip</code> ×3; states: unrevealed, revealed, done</td><td><code>src/ui/controls</code></td><td>Reuse unchanged; add loading (reference-only) and whole-passage ("Say it from memory") states.</td></tr>
+      <tr><td>Atmosphere and depth</td><td>No gradients, no shadows beyond a hairline</td><td><code>tokens.ts</code> header</td><td>Keep; gaps read as a rule (underscore characters in the build), not a filled box.</td></tr>
+      <tr><td>Motion and interaction</td><td>None on this card; Reveal is an instant state change</td><td><code>RecallZone.tsx</code></td><td>Keep: no animation added, so reduced motion needs nothing.</td></tr>
+    </tbody>
+  </table>
+  <h3>Intent, hygiene, details</h3>
+  <p><strong>Intent:</strong> extend the existing recall card, not a new pattern: the verse with holes, quietly. <strong>Hygiene:</strong> exact <code>tokens.ts</code> values above; no new token. <strong>Details:</strong> pressed/active inherited from the controls; loading falls back to the reference-only card; empty = the zone does not render; long passages wrap (one promoted range per book); a large OS font scale must not clip gaps (widths in <code>em</code>).</p>
+  <h3>Mockups</h3>
+  <div class="mockup-grid">
+    <div class="mockup-card chosen"><h3>A + C blend (approved)</h3><p>Odd rungs show letter stubs, even rungs plain gaps, same hidden words per pair; whole passage from rung 7. Four-bar ladder indicator kept.</p><a href="mockup.html#chosen">Open approved mockup ↗</a></div>
+    <div class="mockup-card"><h3>A · Inline gaps</h3><p>Ruled slots only.</p><a href="mockup.html#option-a">Open ↗</a></div>
+    <div class="mockup-card"><h3>B · Cloth strips</h3><p>Tap-to-peek strips; not chosen (extra interaction, grade ambiguity).</p><a href="mockup.html#option-b">Open ↗</a></div>
+    <div class="mockup-card"><h3>C · Letter stubs</h3><p>Stubs only; used for the odd rungs.</p><a href="mockup.html#option-c">Open ↗</a></div>
+    <div class="mockup-card chosen"><h3>Narrowed probe (approved)</h3><p>Prompt names the verse or span with reference; madder "you marked this" cue.</p><a href="mockup.html#probe">Open ↗</a></div>
+  </div>
+  <p class="note">Chosen direction: <strong>A + C blend</strong>, with the rung bars and the probe shape as mocked. The mockup's reveal fade is dropped from the build (no animation is added; <code>useReducedMotion</code> exists if one is ever wanted). Gaps are drawn with underscore characters rather than the mockup's CSS rules, because nested <code>Text</code> cannot take border or width, so wrapping will differ slightly: a dev-build check.</p>
+</div>
+
+<div id="execution" class="panel">
+  <h2>Execution</h2>
+  <p><strong>Grade C4:</strong> additive schema migration across four tables; a seeded-PRNG probe-span choice (determinism); a change to the outcome variable the dose analysis reads; 5 slices over ~26 files in five layers. The migration cannot be undone after release and E9 is a year-long trial, so full C4 depth is proportionate.</p>
+  <p>The authoritative file recipes, slice dependencies, commands, budgets, branching strategy, delegation decisions and rollback steps are in <a href="exec.md">exec.md</a>. Live status is recorded only in <a href="PROGRESS.md">PROGRESS.md</a>.</p>
+  <p>Slices (all inline; none meets the parallel-delegation threshold): <strong>S01</strong> migration V12 + event fields · <strong>S02</strong> cloze engine, ladder, grade wiring (can run alongside S03) · <strong>S03</strong> seal records the read range · <strong>S04</strong> narrowed probe + dose-analysis guard · <strong>S05</strong> recall and probe UI, wiring, contracts. Six commits (one per slice, plus docs). Estimate ~3 sessions.</p>
+</div>
+
+<div id="review" class="panel">
+  <h2>Smart Review</h2>
+  <p><strong>Status:</strong> independent read-only review run 2026-10-06 (authorized by the owner) against <code>origin/main</code>. It verified the migration, E9, dose, backup/restore and UI seams in code. Every HIGH and MEDIUM finding is resolved in <a href="exec.md">exec.md</a>; no open HIGH/MEDIUM items remain.</p>
+  <table class="evidence-table">
+    <thead><tr><th>#</th><th>Finding</th><th>Rating</th><th>Resolution</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>No verse range is stored for a day's reading, so a "3-verse span" could fall outside what was read (planner).</td><td>HIGH</td><td>S01/S03 record <code>first_verse</code>/<code>last_verse</code> at seal; spans are drawn only inside that range; legacy days are not probed.</td></tr>
+      <tr><td>2</td><td>Narrowing the probe changes the recall outcome in the dose analysis; pooled grades would be biased (planner).</td><td>HIGH</td><td>S04 counts only span-level grades (<code>verse_start IS NOT NULL</code>); accepted with the plan approval.</td></tr>
+      <tr><td>3</td><td>S04 would break existing tests: <code>probe.test.ts</code> fixtures lack the read range and assert the old <code>DailyProbe</code> shape; <code>dose-analysis.test.ts</code> <code>seedDoseDay</code> inserts probes without <code>verse_start</code>, so the new guard zeroes every <code>recallScore</code> assertion.</td><td>HIGH</td><td>S04 now names those fixtures as MODIFY, seeds the new columns in the helpers and updates the <code>toEqual</code> shapes; legacy-day cases are new tests.</td></tr>
+      <tr><td>4</td><td>A <code>probes</code> row written before the upgrade (<code>fired = 1</code>, no span) would return a probe with null verses ("verses null–null").</td><td>HIGH</td><td>The idempotent path returns null when a fired row has no <code>verse_start</code>; test added; story 16.</td></tr>
+      <tr><td>5</td><td>The V12 backfill UPDATE runs at migrate time, before a backup restore, so restore-after-reinstall puts every passage at the easiest rung.</td><td>MEDIUM</td><td>No backfill: <code>rung</code> stays NULL and the effective rung is derived from <code>box</code> in <code>Memory</code>; a V11-dump restore test is added to S01.</td></tr>
+      <tr><td>6</td><td><code>marked</code> was not persisted, so "you marked this" could flip on re-render while the span stayed fixed; the mark query had no id tiebreak.</td><td>MEDIUM</td><td><code>probes.marked</code> column, returned in <code>DailyProbe</code>; <code>ORDER BY marked_at, id</code>; <code>Flow</code> never re-derives it.</td></tr>
+      <tr><td>7</td><td>Typecheck breakage: <code>Passage.rung</code> breaks the <code>leitner.test.ts</code> literal; <code>EventInput</code> is a <code>Pick</code> that must be extended; <code>Day</code> type; nullable field style.</td><td>MEDIUM</td><td>S02 owns <code>leitner.test.ts</code>; S01 extends <code>EventInput</code>, <code>Day</code>, and uses <code>number | null</code>.</td></tr>
+      <tr><td>8</td><td>Nested <code>Text</code> cannot draw borders or widths, and a screen reader reads a <code>Text</code> tree as one node, so per-run labels are unreliable.</td><td>MEDIUM</td><td>Gaps are underscore characters; one paragraph-level <code>accessibilityLabel</code> with "blank" substituted; flagged as a device check.</td></tr>
+      <tr><td>9</td><td><code>reveal()</code> has no try/catch; the mount-load plus ESV/NIV fetches can reject unhandled or double-fetch.</td><td>MEDIUM</td><td>Reveal reuses loaded text, retries once and catches; <code>toCloze</code> is memoized per passage.</td></tr>
+      <tr><td>10</td><td>Legacy early return skipped the arm roll, so <code>fired</code> would mean "ineligible" rather than "rolled skip".</td><td>LOW</td><td>Roll first (unchanged), then record <code>fired = 0</code> when there is no range.</td></tr>
+      <tr><td>11</td><td>Other LOW items: <code>COALESCE(box,1)</code>; no V11 test helper; <code>days</code> chapter vs seal chapter mismatch; <code>toCloze</code> edge cases unspecified; hidden sets should nest.</td><td>LOW</td><td>All folded into the S01/S02 recipes (hash drops the step so each step's set contains the last; <code>toCloze</code> returns null for whole-passage; tokenizer strips curly quotes and dashes).</td></tr>
+      <tr><td>12</td><td>Planner error: the repo <em>does</em> have a reduce-motion helper (<code>useReducedMotion</code>, <code>Flow.tsx</code>:57, <code>Knot.tsx</code>:57); line citations were off by one.</td><td>LOW</td><td>Corrected here and in exec.md.</td></tr>
+      <tr><td>13</td><td>Only one promoted passage per book exists, so the ladder applies to few passages (planner).</td><td>LOW</td><td>Accepted; out of scope.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div id="verify" class="panel">
+  <h2>Verification</h2>
+  <p>Automated (<code>npm test</code> + <code>npm run typecheck</code>, plus CI's APK build) is the real gate. Because this touches a schema migration and PRNG determinism, an itemised manual checklist is mandatory.</p>
+  <ul class="checklist">
+    <li><input type="checkbox"><span>Upgrade a dev build that already has promoted passages in boxes 1, 3 and 5 → the app opens, nothing is lost, and their cards start at the matching step (not all at the easiest) and the rung is stored after the first grade.</span></li>
+    <li><input type="checkbox"><span>Due passage, review 1 → a few key words hidden as stubs; Reveal fills them in; Held it advances the ladder bars at the next review.</span></li>
+    <li><input type="checkbox"><span>Same passage, next review → the same words hidden as plain gaps; "Partly" keeps the bars; "Lost it" steps them back.</span></li>
+    <li><input type="checkbox"><span>A passage at the top rung shows "Say it from memory" with no hidden-word text; Reveal then grades as usual.</span></li>
+    <li><input type="checkbox"><span>Failure/retry: with ESV/NIV selected and an invalid key (or airplane mode), the card falls back to the reference-only view and recall still works.</span></li>
+    <li><input type="checkbox"><span>Seal a sitting that is not the start of a chapter; next day the probe (when it fires) asks only about verses in that sitting.</span></li>
+    <li><input type="checkbox"><span>Mark one verse in a chapter, seal, next day → the probe asks about that verse and shows "you marked this"; reopening the screen shows the same probe.</span></li>
+    <li><input type="checkbox"><span>On the first day after upgrading, the probe does not fire and nothing crashes.</span></li>
+    <li><input type="checkbox"><span>Restore a backup made before this update onto a fresh install → the passages open at the step matching their box, not all at the easiest.</span></li>
+    <li><input type="checkbox"><span>Open the app on the update day before updating, then after → the probe either names verses you read or does not appear; it never shows "null".</span></li>
+    <li><input type="checkbox"><span>Skip the recall and the probe in one tap each; seal, streak and weave are unaffected.</span></li>
+    <li><input type="checkbox"><span>TalkBack/VoiceOver: the paragraph reads with each hidden word as "blank" (a stub says what letter it starts with); the bars read "Step n of 4".</span></li>
+    <li><input type="checkbox"><span>Compare the built card to <code>mockup.html#chosen</code> and <code>#probe</code> on one narrow phone and one tablet, at large OS font scale.</span></li>
+  </ul>
+</div>
+
+<script>
+function show(id){
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+}
+// Persist checklist state per plan file
+const KEY = 'plan-checks-' + location.pathname;
+document.querySelectorAll('.checklist input[type=checkbox]').forEach((cb, i) => {
+  cb.checked = localStorage.getItem(KEY + i) === '1';
+  cb.addEventListener('change', () => localStorage.setItem(KEY + i, cb.checked ? '1' : '0'));
+});
+</script>
+</body>
+</html>

@@ -5,6 +5,22 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## 2026-10-06 — recall cloze ladder built (#40, #41)
+
+Built the plan from the 2026-10-02 decision below: migration V12, cloze engine
+and ladder, seal records the verse range read, the narrowed E9 probe, and the
+new RecallZone/ProbeZone. 564 tests green. Not checked on a device: how the
+underscore gaps and stubs wrap, and screen-reader reading. Existing promoted
+passages start on a rung derived from their box. Next: owner device check.
+**Branch:** feat/recall-cloze-ladder
+
+## Decision 2026-10-02 — the next-day probe asks about a few verses, not the chapter
+
+**Decision:** E9's next-day probe narrows from "recall yesterday's whole chapter" to a span of about 3 verses — a verse the reader marked in that chapter, else a seed-chosen run inside the verses actually read — shown with its reference. Issues #40 and #41 are planned together as the cloze ladder (`docs/plans/recall-cloze-ladder/`): cloze cards only, scheduling stays Leitner with the 2-a-day cap.
+**Why:** a whole chapter a day after one reading is not something anyone can recall, so the probe measured nothing useful and read as a bug. Adopting only Anki's cloze idea keeps the §21 "deliberately not Anki" scheduling choice.
+**Consequences:** E9 grades before and after this change are not comparable; the dose analysis counts only span-level probe grades. Probe logging stays keyed by book and chapter.
+**Branch:** feat/recall-cloze-ladder
+
 ## Decision 2026-10-02 — the seal is the fell line (supersedes the open-row plan)
 
 **Decision:** the weave-as-button seal is replaced by a thread across the page

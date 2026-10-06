@@ -17,7 +17,7 @@ function seedDoseDay(
   );
   if (nextDayGrade) {
     const next = new Date(Date.parse(`${date}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
-    db.run(`INSERT INTO probes (local_date, fired, grade) VALUES (?, 1, ?)`, [next, nextDayGrade]);
+    db.run(`INSERT INTO probes (local_date, fired, verse_start, verse_end, grade) VALUES (?, 1, 4, 6, ?)`, [next, nextDayGrade]);
   }
 }
 
@@ -46,6 +46,19 @@ describe('analyzeDoseCurve (§14 E10 — composite = recall_score × seal_rate)'
     expect(v20.sealRate).toBeCloseTo(2 / 3);
     expect(v20.recallScore).toBeCloseTo((1 + 0) / 2); // held=1, lost=0 — day 3 has no probe (unsealed, no reading to probe)
     expect(v20.composite).toBeCloseTo(v20.sealRate * v20.recallScore);
+  });
+
+  it('counts only span-level probe grades; legacy chapter-level grades are excluded', () => {
+    const db = openTestDb();
+    migrate(db);
+    seedDoseDay(db, '2026-07-01', 'v20', true, 'held'); // span-level
+    seedDoseDay(db, '2026-07-02', 'v20', true, 'lost');
+    db.run(`UPDATE probes SET verse_start = NULL, verse_end = NULL WHERE local_date = '2026-07-03'`); // chapter-level
+    const v20 = analyzeDoseCurve(db).find((p) => p.arm === 'v20')!;
+    expect(v20.recallScore).toBeCloseTo(1); // the lost grade (07-03) was chapter-level, so it is ignored
+
+    db.run(`UPDATE probes SET verse_start = NULL, verse_end = NULL`);
+    expect(analyzeDoseCurve(db).find((p) => p.arm === 'v20')!.recallScore).toBe(0);
   });
 
   it('keeps arms independent — one arm\'s data never leaks into another\'s', () => {

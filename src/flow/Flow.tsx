@@ -449,10 +449,13 @@ export function Flow({ services }: FlowProps) {
     }
   }, [session.status, db, today, log]);
 
-  const getProbeChapterText = useCallback(async () => {
+  const getProbeSpanText = useCallback(async () => {
     if (!probe) return '';
     const verses = await text.getChapter(probe.book, probe.chapter);
-    return verses.map((v) => v.text).join(' ');
+    return verses
+      .filter((v) => v.verse >= probe.verseStart && v.verse <= probe.verseEnd)
+      .map((v) => v.text)
+      .join(' ');
   }, [text, probe]);
 
   const handleGradeProbe = useCallback(
@@ -571,7 +574,10 @@ export function Flow({ services }: FlowProps) {
           <ProbeZone
             book={probe.book}
             chapter={probe.chapter}
-            getChapterText={getProbeChapterText}
+            verseStart={probe.verseStart}
+            verseEnd={probe.verseEnd}
+            marked={probe.marked}
+            getSpanText={getProbeSpanText}
             onGrade={handleGradeProbe}
           />
         )}
