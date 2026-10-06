@@ -3,6 +3,7 @@ import type { Log } from '../log/log';
 import { logicalDate } from '../log/time';
 import type { Grade, Passage } from '../log/types';
 import { reschedule } from './leitner';
+import { effectiveRung, nextRung } from './ladder';
 
 export interface PassageRef {
   book: string;
@@ -95,9 +96,11 @@ export class Memory {
     const row = this.db.get<Passage>('SELECT * FROM passages WHERE id = ?', [id]);
     if (!row) throw new Error(`No such passage: ${id}`);
     const next = reschedule(row, g, today);
+    // The cloze ladder moves with the grade but never feeds back into the box.
+    const rung = nextRung(effectiveRung(row.rung, row.box), g);
     this.db.run(
-      'UPDATE passages SET box = ?, last_grade = ?, due_date = ?, held_since = ? WHERE id = ?',
-      [next.box, next.last_grade, next.due_date, next.held_since, id],
+      'UPDATE passages SET box = ?, last_grade = ?, due_date = ?, held_since = ?, rung = ? WHERE id = ?',
+      [next.box, next.last_grade, next.due_date, next.held_since, rung, id],
     );
     this.log.write({ type: 'recall_graded', book: row.book, chapter: row.chapter });
   }
