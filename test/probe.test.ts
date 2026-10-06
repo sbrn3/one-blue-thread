@@ -14,7 +14,7 @@ describe('resolveTodaysProbe (§10/E9 — the next-day recall probe)', () => {
   it('is deterministic and idempotent — replaying the same day never re-rolls it', () => {
     const db = openTestDb();
     migrate(db);
-    db.run(`INSERT INTO days (local_date, sealed, dose, book, chapter, verses_read) VALUES ('2026-07-13', 1, 'full_chapter', 'john', 3, 36)`);
+    db.run(`INSERT INTO days (local_date, sealed, dose, book, chapter, verses_read, first_verse, last_verse) VALUES ('2026-07-13', 1, 'full_chapter', 'john', 3, 36, 1, 36)`);
 
     const first = resolveTodaysProbe(db, '2026-07-14', 'fixed-seed');
     const second = resolveTodaysProbe(db, '2026-07-14', 'fixed-seed');
@@ -25,22 +25,23 @@ describe('resolveTodaysProbe (§10/E9 — the next-day recall probe)', () => {
   it('when fired, carries yesterday\'s book/chapter/verses_read into the probes row', () => {
     const db = openTestDb();
     migrate(db);
-    db.run(`INSERT INTO days (local_date, sealed, dose, book, chapter, verses_read) VALUES ('2026-07-13', 1, 'full_chapter', 'john', 3, 36)`);
+    db.run(`INSERT INTO days (local_date, sealed, dose, book, chapter, verses_read, first_verse, last_verse) VALUES ('2026-07-13', 1, 'full_chapter', 'john', 3, 36, 1, 36)`);
 
     // fireRate=1 forces the fire branch deterministically, isolating this
     // assertion from weightedPick's specific seed/threshold behaviour.
     const probe = resolveTodaysProbe(db, '2026-07-14', 'fixed-seed', 1);
-    expect(probe).toEqual({ book: 'john', chapter: 3 });
-    const row = db.get<{ fired: number; book: string; chapter: number; verses_read: number }>(
-      "SELECT fired, book, chapter, verses_read FROM probes WHERE local_date = '2026-07-14'",
+    expect(probe).toMatchObject({ book: 'john', chapter: 3, marked: false });
+    expect(probe!.verseEnd - probe!.verseStart).toBeLessThanOrEqual(2);
+    const row = db.get<{ fired: number; book: string; chapter: number; verses_read: number; verse_start: number; verse_end: number; marked: number }>(
+      "SELECT fired, book, chapter, verses_read, verse_start, verse_end, marked FROM probes WHERE local_date = '2026-07-14'",
     );
-    expect(row).toEqual({ fired: 1, book: 'john', chapter: 3, verses_read: 36 });
+    expect(row).toEqual({ fired: 1, book: 'john', chapter: 3, verses_read: 36, verse_start: probe!.verseStart, verse_end: probe!.verseEnd, marked: 0 });
   });
 
   it('fireRate=0 never fires', () => {
     const db = openTestDb();
     migrate(db);
-    db.run(`INSERT INTO days (local_date, sealed, dose, book, chapter, verses_read) VALUES ('2026-07-13', 1, 'full_chapter', 'john', 3, 36)`);
+    db.run(`INSERT INTO days (local_date, sealed, dose, book, chapter, verses_read, first_verse, last_verse) VALUES ('2026-07-13', 1, 'full_chapter', 'john', 3, 36, 1, 36)`);
     expect(resolveTodaysProbe(db, '2026-07-14', 'fixed-seed', 0)).toBeNull();
   });
 });
