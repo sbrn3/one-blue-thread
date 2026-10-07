@@ -30,7 +30,6 @@ describe('resolveTodaysProbe — the span (recall-cloze-ladder)', () => {
       expect(p.verseStart).toBeGreaterThanOrEqual(18);
       expect(p.verseEnd).toBeLessThanOrEqual(36);
       expect(p.verseEnd - p.verseStart).toBeLessThanOrEqual(2);
-      expect(p.marked).toBe(false);
     }
   });
 
@@ -40,24 +39,13 @@ describe('resolveTodaysProbe — the span (recall-cloze-ladder)', () => {
     expect(a).toEqual(b);
   });
 
-  it('a marked verse inside the read range wins, and is flagged', () => {
+  it('ignores marks: a marked verse in the read range does not change the span', () => {
+    const plain = resolveTodaysProbe(seed(1, 36), '2026-07-14', 'fixed-seed', 1);
     const db = seed(1, 36);
     mark(db, 16, 16, 100);
-    expect(resolveTodaysProbe(db, '2026-07-14', 'fixed-seed', 1)).toMatchObject({ verseStart: 16, verseEnd: 16, marked: true });
-  });
-
-  it('the earliest mark wins; a mark outside the read range is ignored', () => {
-    const db = seed(10, 20);
-    mark(db, 30, 31, 1); // not read
-    mark(db, 15, 15, 300);
-    mark(db, 12, 12, 200);
-    expect(resolveTodaysProbe(db, '2026-07-14', 'fixed-seed', 1)).toMatchObject({ verseStart: 12, verseEnd: 12, marked: true });
-  });
-
-  it('a marked 10-verse range clamps to its first 3 verses', () => {
-    const db = seed(1, 36);
     mark(db, 5, 14, 1);
-    expect(resolveTodaysProbe(db, '2026-07-14', 'fixed-seed', 1)).toMatchObject({ verseStart: 5, verseEnd: 7, marked: true });
+    expect(resolveTodaysProbe(db, '2026-07-14', 'fixed-seed', 1)).toEqual(plain);
+    expect(db.get('SELECT marked FROM probes')).toEqual({ marked: 0 });
   });
 
   it('a range shorter than 3 verses clamps to its length', () => {
@@ -75,14 +63,6 @@ describe('resolveTodaysProbe — the span (recall-cloze-ladder)', () => {
     const db = seed(1, 36);
     db.run(`INSERT INTO probes (local_date, fired, book, chapter, verses_read) VALUES ('2026-07-14', 1, 'john', 3, 36)`);
     expect(resolveTodaysProbe(db, '2026-07-14', 'fixed-seed', 1)).toBeNull();
-  });
-
-  it('a mark made then removed after resolve does not change the stored span', () => {
-    const db = seed(1, 36);
-    mark(db, 16, 16, 1);
-    const first = resolveTodaysProbe(db, '2026-07-14', 'fixed-seed', 1);
-    db.run('DELETE FROM passages');
-    expect(resolveTodaysProbe(db, '2026-07-14', 'fixed-seed', 1)).toEqual(first);
   });
 
   it('arm assignment is unchanged by the span work (golden)', () => {

@@ -158,6 +158,7 @@ describe('dump/restore (§16.9)', () => {
     const row = db.get<{ box: number; rung: number | null }>('SELECT box, rung FROM passages')!;
     expect(row.box).toBe(3);
     expect(row.rung).toBeNull(); // effective rung is derived from box, not backfilled
+    expect(db.get<{ source: string | null }>('SELECT source FROM passages')?.source).toBeNull();
   });
 
   it('wipes existing rows before restoring, not appending to them', () => {

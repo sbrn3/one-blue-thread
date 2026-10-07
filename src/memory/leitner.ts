@@ -19,5 +19,6 @@ export function reschedule(p: Passage, g: Grade, today: string): Passage {
   };
 }
 
-/** Caller caps at 2 due cards per day; the zone does not render when nothing is due. */
+/** The default daily cap on due cards the reading screen shows; the reader can set 1..MAX_RECALL_CAP in the memory library. */
 export const DAILY_RECALL_CAP = 2;
+export const MAX_RECALL_CAP = 10;

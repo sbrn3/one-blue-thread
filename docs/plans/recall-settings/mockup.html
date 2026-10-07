@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memory Library Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Mirrors src/ui/tokens.ts ("The Loom"). HTML for iteration speed; the build is
+   React Native StyleSheet — every element here is a View/Text/Pressable/ScrollView. */
+:root {
+  --paper: #F4F1E9; --ink: #1A1A17; --thread: #2E3A8C; --warp: #8F8779; --madder: #B5482F;
+  --dyeSoft: #E7E9F4; --ink60: #5B584F; --ink40: #726D5C; --ink15: #E0DACB;
+  --markSoft: rgba(46,58,140,.08);
+  --display: 'Schibsted Grotesk', system-ui, sans-serif;
+  --scripture: 'Newsreader', Georgia, serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+:root[data-theme="dark"] { --paper: #F4F1E9; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #d9d3c2; color: var(--ink); font-family: var(--display); }
+.mk-bar { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; justify-content: space-between; padding: .7rem 1rem; background: var(--ink); color: var(--paper); font-family: var(--mono); font-size: .8rem; }
+.mk-options { display: flex; flex-wrap: wrap; gap: .35rem; }
+.mk-options a { color: inherit; border: 1px solid currentColor; border-radius: 999px; padding: .3rem .8rem; font-size: .72rem; text-decoration: none; }
+section.opt { padding: 2rem 16px 1rem; max-width: 1500px; margin: 0 auto; }
+section.opt > h2 { font-family: var(--mono); font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--thread); margin: 0 0 .3rem; }
+section.opt > p.why { max-width: 72ch; color: var(--ink60); margin: 0 0 1.4rem; font-size: .92rem; line-height: 1.55; }
+.stage { display: flex; flex-wrap: wrap; gap: 1.6rem; align-items: flex-start; }
+.phone { width: 360px; max-width: 100%; background: var(--paper); border-radius: 30px; box-shadow: 0 14px 44px rgba(0,0,0,.16); padding: 18px 0 26px; overflow: hidden; }
+.cap { font-family: var(--mono); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; color: var(--ink40); padding: 0 24px 10px; }
+
+/* sheet chrome — HistoryModal: paper, padding 24, title display 22/700 */
+.sheet { padding: 0 24px; }
+.head { display: flex; justify-content: space-between; align-items: center; padding: 6px 0 12px; }
+.title { font-weight: 700; font-size: 22px; }
+.close { font-family: var(--mono); font-size: 13px; color: var(--ink40); }
+.sub { font-family: var(--mono); font-size: 11px; color: var(--ink40); letter-spacing: .4px; }
+.label { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink40); padding: 18px 0 6px; }
+
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 10px 0; border-top: 1px solid var(--ink15); }
+.ref { font-family: var(--mono); font-size: 13px; letter-spacing: .5px; color: var(--ink); }
+.snip { font-family: var(--scripture); font-style: italic; font-size: 14px; color: var(--ink60); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px; }
+.meta { font-family: var(--mono); font-size: 11px; color: var(--ink40); text-align: right; }
+.due { color: var(--thread); font-weight: 600; }
+.bars { display: inline-flex; gap: 3px; }
+.bars i { width: 14px; height: 3px; background: var(--ink15); display: block; }
+.bars i.on { background: var(--thread); }
+.chev { color: var(--ink40); }
+.mark { color: var(--madder); }
+
+.btn { font-family: var(--display); font-size: 15px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; padding: 0 16px; border: 1px solid var(--thread); background: transparent; color: var(--thread); cursor: pointer; }
+.btn.solid { background: var(--thread); color: var(--paper); }
+.btn.link { border: 0; padding: 0 4px; color: var(--ink60); text-decoration: underline; min-height: 44px; }
+.btn.danger { border-color: var(--madder); color: var(--madder); }
+.btn.small { min-height: 44px; font-size: 14px; padding: 0 12px; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--ink15); border-radius: 10px; }
+.stepper b { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; font-weight: 500; color: var(--thread); }
+.stepper span { font-family: var(--mono); font-size: 14px; min-width: 28px; text-align: center; }
+.capline { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; }
+.capline .t { font-size: 14px; }
+
+/* B — segmented tabs */
+.seg { display: flex; border: 1px solid var(--ink15); border-radius: 10px; overflow: hidden; margin-bottom: 8px; }
+.seg span { flex: 1; text-align: center; min-height: 44px; display: flex; align-items: center; justify-content: center; font-size: 14px; color: var(--ink60); }
+.seg span.on { background: var(--dyeSoft); color: var(--thread); font-weight: 600; }
+.more { font-size: 20px; color: var(--ink40); min-width: 44px; text-align: center; }
+.menu { margin: -4px 0 8px auto; width: 200px; background: var(--paper); border: 1px solid var(--ink15); border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+.menu div { min-height: 44px; display: flex; align-items: center; padding: 0 14px; font-size: 14px; border-top: 1px solid var(--ink15); }
+.menu div:first-child { border-top: 0; }
+.fab { position: relative; display: flex; justify-content: flex-end; padding-top: 12px; }
+
+/* C — deck overview */
+.counts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 4px 0 12px; }
+.counts div { border: 1px solid var(--ink15); border-radius: 12px; padding: 10px; }
+.counts b { display: block; font-size: 26px; font-weight: 700; color: var(--thread); }
+.counts span { font-family: var(--mono); font-size: 10px; color: var(--ink40); text-transform: uppercase; letter-spacing: .1em; }
+.open { background: var(--markSoft); margin: 0 -24px; padding: 10px 24px 14px; border-top: 1px solid var(--ink15); }
+.open p { font-family: var(--scripture); font-style: italic; font-size: 16px; line-height: 24px; margin: 6px 0 10px; }
+
+/* detail */
+.detail p { font-family: var(--scripture); font-style: italic; font-size: 18px; line-height: 27px; margin: 8px 0 14px; }
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-family: var(--mono); font-size: 12px; color: var(--ink40); margin-bottom: 16px; }
+.facts b { color: var(--ink); font-weight: 400; }
+.stack { display: flex; flex-direction: column; gap: 8px; }
+.stack .btn { justify-content: flex-start; }
+
+/* picker */
+.crumb { font-family: var(--mono); font-size: 12px; color: var(--ink40); padding-bottom: 8px; }
+.crumb b { color: var(--thread); font-weight: 600; }
+.search { border: 1px solid var(--ink15); border-radius: 10px; padding: 12px 14px; font-size: 14px; color: var(--ink40); margin-bottom: 8px; }
+.grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.grid span { min-height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--ink15); border-radius: 8px; font-family: var(--mono); font-size: 13px; }
+.grid span.on { background: var(--thread); color: var(--paper); border-color: var(--thread); }
+.verses { font-family: var(--scripture); font-size: 16px; line-height: 25px; max-height: 260px; overflow: hidden; }
+.verses .v { padding: 4px 6px; border-radius: 6px; }
+.verses .v sup { font-family: var(--mono); font-size: 10px; color: var(--ink40); margin-right: 4px; }
+.verses .v.sel { background: var(--markSoft); box-shadow: inset 2px 0 0 var(--thread); }
+.verses .v.end { box-shadow: inset 2px 0 0 var(--thread); }
+.preview { border-top: 1px solid var(--ink15); margin-top: 10px; padding-top: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.adj { display: flex; gap: 8px; align-items: center; font-family: var(--mono); font-size: 12px; color: var(--ink40); padding: 6px 0 2px; }
+
+.legend { max-width: 72ch; font-size: .82rem; color: var(--ink60); margin: 1rem 0 0; line-height: 1.5; }
+.knotrow { display: flex; justify-content: space-between; align-items: center; min-height: 48px; border-top: 1px solid var(--ink15); padding: 10px 0; }
+.knotrow .s { font-weight: 700; font-size: 15px; }
+</style>
+</head>
+<body>
+
+<div class="mk-bar">
+  <span><strong>Memory library</strong> — synthetic passages, WEB text</span>
+  <nav class="mk-options" aria-label="Mockup views">
+    <a href="#entry">Knot row</a>
+    <a href="#option-a">A · One list + detail</a>
+    <a href="#option-b">B · Tabs + row menu</a>
+    <a href="#option-c">C · Deck overview</a>
+    <a href="#picker">Picker / range editor</a>
+    <a href="#bookend">Book end</a>
+  </nav>
+</div>
+
+<section class="opt" id="entry">
+  <h2>Entry — a "Memory" row in the knot's everyday tier</h2>
+  <p class="why">Same row pattern as "Reading history" (ChapterStrip): display 15/700 summary, a quiet mono status, chevron. Opens a full-height sheet rendered as a sibling inside the knot's modal tree, like HistoryModal.</p>
+  <div class="stage">
+    <div class="phone"><div class="cap">The knot · everyday tier</div><div class="sheet">
+      <div class="knotrow" style="border-top:0"><span class="s">Practice</span><span class="chev">▾</span></div>
+      <div class="knotrow"><span class="s">Memory</span><span><span class="sub">3 due · 9 passages</span> <span class="chev">▸</span></span></div>
+      <div class="knotrow"><span class="s">Reading history</span><span class="chev">▸</span></div>
+      <div class="knotrow"><span class="s">More</span><span class="sub">Preferences, your data, about ▾</span></div>
+    </div></div>
+  </div>
+</section>
+
+<section class="opt" id="option-a">
+  <h2>Option A — One list, tap a passage for its page</h2>
+  <p class="why">A single scrolling sheet: the daily cap and Review now at the top, then Learning (due first), then Marked, then "Add a passage". Tapping a row opens that passage's own page with its text and every action. Fewest concepts; actions are always one tap from the row, never hidden in a menu.</p>
+  <div class="stage">
+    <div class="phone"><div class="cap">Library</div><div class="sheet">
+      <div class="head"><span class="title">Memory</span><span class="close">Close</span></div>
+      <div class="capline"><span class="t">Each day, show</span><span class="stepper"><b>−</b><span>2</span><b>+</b></span></div>
+      <div class="toolbar"><span class="btn solid">Review now · 3 due</span><span class="btn">Add a passage</span></div>
+      <div class="label">Learning · 9</div>
+      <div class="row"><div><div class="ref">John 3:16–17</div><div class="snip">For God so loved the world…</div></div><div class="meta"><span class="bars"><i class="on"></i><i class="on"></i><i></i><i></i></span><br><span class="due">due today</span></div></div>
+      <div class="row"><div><div class="ref">Romans 8:28</div><div class="snip">We know that all things work…</div></div><div class="meta"><span class="bars"><i class="on"></i><i></i><i></i><i></i></span><br><span class="due">due today</span></div></div>
+      <div class="row"><div><div class="ref">Psalm 23:1–3</div><div class="snip">Yahweh is my shepherd…</div></div><div class="meta"><span class="bars"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span><br><span class="due">due today</span></div></div>
+      <div class="row"><div><div class="ref">Philippians 4:6–7</div><div class="snip">In nothing be anxious…</div></div><div class="meta"><span class="bars"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span><br>in 21 days</div></div>
+      <div class="row"><div><div class="ref">Micah 6:8</div><div class="snip">He has shown you, O man…</div></div><div class="meta"><span class="bars"><i class="on"></i><i></i><i></i><i></i></span><br>tomorrow</div></div>
+      <div class="label">Marked · 4</div>
+      <div class="row"><div><div class="ref"><span class="mark">●</span> Isaiah 40:31</div><div class="snip">But those who wait for Yahweh…</div></div><span class="btn small">Learn this</span></div>
+      <div class="row"><div><div class="ref"><span class="mark">●</span> John 15:5</div><div class="snip">I am the vine. You are the…</div></div><span class="btn small">Learn this</span></div>
+    </div></div>
+    <div class="phone"><div class="cap">Passage page</div><div class="sheet detail">
+      <div class="head"><span class="close">‹ Memory</span><span class="bars"><i class="on"></i><i class="on"></i><i></i><i></i></span></div>
+      <div class="ref">John 3:16–17</div>
+      <p>For God so loved the world, that he gave his only born Son, that whoever believes in him should not perish, but have eternal life. For God didn’t send his Son into the world to judge the world…</p>
+      <div class="facts"><span>Step</span><b>2 of 4 — about half the key words hidden</b><span>Next due</span><b>today</b><span>Added</span><b>while reading John 3</b></div>
+      <div class="stack">
+        <span class="btn solid">Practise now</span>
+        <span class="btn">Edit verses</span>
+        <span class="btn">Start over</span>
+        <span class="btn danger">Delete</span>
+      </div>
+    </div></div>
+  </div>
+</section>
+
+<section class="opt" id="option-b">
+  <h2>Option B — Learning / Marked tabs, actions in a row menu</h2>
+  <p class="why">Two tabs keep the lists apart; each row carries a "⋯" menu (Practise, Edit verses, Start over, Delete) so nothing leaves the list. Denser and faster for many passages, but actions are hidden one tap deeper and the menu is a new pattern in the app.</p>
+  <div class="stage">
+    <div class="phone"><div class="cap">Library · Learning tab, menu open</div><div class="sheet">
+      <div class="head"><span class="title">Memory</span><span class="close">Close</span></div>
+      <div class="seg"><span class="on">Learning 9</span><span>Marked 4</span></div>
+      <div class="capline"><span class="t">Each day, show <span class="stepper" style="vertical-align:middle"><b>−</b><span>2</span><b>+</b></span></span><span class="btn small solid">Review 3</span></div>
+      <div class="row"><div><div class="ref">John 3:16–17</div><div class="meta" style="text-align:left"><span class="due">due today</span> · step 2</div></div><span class="more">⋯</span></div>
+      <div class="menu"><div>Practise now</div><div>Edit verses</div><div>Start over</div><div style="color:var(--madder)">Delete</div></div>
+      <div class="row"><div><div class="ref">Romans 8:28</div><div class="meta" style="text-align:left"><span class="due">due today</span> · step 1</div></div><span class="more">⋯</span></div>
+      <div class="row"><div><div class="ref">Psalm 23:1–3</div><div class="meta" style="text-align:left"><span class="due">due today</span> · step 3</div></div><span class="more">⋯</span></div>
+      <div class="row"><div><div class="ref">Philippians 4:6–7</div><div class="meta" style="text-align:left">in 21 days · whole passage</div></div><span class="more">⋯</span></div>
+      <div class="fab"><span class="btn solid">＋ Add a passage</span></div>
+    </div></div>
+  </div>
+</section>
+
+<section class="opt" id="option-c">
+  <h2>Option C — Deck overview with rows that open in place</h2>
+  <p class="why">Closest to Anki's deck screen: three counts up top (due, learning, holding), then the list grouped Due now / Coming up / Holding. Tapping a row expands it in place to show the text and its actions — no second page. Most at-a-glance, but expanded rows make the list jump.</p>
+  <div class="stage">
+    <div class="phone"><div class="cap">Library · one row open</div><div class="sheet">
+      <div class="head"><span class="title">Memory</span><span class="close">Close</span></div>
+      <div class="counts"><div><b>3</b><span>Due now</span></div><div><b>5</b><span>Learning</span></div><div><b>1</b><span>Holding</span></div></div>
+      <div class="toolbar"><span class="btn solid">Review 3</span><span class="btn">Add</span><span class="sub" style="margin-left:auto">2 a day <span class="stepper" style="vertical-align:middle"><b>−</b><b>+</b></span></span></div>
+      <div class="label">Due now</div>
+      <div class="open"><div class="row" style="border:0;padding:0;min-height:0"><span class="ref">John 3:16–17</span><span class="bars"><i class="on"></i><i class="on"></i><i></i><i></i></span></div>
+        <p>For God so loved the world, that he gave his only born Son…</p>
+        <div class="toolbar"><span class="btn small solid">Practise</span><span class="btn small">Edit</span><span class="btn small">Start over</span><span class="btn small danger">Delete</span></div></div>
+      <div class="row"><span class="ref">Romans 8:28</span><span class="bars"><i class="on"></i><i></i><i></i><i></i></span></div>
+      <div class="row"><span class="ref">Psalm 23:1–3</span><span class="bars"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></div>
+      <div class="label">Coming up</div>
+      <div class="row"><span class="ref">Micah 6:8</span><span class="meta">tomorrow</span></div>
+      <div class="label">Marked · 4</div>
+      <div class="row"><span class="ref"><span class="mark">●</span> Isaiah 40:31</span><span class="btn small">Learn</span></div>
+    </div></div>
+  </div>
+</section>
+
+<section class="opt" id="picker">
+  <h2>Shared — passage picker and range editor (any direction)</h2>
+  <p class="why">One component used three ways: <b>Add a passage</b> (book → chapter → verses), <b>Edit verses</b> and <b>Learn this</b> (open straight on the verses step with the current range selected). Tap a first verse, then a last; the selection shows with the same soft thread wash the reading screen uses. A live preview line sits above the confirm button. Ranges stay inside one chapter.</p>
+  <div class="stage">
+    <div class="phone"><div class="cap">Add · 1 book</div><div class="sheet">
+      <div class="head"><span class="title">Add a passage</span><span class="close">Cancel</span></div>
+      <div class="search">Find a book…</div>
+      <div class="row"><span>Genesis</span><span class="chev">▸</span></div>
+      <div class="row"><span>Exodus</span><span class="chev">▸</span></div>
+      <div class="row"><span>Psalms</span><span class="chev">▸</span></div>
+      <div class="row"><span>Isaiah</span><span class="chev">▸</span></div>
+      <div class="row"><span>John</span><span class="chev">▸</span></div>
+    </div></div>
+    <div class="phone"><div class="cap">Add · 2 chapter</div><div class="sheet">
+      <div class="head"><span class="title">John</span><span class="close">‹ Books</span></div>
+      <div class="grid"><span>1</span><span>2</span><span class="on">3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span></div>
+    </div></div>
+    <div class="phone"><div class="cap">Add / Edit · 3 verses</div><div class="sheet">
+      <div class="head"><span class="title">John 3</span><span class="close">‹ Chapters</span></div>
+      <div class="crumb">Tap the first verse, then the last · <b>16–17 selected</b></div>
+      <div class="verses">
+        <div class="v"><sup>14</sup>As Moses lifted up the serpent in the wilderness, even so must the Son of Man be lifted up,</div>
+        <div class="v"><sup>15</sup>that whoever believes in him should not perish, but have eternal life.</div>
+        <div class="v sel"><sup>16</sup>For God so loved the world, that he gave his only born Son, that whoever believes in him should not perish, but have eternal life.</div>
+        <div class="v sel"><sup>17</sup>For God didn’t send his Son into the world to judge the world, but that the world should be saved through him.</div>
+        <div class="v"><sup>18</sup>He who believes in him is not judged…</div>
+      </div>
+      <div class="preview"><span class="ref">John 3:16–17 · 2 verses</span><span class="btn solid small">Add</span></div>
+      <div class="adj">Editing keeps its schedule; the ladder steps back one.</div>
+    </div></div>
+  </div>
+</section>
+
+<section class="opt" id="bookend">
+  <h2>Book end — the prompt, now optional and multi-pick</h2>
+  <p class="why">DismissalZone today offers that book's marks and closes after one pick. Now each mark has its own "Learn this" (which turns to "Learning ✓"), and a single "Done" resolves the moment — pick none, one, or several. Marks not picked stay in the library's Marked list.</p>
+  <div class="stage">
+    <div class="phone"><div class="cap">Dismissal · book finished</div><div class="sheet">
+      <p style="font-family:var(--scripture);font-style:italic;font-size:18px;margin:4px 0 12px">You finished Philippians. Learn any of what you marked?</p>
+      <div class="row"><span class="ref"><span class="mark">●</span> Philippians 4:6–7</span><span class="btn small" style="background:var(--dyeSoft)">Learning ✓</span></div>
+      <div class="row"><span class="ref"><span class="mark">●</span> Philippians 3:13–14</span><span class="btn small">Learn this</span></div>
+      <div class="row"><span class="ref"><span class="mark">●</span> Philippians 2:5</span><span class="btn small">Learn this</span></div>
+      <div class="toolbar" style="padding-top:12px"><span class="btn solid">Done</span></div>
+    </div></div>
+  </div>
+  <p class="legend">Not shown (unchanged from v0.8.0): the reading screen's recall zone — it now shows up to the daily cap instead of a fixed 2. The probe loses its "● you marked this" label, since it no longer looks at marks.</p>
+</section>
+
+</body>
+</html>

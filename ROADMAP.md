@@ -28,6 +28,10 @@ _(none)_
 
 ## Shipped
 
+- ✅ 2026-10-07 — **Memory library in the knot** (PR #48, `v0.9.0`). See
+  every memory passage; add any passage from the Bible, edit its verses, start
+  over, delete, review now; a daily cap (1–10); the book end offers several
+  marks; the next-day probe no longer looks at marks. Migration V13, additive.
 - ✅ 2026-10-06 — **Recall cloze ladder + narrowed next-day probe** (#40, #41,
   PR #45, `v0.8.0`). Recall passages hide a few key words, then more, then the
   whole passage (letter stubs, then plain gaps); the E9 probe asks about up to 3
