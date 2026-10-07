@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { Provider, TranslationService } from '../text/translationService';
 import { ActionButton } from '../ui/controls';
+import { KeyGuide } from '../ui/KeyGuide';
 import { tokens } from '../ui/tokens';
 
 interface TranslationSectionProps {
@@ -114,6 +115,8 @@ export function TranslationSection({ translation, onChanged }: TranslationSectio
           </Pressable>
         );
       })}
+
+      {picked !== null && <KeyGuide key={picked} provider={picked} />}
 
       {picked !== null && (
         <TextInput

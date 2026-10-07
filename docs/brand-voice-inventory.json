@@ -49,6 +49,7 @@
   "src/study/VerseContextSheet.tsx": ["scripture", "operation-consent-error", "attributed-human-commentary"],
   "src/ui/BookPicker.tsx": ["operation-consent-error"],
   "src/ui/FeedbackState.tsx": ["operation-consent-error"],
+  "src/ui/KeyGuide.tsx": ["operation-consent-error"],
   "src/ui/LaunchWeave.tsx": ["operation-consent-error"],
   "src/ui/controls.tsx": ["operation-consent-error"]
 }

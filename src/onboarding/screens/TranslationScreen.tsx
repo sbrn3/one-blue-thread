@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyGuide } from '../../ui/KeyGuide';
 import { tokens } from '../../ui/tokens';
 import { OnboardingScreen } from '../OnboardingScreen';
 
@@ -41,11 +42,7 @@ export function TranslationScreen({ onNext }: TranslationScreenProps) {
 
       {provider && (
         <View style={styles.keyBlock}>
-          <Text style={styles.keyNote}>
-            {provider === 'niv'
-              ? 'Get a free key at api.bible — no statement of faith required.'
-              : "Get a free key at api.esv.org — you'll be asked to accept Crossway's statement of faith."}
-          </Text>
+          <KeyGuide key={provider} provider={provider} />
           <TextInput
             style={styles.input}
             placeholder="Paste your API key"
@@ -72,8 +69,7 @@ const styles = StyleSheet.create({
   optionSelected: { borderColor: tokens.color.thread, backgroundColor: tokens.color.dyeSoft },
   optionTitle: { fontFamily: tokens.font.display, fontWeight: '700', fontSize: 14, color: tokens.color.ink },
   optionSub: { fontFamily: tokens.font.display, fontSize: 11.5, color: tokens.color.ink40, marginTop: 2 },
-  keyBlock: { marginTop: 18 },
-  keyNote: { fontFamily: tokens.font.display, fontSize: 12, color: tokens.color.ink40, lineHeight: 18, marginBottom: 10 },
+  keyBlock: { marginTop: 18, gap: 10 },
   input: {
     borderWidth: 1.5,
     borderColor: tokens.color.ink15,

@@ -49,6 +49,10 @@ old cloth, and the line it leaves never comes out.
 app binary. Both the offline floor that serves when a licensed provider fails,
 and a translation the reader may choose outright: it is named, not hidden.
 
+**Licensed translation** — a copyrighted translation (NIV via API.Bible, ESV via
+api.esv.org) that the reader unlocks with their own free, non-commercial API key
+from the publisher. Its source is the **licensed provider**.
+
 ## Actions
 
 **The seal** — the press-and-hold that commits a day's reading. Drawn as the fell
