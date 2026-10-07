@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { meta } from '../log/log';
 import { logicalToday } from '../log/time';
 import type { Services } from '../services';
+import { RELEASES, WHATS_NEW_SEEN_KEY, latestReleaseId } from '../whatsNew';
 import { AnchorScreen } from './screens/AnchorScreen';
 import { BooksScreen } from './screens/BooksScreen';
 import { DoneScreen } from './screens/DoneScreen';
@@ -71,6 +72,10 @@ export function OnboardingFlow({ services, onDone }: OnboardingFlowProps) {
     // fine as a one-time seed source; nothing downstream calls it again.
     meta.set(db, 'trial_seed', String(Date.now()));
     meta.set(db, 'onboarded', '1');
+    // A new reader starts with every release note already seen, so their
+    // first day isn't about changes they never saw (What's new).
+    const latestRelease = latestReleaseId(RELEASES);
+    if (latestRelease !== null) meta.set(db, WHATS_NEW_SEEN_KEY, latestRelease);
     setDraft(final);
     setStep('done');
 

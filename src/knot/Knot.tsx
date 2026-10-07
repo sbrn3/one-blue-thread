@@ -91,6 +91,7 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
     origin: false,
     study: false,
     support: false,
+    whatsNew: false,
   });
   const toggleMoreSection = useCallback((key: MoreSectionKey) => {
     setMoreSections((prev) => ({ ...prev, [key]: !prev[key] }));

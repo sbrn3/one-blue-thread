@@ -8,6 +8,9 @@ Status key: 📋 planned · 🔨 in progress · ✅ shipped · ❄️ parked
 
 ## Planned
 
+- 🔨 **What's new after an update** — a quiet card above the reading after an
+  update, plus every note under Knot › More › About. Every user-facing release
+  tag adds a note. Plan: `docs/plans/whats-new/plan.html`.
 _(none)_
 
 ## Under consideration

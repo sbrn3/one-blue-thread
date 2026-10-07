@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-07 (worktree and branch cleanup; Apple support parked, PR #49)_
+_Last updated: 2026-10-07 (What's new plan approved and built on `feat/whats-new`)_
 
 ## Current phase
 
@@ -88,6 +88,11 @@ all three bundled typefaces, and sat idle instead of pinning a core.
 
 ## Active plans
 
+- **whats-new** — 🔨 in progress (C2, approved 2026-10-07). After an update, a
+  quiet What's new card above the reading, and every note under Knot › More ›
+  About. Notes are bundled per release tag in `src/whatsNew/`, and new readers
+  never see a card. Both slices are built on `feat/whats-new`. See
+  `docs/plans/whats-new/`.
 - **recall-settings** — ✅ merged (PR #48, `7659fcd`), released in `v0.9.0`.
   A memory library in the knot (add any passage, edit, start over, delete,
   review now, daily cap), optional multi-pick book end, and the probe stops
