@@ -124,7 +124,9 @@ jobs:
           EXPO_PUBLIC_BUILD_SHA: ${{ github.sha }}
         # arm64-v8a only: one native ABI instead of four. Every 64-bit Android
         # phone runs it; 32-bit-only devices can no longer install the APK.
-        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a
+        # Release lint (lintVital) is skipped: it never gated anything here and
+        # costs minutes. The suite + typecheck above are the gate.
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a -x lintVitalAnalyzeRelease
 
       - name: Rename APK
         if: steps.reuse.outputs.found != 'true'
