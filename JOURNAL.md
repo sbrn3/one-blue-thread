@@ -7,6 +7,7 @@ changed, why, and anything the next session needs to know.
 
 ## 2026-10-07 — memory library built (recall-settings)
 
+Merged as PR #48 (`7659fcd`) and released as `v0.9.0`.
 Built the plan from the 2026-10-06 decision below:
 - migration V13 (`passages.source`);
 - the Memory API (any number per book, add, edit, start over, delete, daily cap);
@@ -27,7 +28,8 @@ The Smart Review's 3 HIGH findings shaped the build: the frozen daily set, one s
 
 ## 2026-10-06 — recall cloze ladder built (#40, #41)
 
-Built the plan from the 2026-10-02 decision below: migration V12, cloze engine
+Merged as PR #45 (`d85f963`) and released as `v0.8.0`. Built the plan from
+the 2026-10-02 decision below: migration V12, cloze engine
 and ladder, seal records the verse range read, the narrowed E9 probe, and the
 new RecallZone/ProbeZone. 564 tests green. Not checked on a device: how the
 underscore gaps and stubs wrap, and screen-reader reading. Existing promoted

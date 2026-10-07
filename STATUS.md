@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-02 (seal-affordance merged, PR #43)_
+_Last updated: 2026-10-07 (recall-settings merged, PR #48; released v0.9.0)_
 
 ## Current phase
 
@@ -91,16 +91,15 @@ all three bundled typefaces, and sat idle instead of pinning a core.
 
 ## Active plans
 
-- **recall-settings** — ✅ built 2026-10-07 (C4, Smart Review + final audit done) on
-  `feat/recall-settings`. A memory library in the knot (add any passage, edit,
-  start over, delete, review now, daily cap), optional multi-pick book end, and
-  the probe stops using marks. Migration V13 is additive. See
-  `docs/plans/recall-settings/`.
-- **recall-cloze-ladder** — ✅ built (C4, independent diff audit done), PR open/merged per
-  `JOURNAL.md`. Recall passages are cloze cards on a seven-rung ladder, and the
-  next-day probe asks about up to 3 verses you read (#40, #41). Migration V12 is
-  additive. Owner device check outstanding (see `OUTCOME.md`). See
-  `docs/plans/recall-cloze-ladder/`.
+- **recall-settings** — ✅ merged (PR #48, `7659fcd`), released in `v0.9.0`.
+  A memory library in the knot (add any passage, edit, start over, delete,
+  review now, daily cap), optional multi-pick book end, and the probe stops
+  using marks. Migration V13 is additive. Owner device check outstanding (see
+  `OUTCOME.md`). See `docs/plans/recall-settings/`.
+- **recall-cloze-ladder** — ✅ merged (PR #45, `d85f963`), released in `v0.8.0`.
+  Recall passages are cloze cards on a seven-rung ladder, and the next-day probe
+  asks about up to 3 verses you read (#40, #41). Migration V12 is additive. Owner
+  device check outstanding (see `OUTCOME.md`). See `docs/plans/recall-cloze-ladder/`.
 - **one-blue-thread-rebrand** — ✅ shipped in `v0.6.0` (PR #18, `2118227`).
   Public name, notification title, backup filenames, onboarding, knot, website
   and release artifact all renamed; the Android package, Expo slug, database,
