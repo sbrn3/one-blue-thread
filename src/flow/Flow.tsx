@@ -24,12 +24,14 @@ import { useSession } from '../state/session';
 import { logicalToday } from '../log/time';
 import type { Grade, Passage } from '../log/types';
 import { bundledChapterCount } from '../text';
+import { RELEASES, WHATS_NEW_SEEN_KEY, latestReleaseId, unseenReleases } from '../whatsNew';
 import { ArrivalZone } from './ArrivalZone';
 import { LapseZone } from './LapseZone';
 import { ProbeZone } from './ProbeZone';
 import { RecallZone } from './RecallZone';
 import { ScriptureZone, type ScriptureZoneHandle } from './ScriptureZone';
 import { StudyHint } from './StudyHint';
+import { WhatsNewCard } from './WhatsNewCard';
 import { SealZone } from './SealZone';
 import { SrbaiZone } from './SrbaiZone';
 import { WeaveZone } from './WeaveZone';
@@ -293,6 +295,15 @@ export function Flow({ services }: FlowProps) {
   const handleDismissStudyHint = useCallback(() => {
     meta.set(db, 'study_hint_seen', '1');
     setStudyHintSeen(true);
+  }, [db]);
+
+  // What's new after an update — the study hint's sibling, shown in its place
+  // (never both at once) until dismissed. Onboarding marks new readers as seen.
+  const [whatsNew, setWhatsNew] = useState(() => unseenReleases(RELEASES, meta.get(db, WHATS_NEW_SEEN_KEY)));
+  const handleDismissWhatsNew = useCallback(() => {
+    const latest = latestReleaseId(RELEASES);
+    if (latest !== null) meta.set(db, WHATS_NEW_SEEN_KEY, latest);
+    setWhatsNew([]);
   }, [db]);
   const termCues = useMemo(() => study.termsForVerses(sittingVerses, 4), [sittingVerses, study]);
   const contextTarget = contextVerse === null
@@ -644,7 +655,9 @@ export function Flow({ services }: FlowProps) {
             onGrade={handleGradeProbe}
           />
         )}
-        {!studyHintSeen && sittingVerses.length > 0 && <StudyHint onDismiss={handleDismissStudyHint} />}
+        {sittingVerses.length > 0 && (whatsNew.length > 0
+          ? <WhatsNewCard releases={whatsNew} onDismiss={handleDismissWhatsNew} />
+          : !studyHintSeen && <StudyHint onDismiss={handleDismissStudyHint} />)}
         <ScriptureZone
           ref={scriptureRef}
           verses={sittingVerses}

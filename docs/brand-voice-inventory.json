@@ -14,6 +14,7 @@
   "src/flow/SrbaiZone.tsx": ["operation-consent-error", "behavioural-fact"],
   "src/flow/StudyHint.tsx": ["operation-consent-error"],
   "src/flow/WeaveZone.tsx": ["behavioural-fact"],
+  "src/flow/WhatsNewCard.tsx": ["operation-consent-error"],
   "src/flow/YearReviewZone.tsx": ["operation-consent-error", "behavioural-fact"],
   "src/knot/AdaptiveSection.tsx": ["operation-consent-error", "behavioural-fact"],
   "src/knot/BackupSection.tsx": ["operation-consent-error"],
