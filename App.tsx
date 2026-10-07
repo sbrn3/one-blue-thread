@@ -77,6 +77,9 @@ function AppRuntime() {
     // reconciled state reflects days up to (not including) today.
     reconcile({ db, log: services.log }, RECONCILE_STEPS);
     maybeGenerateReports(db);
+    // fix/marked-list — drop repeated marks (the July re-tap bug) and marks of
+    // passages already being learned. Idempotent; cheap on every launch.
+    services.memory.tidyMarks();
 
     // §19 — marks deploy boundaries on the phase chart / amendment log.
     // Never fires on the very first-ever open (nothing to compare against).
