@@ -8,10 +8,7 @@ Status key: 📋 planned · 🔨 in progress · ✅ shipped · ❄️ parked
 
 ## Planned
 
-- 📋 **Apple support via web/PWA** *(plan ready, not approved)* — reach Apple
-  readers as an installable offline-first PWA compiled from the existing React
-  Native source, since iOS has no sideloading equivalent to the APK. Plan:
-  `docs/plans/apple-web-pwa/plan.html`.
+_(none)_
 
 ## Under consideration
 
@@ -24,7 +21,13 @@ Status key: 📋 planned · 🔨 in progress · ✅ shipped · ❄️ parked
 
 ## Parked
 
-_(none)_
+- ❄️ **Apple support** *(distant — parked 2026-10-07, no Apple readers)* —
+  iOS has no sideloading equivalent to the APK. A 2026-09-05 plan for an
+  offline-first PWA built from the React Native source through
+  `react-native-web` was never approved or committed and has been discarded.
+  Its cost: no backup on web, calendar alarms instead of the cue, no way to move
+  an Android history across, and no Apple hardware to verify any of it.
+  Revisit only if real Apple readers appear, re-planning from current `main`.
 
 ## Shipped
 
