@@ -9,6 +9,11 @@
 # install over the old version. Fine for a one-person app distributed
 # to a handful of friends (plan §18); swap in a real keystore via
 # repo secrets if that ever changes.
+#
+# Build time: arm64-v8a only (32-bit-only phones are out, by decision
+# 2026-10-07); docs-only pushes to main don't build; a newer push to main
+# cancels a running build; and a version tag reuses the APK main already
+# built for that commit instead of building it a second time.
 
 name: Android APK
 
@@ -16,7 +21,17 @@ on:
   push:
     branches: [main]
     tags: ['v*']
+    # GitHub never evaluates path filters for tag pushes, so releases still run.
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.agents/**'
+      - '.claude/**'
   workflow_dispatch:
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref == 'refs/heads/main' }}
 
 jobs:
   build:
@@ -27,15 +42,37 @@ jobs:
     # created, even though the build itself succeeds.
     permissions:
       contents: write
+      actions: read # to find and download main's APK for a tag (below)
     steps:
       - uses: actions/checkout@v4
 
+      # A version tag points at a merge main has already built. Reuse that
+      # APK when its run succeeded; otherwise (still running, failed, or a
+      # docs-only commit that never built) fall through to a full build.
+      - name: Reuse main's APK for this commit
+        id: reuse
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          run_id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow android-apk.yml \
+            --branch main --commit "$GITHUB_SHA" --status success \
+            --json databaseId --jq '.[0].databaseId // empty')
+          if [ -n "$run_id" ] && gh run download "$run_id" --repo "$GITHUB_REPOSITORY" -n one-blue-thread-apk; then
+            echo "Reusing the APK from run $run_id"
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No reusable main build for $GITHUB_SHA; building"
+          fi
+
       - uses: actions/setup-node@v4
+        if: steps.reuse.outputs.found != 'true'
         with:
           node-version: 22
           cache: npm
 
       - uses: actions/setup-java@v4
+        if: steps.reuse.outputs.found != 'true'
         with:
           distribution: temurin
           java-version: 17
@@ -44,6 +81,7 @@ jobs:
       # min). The key covers the native inputs prebuild derives the Gradle
       # project from; the restore-key still gives a warm cache when they move.
       - name: Cache Gradle
+        if: steps.reuse.outputs.found != 'true'
         uses: actions/cache@v4
         with:
           path: |
@@ -54,17 +92,21 @@ jobs:
             gradle-${{ runner.os }}-
 
       - name: Install dependencies
+        if: steps.reuse.outputs.found != 'true'
         run: npm ci
 
       - name: Simulation suite + typecheck (gate — the log is the irreplaceable asset)
+        if: steps.reuse.outputs.found != 'true'
         run: |
           npm test
           npm run typecheck
 
       - name: Generate native project
+        if: steps.reuse.outputs.found != 'true'
         run: npx expo prebuild --platform android --no-install
 
       - name: Raise Gradle JVM memory (default 2GB heap/512MB metaspace OOMs lint on this project)
+        if: steps.reuse.outputs.found != 'true'
         # expo prebuild's generated gradle.properties has no trailing
         # newline — a bare `echo ... >>` concatenates onto its last
         # line (expo.inlineModules.watchedDirectories=[]) instead of
@@ -75,13 +117,19 @@ jobs:
         run: printf '\norg.gradle.jvmargs=-Xmx5120m -XX:MaxMetaspaceSize=1536m\n' >> android/gradle.properties
 
       - name: Build release APK
+        if: steps.reuse.outputs.found != 'true'
         working-directory: android
         env:
           # Stamped into every event row (§13.2)
           EXPO_PUBLIC_BUILD_SHA: ${{ github.sha }}
-        run: ./gradlew assembleRelease
+        # arm64-v8a only: one native ABI instead of four. Every 64-bit Android
+        # phone runs it; 32-bit-only devices can no longer install the APK.
+        # Release lint (lintVital) is skipped: it never gated anything here and
+        # costs minutes. The suite + typecheck above are the gate.
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=arm64-v8a -x lintVitalAnalyzeRelease
 
       - name: Rename APK
+        if: steps.reuse.outputs.found != 'true'
         run: cp android/app/build/outputs/apk/release/app-release.apk one-blue-thread.apk
 
       - uses: actions/upload-artifact@v4
