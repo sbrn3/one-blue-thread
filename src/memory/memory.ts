@@ -29,8 +29,9 @@ export class Memory {
 
   /** A tap while reading. No text is stored — only the reference. */
   markCandidate(r: PassageRef, now: () => number = Date.now): void {
+    // Already marked, or already being learned: nothing new to mark.
     const existing = this.db.get<{ id:number }>(
-      `SELECT id FROM passages WHERE book = ? AND chapter = ? AND verse_start = ? AND verse_end = ? AND promoted_at IS NULL`,
+      `SELECT id FROM passages WHERE book = ? AND chapter = ? AND verse_start = ? AND verse_end = ?`,
       [r.book, r.chapter, r.verseStart, r.verseEnd],
     );
     if (existing) return;
@@ -54,6 +55,38 @@ export class Memory {
          WHERE book = ? AND chapter = ? AND verse_start = ? AND verse_end = ? AND promoted_at IS NULL`,
       [r.book, r.chapter, r.verseStart, r.verseEnd],
     );
+  }
+
+  /**
+   * Repairs the marked list (idempotent; run at launch). Removes marks that
+   * repeat an earlier mark of the same range — copies left by the July
+   * re-tap bug fixed in 0f6dc00 — and marks of a range already being
+   * learned. Learned passages and picker adds are never touched. Returns
+   * how many rows were removed.
+   */
+  tidyMarks(): number {
+    const before = this.db.get<{ c: number }>('SELECT COUNT(*) AS c FROM passages')?.c ?? 0;
+    this.db.tx(() => {
+      this.db.run(
+        `DELETE FROM passages
+          WHERE promoted_at IS NULL
+            AND EXISTS (
+              SELECT 1 FROM passages l
+               WHERE l.promoted_at IS NOT NULL AND l.book = passages.book AND l.chapter = passages.chapter
+                 AND l.verse_start = passages.verse_start AND l.verse_end = passages.verse_end
+            )`,
+      );
+      this.db.run(
+        `DELETE FROM passages
+          WHERE promoted_at IS NULL
+            AND id NOT IN (
+              SELECT MIN(id) FROM passages WHERE promoted_at IS NULL
+               GROUP BY book, chapter, verse_start, verse_end
+            )`,
+      );
+    });
+    const after = this.db.get<{ c: number }>('SELECT COUNT(*) AS c FROM passages')?.c ?? 0;
+    return before - after;
   }
 
   candidates(book: string): Passage[] {

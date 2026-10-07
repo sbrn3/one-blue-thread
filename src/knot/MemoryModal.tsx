@@ -11,6 +11,7 @@ import { bookName } from '../text/canon';
 import type { TextProvider, Verse } from '../text/provider';
 import { ActionButton } from '../ui/controls';
 import { tokens } from '../ui/tokens';
+import { groupMarks, markedLabel } from './markGroups';
 import { PassagePicker, type PickerMode } from './PassagePicker';
 
 interface MemoryModalProps {
@@ -88,6 +89,7 @@ export function MemoryModal({ visible, memory, text, today, reducedMotion, onClo
 
   const learned = useMemo(() => (visible ? memory.learned() : []), [visible, memory, tick]);
   const marked = useMemo(() => (visible ? memory.marked() : []), [visible, memory, tick]);
+  const markGroups = useMemo(() => groupMarks(marked), [marked]);
   const cap = useMemo(() => memory.recallCap(), [memory, tick]);
   const due = learned.filter((p) => daysUntil(today, p.due_date) <= 0);
 
@@ -259,26 +261,39 @@ export function MemoryModal({ visible, memory, text, today, reducedMotion, onClo
             })}
 
             {marked.length > 0 && <Text style={styles.label}>Marked · {marked.length}</Text>}
-            {marked.map((p) => (
-              <View key={p.id} style={styles.row}>
-                <Pressable
-                  style={styles.markRef}
-                  onPress={() => go({ kind: 'passage', id: p.id })}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Marked, ${reference(p)}`}
-                >
-                  <Text style={styles.ref}>
-                    <Text style={styles.markDot}>● </Text>
-                    {reference(p)}
-                  </Text>
-                </Pressable>
-                <ActionButton
-                  label="Learn this"
-                  variant="secondary"
-                  onPress={() =>
-                    go({ kind: 'picker', mode: 'learn', id: p.id, initial: { book: p.book, chapter: p.chapter, start: p.verse_start, end: p.verse_end } })
-                  }
-                />
+            {markGroups.map((g) => (
+              <View key={g.book}>
+                <Text style={styles.bookHeading} accessibilityRole="header">
+                  {bookName(g.book)}
+                </Text>
+                {g.marks.map((p) => (
+                  <View key={p.id} style={styles.row}>
+                    <Pressable
+                      style={styles.markRef}
+                      onPress={() => go({ kind: 'passage', id: p.id })}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Marked, ${reference(p)}, ${markedLabel(p.marked_at)}`}
+                    >
+                      <Text style={styles.ref}>
+                        <Text style={styles.markDot}>● </Text>
+                        {reference(p)}
+                      </Text>
+                      <Text style={styles.when}>{markedLabel(p.marked_at)}</Text>
+                    </Pressable>
+                    <ActionButton
+                      label="Learn this"
+                      variant="secondary"
+                      onPress={() =>
+                        go({
+                          kind: 'picker',
+                          mode: 'learn',
+                          id: p.id,
+                          initial: { book: p.book, chapter: p.chapter, start: p.verse_start, end: p.verse_end },
+                        })
+                      }
+                    />
+                  </View>
+                ))}
               </View>
             ))}
           </ScrollView>
@@ -551,6 +566,14 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: tokens.control.minTarget,
     justifyContent: 'center',
+  },
+  bookHeading: {
+    fontFamily: tokens.font.display,
+    fontWeight: '700',
+    fontSize: 14,
+    color: tokens.color.ink,
+    paddingTop: 12,
+    paddingBottom: 4,
   },
   markDot: {
     color: tokens.color.madder,
