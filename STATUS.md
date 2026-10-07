@@ -41,9 +41,6 @@ hand-wrote it (see `JOURNAL.md`'s 2026-09-07 entry for what that cost).
 - `thread/` is now on `main` and is the authoritative checkout. It is no longer
   the stale `feat/account-reset` tree that earlier revisions of this file and
   the 2026-09-07 journal entry warned about.
-- `thread-aesthetic-loom/` sits on the merged `fix/launch-hang` and still holds
-  another session's uncommitted `apple-web-pwa` work (`docs/CONTEXT.md`,
-  `docs/plans/README.md`, five untracked plan directories) - leave it alone.
 - `thread-lab-trial-integrity/` sits on `fix/lab-trial-integrity` with
   uncommitted work across `src/lab/`, `src/backup/dump.ts`, `src/log/schema.ts`,
   `src/notify/notifier.ts` and `src/reset/index.ts`, plus untracked
@@ -111,17 +108,6 @@ all three bundled typefaces, and sat idle instead of pinning a core.
   review of the origin context line.
   See `docs/plans/one-blue-thread-rebrand/plan.html`.
 
-- **apple-web-pwa** — 📋 planned, **not approved, nothing implemented**. Reaching
-  Apple readers as an installable offline-first PWA compiled from the existing
-  React Native source through `react-native-web`, hosted from `docs/`. C4:
-  12 slices, ~42 files, ~12 sessions. Smart Review complete (4 HIGH, 5 MEDIUM,
-  all resolved); aesthetics Direction A chosen; all 7 gates resolved.
-  Two risks accepted knowingly by the owner: **no backup on web**, and **no Apple
-  hardware exists to verify any of it** — including all seven steps of the
-  mandatory calendar checklist. Begins with S01, a throwaway spike whose stop
-  conditions can still invalidate the route.
-  See `docs/plans/apple-web-pwa/plan.html`.
-
 - **app-quality-foundations** — ✅ shipped. 7 PRs (#11–#17) merged to `main`
   in order, tagged `v0.5.0`; each independently focused-tested. See
   `docs/plans/app-quality-foundations/plan.html`'s per-slice ledger for exact
@@ -171,8 +157,8 @@ all three bundled typefaces, and sat idle instead of pinning a core.
       render order, against Psalm 119 (176 verses, the canon's worst case), and
       was verified to fail: reintroducing the defect takes it to ~30s against a
       2s bound. That guards this bug class, not the gap itself - nothing still
-      renders `Flow`. The obvious route to a renderer adds `react-native-web`,
-      which `apple-web-pwa` S02 already owns, so sequence it with that plan.
+      renders `Flow`. The obvious route to a renderer adds `react-native-web`;
+      with Apple support parked, that dependency choice is this item's own.
 - [ ] Install the dev-client APK (`Dev client APK` workflow) to retire the
       ~20-minute build loop for JS-only changes. Note it needs Metro running to
       start at all, so do not leave it as the only build on the phone.
@@ -195,12 +181,4 @@ all three bundled typefaces, and sat idle instead of pinning a core.
       Switch Control + 200% text matrix, real launch timing (fast/400ms/13s/
       14s/rejected), and an on-device exercise of the real `expo-file-system`
       recovery-snapshot move/rotation calls (PR #14 is fake-IO tested only).
-- [ ] Smoke-test `src/text/esv.ts` and `src/text/apiBible.ts` against real keys by pasting each into the knot's Translation row. This also answers
-      `apple-web-pwa` S01 question 5 (whether `api.esv.org` and `rest.api.bible`
-      send browser CORS headers), which decides that plan's S09 branch.
-- [ ] `apple-web-pwa`: decide whether to approve. **Sequence it after the APK
-      confirmation above** — its S02 adds `react-native-web` / `react-dom` /
-      `@expo/metro-runtime` to the same dependency tree the SDK 57 alignment just
-      stabilised, and disturbing that before the Android build is confirmed would
-      confound the two. Its S11 also edits `README.md`, `AGENTS.md` and the
-      landing page, which `one-blue-thread-rebrand` still owns.
+- [ ] Smoke-test `src/text/esv.ts` and `src/text/apiBible.ts` against real keys by pasting each into the knot's Translation row.

@@ -5,6 +5,11 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## Decision 2026-10-07 — Apple support parked; the web/PWA plan is discarded
+
+**Decision:** drop `apple-web-pwa` from the plans and STATUS; keep Apple support only as a distant ❄️ item in `ROADMAP.md` → Parked. The plan files were never committed; their only copy was discarded with the `thread-aesthetic-loom/` worktree.
+**Why:** there are no Apple readers. The plan would have cost about 12 sessions, given up backup on web and the in-app cue, and shipped with no Apple hardware to verify it. If Apple readers appear, re-plan from current `main`.
+
 ## 2026-10-07 — memory library built (recall-settings)
 
 Merged as PR #48 (`7659fcd`) and released as `v0.9.0`.
