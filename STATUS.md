@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 2026-10-07 (recall-settings merged, PR #48; released v0.9.0)_
+_Last updated: 2026-10-07 (worktree and branch cleanup; Apple support parked, PR #49)_
 
 ## Current phase
 
@@ -38,15 +38,15 @@ hand-wrote it (see `JOURNAL.md`'s 2026-09-07 entry for what that cost).
 
 **Worktrees - check `git worktree list` before trusting any of them.**
 
-- `thread/` is now on `main` and is the authoritative checkout. It is no longer
-  the stale `feat/account-reset` tree that earlier revisions of this file and
-  the 2026-09-07 journal entry warned about.
-- `thread-lab-trial-integrity/` sits on `fix/lab-trial-integrity` with
-  uncommitted work across `src/lab/`, `src/backup/dump.ts`, `src/log/schema.ts`,
-  `src/notify/notifier.ts` and `src/reset/index.ts`, plus untracked
-  `src/lab/integrity.ts` and `test/integrity.test.ts` - unfinished, not merged.
-- `thread-unravel-scroll-lock/` is an empty leftover directory, not a
-  registered worktree; PR #25 carried that work. Safe to delete.
+- `thread/` is on `main` and is the authoritative checkout.
+- 2026-10-07 cleanup (owner's call): the `thread-aesthetic-loom`,
+  `thread-catch-me-up`, `thread-lab-trial-integrity` and `thread-seal-fell-line`
+  worktrees, every merged branch, and the empty leftover folders were removed.
+  The uncommitted work they held was discarded on purpose: the apple-web-pwa and
+  lab-trial-integrity plans, and the unfinished lab-integrity code. Re-plan it
+  from scratch if it is ever wanted.
+- Other sessions open short-lived sibling worktrees (`thread-<topic>`) for their
+  own branches. Leave any you didn't create alone.
 
 **2026-09-07 correction (kept for the lesson):** `git fetch` updates
 remote-tracking refs, not local branch refs. `fix/knot-declutter` was branched
