@@ -37,6 +37,44 @@ npm run typecheck  # tsc --noEmit, strict
 script. Every push to `main` builds `one-blue-thread.apk` in GitHub Actions; tagging
 `vX.Y.Z` publishes it under Releases.
 
+## The owner's phone (dev client)
+
+The owner's phone (motorola edge 50 neo, adb serial `ZY22KR4XFF`) runs the
+**dev-client debug build**, not the release APK. It was installed 2026-10-01
+from the `Dev client APK` workflow. It shares `com.sngugi.thread` with release,
+so it holds the real reading data. **It won't open without a Metro server it can
+reach.** JS-only changes never need a new APK; only `app.json`, `package.json`
+or native-config changes do.
+
+**Don't guess. Check the phone.** `adb` is installed via winget, and a shell
+started before 2026-10-07 may lack it on PATH. Use the full path:
+`%LOCALAPPDATA%\Microsoft\WinGet\Packages\Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe\platform-tools\adb.exe`
+
+```sh
+adb devices                                    # phone listed? if empty: ask the owner to plug in / accept the prompt
+adb shell dumpsys package com.sngugi.thread    # dev client = DEBUGGABLE in pkgFlags + expo.modules.devlauncher activities
+adb shell dumpsys activity activities | grep topResumedActivity   # DevLauncherErrorActivity = it failed to load a bundle
+adb exec-out screencap -p > phone.png          # see exactly what the owner sees
+```
+
+**Serving it a bundle.** Start your own Metro rather than trusting one you
+found running. A long-lived Metro whose terminal has gone can't spawn child
+processes: its manifest returns HTTP 500 (`runtimeversion:resolve … exited with
+non-zero code: 3221225794`), and the phone shows "There was a problem loading the
+project". Before pointing the phone at any server, check that its manifest
+returns 200:
+
+```sh
+npx expo start --dev-client --lan --port <free port>   # --lan listens on IPv4 too; --localhost binds ::1 only
+curl -s -o /dev/null -w "%{http_code}" -H "expo-platform: android" http://127.0.0.1:<port>/   # must be 200
+adb reverse tcp:<port> tcp:<port>
+adb shell am start -a android.intent.action.VIEW -d "exp+thread://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A<port>"
+```
+
+Metro serves the working tree it starts in, uncommitted changes included. Start
+it from the checkout you mean to test, not from a worktree holding another
+session's work.
+
 ## Source layout (README "Repository shape", plan §05)
 
 `/src` — `onboarding` · `flow` (Arrival·Recall·Scripture·Seal·Weave·Dismissal) ·
