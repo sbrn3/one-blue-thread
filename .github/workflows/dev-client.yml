@@ -11,10 +11,11 @@
 # reinstall. Only NATIVE changes (a new native module, app.json native config,
 # an SDK bump) need this rebuilt.
 #
-# This shares com.sngugi.thread with the release build, so installing it
-# REPLACES the release app (your reading data survives — same package, same
-# debug signing key). That is deliberate: reproducing a bug usually needs the
-# real data. Reinstall the release APK when you want the shipping build back.
+# Built with APP_VARIANT=development (see app.config.js): package
+# com.sngugi.thread.dev, "One Blue Thread (dev)", a hazard-striped DEV icon.
+# It installs NEXT TO the release app (com.sngugi.thread) instead of replacing
+# it, so the real app keeps working with no laptop. The dev app has its own,
+# separate data; restore a backup into it to reproduce a bug on real data.
 #
 # Caveat worth remembering: a debug build runs slower than release, so this is
 # where you FIND a performance problem, not where you confirm one is fixed.
@@ -47,7 +48,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('package-lock.json', 'app.json') }}
+          key: gradle-${{ runner.os }}-${{ hashFiles('package-lock.json', 'app.json', 'app.config.js') }}
           restore-keys: |
             gradle-${{ runner.os }}-
 
@@ -58,6 +59,8 @@ jobs:
       # not something that ships. android-apk.yml still gates every release.
 
       - name: Generate native project
+        env:
+          APP_VARIANT: development
         run: npx expo prebuild --platform android --no-install
 
       # Same trailing-newline hazard as the release workflow — see its comment.

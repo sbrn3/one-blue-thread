@@ -87,7 +87,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('package-lock.json', 'app.json') }}
+          key: gradle-${{ runner.os }}-${{ hashFiles('package-lock.json', 'app.json', 'app.config.js') }}
           restore-keys: |
             gradle-${{ runner.os }}-
 

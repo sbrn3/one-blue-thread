@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Dev Icon Source</title>
+<!--
+  Source for the dev-client build's icons (app.config.js, APP_VARIANT=development).
+  Rendered to PNG with headless Edge — see scripts/render-dev-icons.mjs. Hazard
+  stripes and a DEV badge so the dev app can never be mistaken for the real one.
+  ?part=icon (1024, full square) | background (512) | foreground (512, transparent)
+-->
+<style>
+  html, body { margin: 0; padding: 0; background: transparent; }
+  .stage { position: relative; overflow: hidden; }
+  .paper { position: absolute; inset: 0; background: #F4F1E9; }
+  .hazard {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(-45deg, #F5C518 0 var(--s), #1A1A17 var(--s) calc(var(--s) * 2));
+  }
+  .mark { position: absolute; }
+  .badge {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    background: #1A1A17; color: #F5C518; border-radius: 999px;
+    font: 900 var(--f)/1 'Arial Black', 'Segoe UI Black', Arial, sans-serif;
+    letter-spacing: .08em; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 var(--ring) #F4F1E9;
+  }
+</style>
+</head>
+<body>
+<div id="stage" class="stage"></div>
+<script>
+  const part = new URLSearchParams(location.search).get('part') || 'icon';
+  const size = part === 'icon' ? 1024 : 512;
+  const k = size / 512;
+  const stage = document.getElementById('stage');
+  stage.style.width = stage.style.height = size + 'px';
+  const html = [];
+  if (part !== 'foreground') {
+    html.push('<div class="paper"></div>');
+    html.push(`<div class="hazard" style="height:${(part === 'icon' ? 150 : 170) * k}px;--s:${22 * k}px"></div>`);
+  }
+  if (part !== 'background') {
+    // The release mark (android-icon-foreground.png), scaled and lifted to clear the badge.
+    const m = (part === 'icon' ? 470 : 400) * k;
+    html.push(`<img class="mark" src="../android-icon-foreground.png" style="width:${m}px;height:${m}px;left:${(size - m) / 2}px;top:${(part === 'icon' ? 10 : 20) * k}px">`);
+    const top = (part === 'icon' ? 330 : 318) * k;
+    html.push(`<div class="badge" style="top:${top}px;width:${170 * k}px;height:${62 * k}px;--f:${40 * k}px;--ring:${5 * k}px">DEV</div>`);
+  }
+  stage.innerHTML = html.join('');
+</script>
+</body>
+</html>
