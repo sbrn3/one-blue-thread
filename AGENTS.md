@@ -45,41 +45,50 @@ docs, refactors) add none. `test/whatsNew.test.ts` guards the format.
 
 ## The owner's phone (dev client)
 
-The owner's phone (motorola edge 50 neo, adb serial `ZY22KR4XFF`) runs the
-**dev-client debug build**, not the release APK. It was installed 2026-10-01
-from the `Dev client APK` workflow. It shares `com.sngugi.thread` with release,
-so it holds the real reading data. **It won't open without a Metro server it can
-reach.** JS-only changes never need a new APK; only `app.json`, `package.json`
-or native-config changes do.
+The owner's phone (motorola edge 50 neo, adb serial `ZY22KR4XFF`) has **two
+apps side by side**:
+
+- **One Blue Thread** (`com.sngugi.thread`): the release APK from
+  `android-apk.yml`. It holds the owner's **real reading data** and works with
+  no laptop. Update it only by installing a newer release APK over it
+  (`adb install -r`; same package and debug signing key, so data survives).
+  Never uninstall it, and never point a dev server at it.
+- **One Blue Thread (dev)** (`com.sngugi.thread.dev`, hazard-striped DEV icon):
+  the dev-client debug build from the `Dev client APK` workflow, built with
+  `APP_VARIANT=development` (`app.config.js`). It has its **own separate
+  data**. Restore a backup into it to test against real data. **It won't open
+  without a Metro server it can reach.** JS-only changes never need a new APK;
+  only `app.json`/`app.config.js`, `package.json` or native-config changes do.
 
 **Don't guess. Check the phone.** `adb` is installed via winget, and a shell
 started before 2026-10-07 may lack it on PATH. Use the full path:
 `%LOCALAPPDATA%\Microsoft\WinGet\Packages\Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe\platform-tools\adb.exe`
 
 ```sh
-adb devices                                    # phone listed? if empty: ask the owner to plug in / accept the prompt
-adb shell dumpsys package com.sngugi.thread    # dev client = DEBUGGABLE in pkgFlags + expo.modules.devlauncher activities
-adb shell dumpsys activity activities | grep topResumedActivity   # DevLauncherErrorActivity = it failed to load a bundle
-adb exec-out screencap -p > phone.png          # see exactly what the owner sees
+adb devices                                        # phone listed? if empty: ask the owner to plug in / accept the prompt
+adb shell pm list packages com.sngugi              # expect com.sngugi.thread and com.sngugi.thread.dev
+adb shell dumpsys activity activities | grep topResumedActivity   # DevLauncherErrorActivity = the dev app failed to load a bundle
+adb exec-out screencap -p > phone.png              # see exactly what the owner sees
 ```
 
-**Serving it a bundle.** Start your own Metro rather than trusting one you
-found running. A long-lived Metro whose terminal has gone can't spawn child
+**Serving the dev app a bundle.** Start your own Metro rather than trusting one
+you found running. A long-lived Metro whose terminal has gone can't spawn child
 processes: its manifest returns HTTP 500 (`runtimeversion:resolve … exited with
 non-zero code: 3221225794`), and the phone shows "There was a problem loading the
 project". Before pointing the phone at any server, check that its manifest
-returns 200:
+returns 200. Start Metro with `APP_VARIANT=development` so the manifest matches
+the dev app:
 
 ```sh
-npx expo start --dev-client --lan --port <free port>   # --lan listens on IPv4 too; --localhost binds ::1 only
+APP_VARIANT=development npx expo start --dev-client --lan --port <free port>   # --lan listens on IPv4 too
 curl -s -o /dev/null -w "%{http_code}" -H "expo-platform: android" http://127.0.0.1:<port>/   # must be 200
 adb reverse tcp:<port> tcp:<port>
-adb shell am start -a android.intent.action.VIEW -d "exp+thread://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A<port>"
+adb shell am start -a android.intent.action.VIEW -d "exp+thread-dev://expo-development-client/?url=http%3A%2F%2F127.0.0.1%3A<port>"
 ```
 
 Metro serves the working tree it starts in, uncommitted changes included. Start
 it from the checkout you mean to test, not from a worktree holding another
-session's work.
+session's work. One Metro per session; stop it when you are done.
 
 ## Source layout (README "Repository shape", plan §05)
 
