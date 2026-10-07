@@ -37,6 +37,12 @@ npm run typecheck  # tsc --noEmit, strict
 script. Every push to `main` builds `one-blue-thread.apk` in GitHub Actions; tagging
 `vX.Y.Z` publishes it under Releases.
 
+**What's new:** a tag that changes anything a reader can notice also adds a
+newest-first entry to `RELEASES` in `src/whatsNew/index.ts`, keyed by that tag:
+1–3 plain operational lines, each ≤120 characters. Claude drafts it in the
+release PR and the owner edits it in review. Fix-only and internal tags (CI,
+docs, refactors) add none. `test/whatsNew.test.ts` guards the format.
+
 ## The owner's phone (dev client)
 
 The owner's phone (motorola edge 50 neo, adb serial `ZY22KR4XFF`) runs the

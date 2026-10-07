@@ -22,6 +22,8 @@ import { PartnerSection } from './PartnerSection';
 import { ResetSection } from './ResetSection';
 import { SealModeSection } from './SealModeSection';
 import { TranslationSection, translationName } from './TranslationSection';
+import { WhatsNewHistory } from './WhatsNewHistory';
+import { RELEASES } from '../whatsNew';
 
 export type MoreSectionKey =
   | 'translation'
@@ -32,7 +34,8 @@ export type MoreSectionKey =
   | 'adaptive'
   | 'origin'
   | 'study'
-  | 'support';
+  | 'support'
+  | 'whatsNew';
 
 interface MoreSectionProps {
   services: Services;
@@ -138,6 +141,10 @@ export function MoreSection({
       </DisclosureSection>
 
       <Text style={styles.groupLabel}>About</Text>
+
+      <DisclosureSection summary="What's new" expanded={openSections.whatsNew} onToggle={() => onToggle('whatsNew')} nested>
+        <WhatsNewHistory releases={RELEASES} />
+      </DisclosureSection>
 
       <DisclosureSection summary="Study library" expanded={openSections.study} onToggle={() => onToggle('study')} nested>
         <DictionaryLibrary study={study} book={viewingEntry?.book ?? meta.get(db, 'current_book') ?? 'genesis'} />

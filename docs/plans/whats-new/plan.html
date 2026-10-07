@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — What's new after an update</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&display=swap" rel="stylesheet">
+<style>
+/* ── One Blue Thread identity — mirrors docs/index.html / src/ui/tokens.ts. Do not swap for generic styles ── */
+:root {
+  --bg:            #FBFAF7;
+  --surface:       #ffffff;
+  --card-bg:       #ffffff;
+  --border:        #E6E5E1;
+  --border-strong: #d8d7d2;
+  --text:          #16161A;
+  --text-2:        #5E5D66;
+  --text-muted:    #9C9BA3;
+  --primary:       #1F3FFF;
+  --primary-dark:  #1732cc;
+  --primary-tint:  #EEF0FF;
+  --success:       #155724;
+  --success-bg:    #d4edda;
+  --warning:       #856404;
+  --warning-bg:    #fff3cd;
+  --danger:        #c0392b;
+  --danger-bg:     #fde8e8;
+  --font-head:     'Newsreader', Georgia, serif;
+  --font-body:     'Schibsted Grotesk', system-ui, -apple-system, sans-serif;
+  --radius:        12px;
+  --shadow:        0 4px 6px rgba(0,0,0,0.08);
+  --shadow-lg:     0 8px 32px rgba(0,0,0,0.16);
+}
+* { box-sizing: border-box; }
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(600px 400px at 0% -5%, rgba(26,58,92,0.06), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2.2rem 1.6rem 4rem;
+}
+h1 { font-family: var(--font-head); font-size: 2rem; font-weight: 400; margin: 0 0 .3rem; letter-spacing: .01em; }
+h2 { font-family: var(--font-head); font-size: 1.25rem; font-weight: 400; color: var(--primary); margin: 1.8rem 0 .8rem; }
+h3 { font-size: .95rem; font-weight: 600; color: var(--text); margin: 1.3rem 0 .4rem; }
+a { color: var(--primary); }
+code { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: .85em; color: var(--primary-dark); background: var(--primary-tint); padding: .1em .4em; border-radius: 5px; }
+.meta { font-size: .82rem; color: var(--text-muted); margin-bottom: 1.6rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.badge { display: inline-block; padding: .25em .7em; border-radius: 999px; font-size: .74rem; font-weight: 600; border: 1px solid var(--border); background: var(--surface); }
+.badge.navy   { color: var(--primary); border-color: var(--primary); background: var(--primary-tint); }
+.badge.green  { color: var(--success); background: var(--success-bg); border-color: #c3e6cb; }
+.badge.yellow { color: var(--warning); background: var(--warning-bg); border-color: #ffeeba; }
+.badge.red    { color: var(--danger);  background: var(--danger-bg);  border-color: #f5c6cb; }
+/* Stat row */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: .8rem; margin-bottom: 2rem; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .9rem 1.1rem; box-shadow: var(--shadow); }
+.stat-value { font-family: var(--font-head); font-size: 1.7rem; color: var(--primary); font-variant-numeric: tabular-nums; }
+.stat-label { font-size: .72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+/* Tabs */
+.tabs { display: flex; gap: .4rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 1.6rem; }
+.tab { padding: .5rem 1rem; border: none; background: none; cursor: pointer; font-family: var(--font-body); font-size: .87rem; color: var(--text-2); border-radius: 8px 8px 0 0; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: var(--text); background: var(--primary-tint); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; background: var(--primary-tint); }
+.panel { display: none; animation: fade .25s ease; }
+.panel.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+/* Checklist */
+.checklist { list-style: none; padding: 0; margin: .5rem 0; }
+.checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; font-size: .9rem; border-bottom: 1px solid var(--border); }
+.checklist li:last-child { border-bottom: none; }
+.checklist input { margin-top: .3rem; flex-shrink: 0; accent-color: var(--primary); width: 16px; height: 16px; }
+.checklist input:checked + span { color: var(--text-muted); text-decoration: line-through; }
+/* Notes / callouts */
+.note { background: var(--warning-bg); border: 1px solid #ffeeba; border-radius: var(--radius); padding: .7rem 1rem; font-size: .86rem; margin: .8rem 0; color: var(--text); }
+.mockup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: .9rem; margin: 1rem 0; }
+.mockup-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); }
+.mockup-card.chosen { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary), var(--shadow-lg); }
+.mockup-card h3 { margin-top: 0; }
+.requirements { font-size: .92rem; line-height: 2; padding-left: 1.3rem; }
+.evidence-table { width: 100%; border-collapse: collapse; margin: .8rem 0 1.2rem; font-size: .84rem; }
+.evidence-table th, .evidence-table td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: left; vertical-align: top; }
+.evidence-table th { background: var(--primary-tint); color: var(--primary); }
+</style>
+</head>
+<body>
+
+<h1>What's new after an update</h1>
+<div class="meta">
+  2026-10-07
+  <span class="badge navy">C2 Structured</span>
+  <span class="badge navy">10 files</span>
+  <span class="badge navy">2 commits</span>
+  <span class="badge yellow">~1 session</span>
+  <span class="badge navy">Direction chosen in chat — reuses the study-hint card</span>
+</div>
+
+<div class="stat-row">
+  <div class="stat"><div class="stat-value">10</div><div class="stat-label">Files</div></div>
+  <div class="stat"><div class="stat-value">2</div><div class="stat-label">Commits</div></div>
+  <div class="stat"><div class="stat-value">1</div><div class="stat-label">Test files</div></div>
+  <div class="stat"><div class="stat-value">~1</div><div class="stat-label">Session</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="intent" onclick="show('intent')">Intent</button>
+  <button class="tab" data-tab="requirements" onclick="show('requirements')">Requirements</button>
+  <button class="tab" data-tab="aesthetics" onclick="show('aesthetics')">Aesthetics</button>
+  <button class="tab" data-tab="execution" onclick="show('execution')">Execution</button>
+  <button class="tab" data-tab="verify" onclick="show('verify')">Verification</button>
+</div>
+
+<div id="intent" class="panel active">
+  <h2>Problem &amp; Intent</h2>
+  <h3>Status, owner &amp; next action</h3>
+  <p><strong>Approved by the owner 2026-10-07.</strong> Built on <code>feat/whats-new</code> (see <a href="PROGRESS.md">PROGRESS.md</a>). Next action: PR and merge, then the owner's spot-check on the dev client.</p>
+  <h3>Outcome and constraints</h3>
+  <p>An update currently arrives silently: the reader gets a new APK and has no way to learn what changed. After every update that changes something a reader can notice, the app should say so once, quietly, and keep every past note somewhere findable.</p>
+  <p>Constraints:</p>
+  <ul>
+    <li><strong>Scripture-first voice</strong> (<code>docs/CONTEXT.md</code>). Notes are brief operational prose. No devotional framing, and no marketing tone inside the app.</li>
+    <li><strong>Never blocks reading.</strong> The card is never a modal and never covers Scripture.</li>
+    <li><strong>Offline and private.</strong> Notes are bundled in the binary: no network, no events, no analytics.</li>
+    <li><strong>§13.6 hard rules untouched:</strong> no <code>events</code> rows, no migration, no PRNG.</li>
+  </ul>
+  <h3>Scope and non-goals</h3>
+  <p><strong>In scope:</strong></p>
+  <ul>
+    <li>A bundled, ordered list of release notes.</li>
+    <li>A dismissible card in the flow showing only the notes the reader hasn't seen.</li>
+    <li>A permanent "What's new" row under Knot › More › About.</li>
+    <li>Fresh installs that don't see a card.</li>
+    <li>A standing release rule in <code>AGENTS.md</code>.</li>
+  </ul>
+  <p><strong>Non-goals:</strong></p>
+  <ul>
+    <li>Bumping the native <code>versionName</code>, which is stuck at <code>1.0.0</code>.</li>
+    <li>Over-the-air update delivery.</li>
+    <li>Telling the reader an update is <em>available</em>.</li>
+    <li>Release notes on GitHub Releases, which are already auto-generated there.</li>
+  </ul>
+  <h3>Dependencies and unresolved gates</h3>
+  <ul>
+    <li><strong>No product gates are open.</strong> The owner settled all three in chat (quiet card, history in the knot, Claude drafts the notes).</li>
+    <li><strong>Commit/push/PR/merge:</strong> not yet authorised for this plan. Plan approval alone doesn't cover it.</li>
+    <li><strong>Another session's uncommitted work:</strong> <code>thread/</code> has uncommitted changes in <code>src/knot/TranslationSection.tsx</code> and <code>docs/plans/translation-key-guide/</code>. The worktree must start from <code>origin/main</code> and must not touch them.</li>
+  </ul>
+  <h3>Evidence and decisions</h3>
+  <ul>
+    <li><strong>Seen-state:</strong> follows the existing one-time flag pattern, <code>meta</code> key <code>study_hint_seen</code> (<code>src/flow/Flow.tsx</code> ~L292) and <code>year_review_shown</code> (~L119). The <code>meta</code> table already exists, so no migration is needed.</li>
+    <li><strong>Reset:</strong> <code>src/reset/index.ts</code> <code>RESET_TABLES</code> clears <code>meta</code>, so an unravel returns the reader to "fresh install" behaviour automatically.</li>
+    <li><strong>Fresh install:</strong> <code>src/onboarding/OnboardingFlow.tsx</code> ~L73 sets <code>onboarded</code>, and the seen marker is set beside it. An onboarded reader with no marker therefore upgraded from a build before this feature.</li>
+    <li><strong>Release id:</strong> the native version is always <code>1.0.0</code> and <code>BUILD_SHA</code> changes every build. Notes are therefore keyed by the release tag (<code>v0.10.0</code>…), and the bundled list is the only version source the card needs.</li>
+    <li><strong>Copy inventory:</strong> <code>test/brand-voice.test.ts</code> requires every new copy-bearing <code>.tsx</code> to be classified in <code>docs/brand-voice-inventory.json</code>.</li>
+    <li><strong>Owner decisions, 2026-10-07:</strong> quiet card in the flow (not a sheet or modal); history under Knot › More › About; Claude drafts each release's 1–3 lines and the owner edits them in review.</li>
+  </ul>
+  <h3>Documentation effects</h3>
+  <ul>
+    <li><code>AGENTS.md</code>: the release paragraph (~L37) gains the rule "a user-facing tag ships a What's new entry".</li>
+    <li><code>docs/brand-voice-inventory.json</code>: two new entries.</li>
+    <li><code>STATUS.md</code>, <code>ROADMAP.md</code> and <code>docs/plans/README.md</code>: updated together when the plan becomes active.</li>
+  </ul>
+</div>
+
+<div id="requirements" class="panel">
+  <h2>Requirements (confirmed)</h2>
+  <h3>User stories</h3>
+  <ol class="requirements">
+    <li>As a reader who has just installed an update with a note, I want a short "New in this update" card above the day's reading, so that I know what changed.</li>
+    <li>As a reader who skipped one or more updates, I want the card to list every note I haven't seen, newest first, so that nothing is lost.</li>
+    <li>As a reader, I want "Got it" to dismiss the card for good, so that it never returns for the same notes.</li>
+    <li>As a reader, I want the card never to cover or delay Scripture, so that the app stays a quiet place to read.</li>
+    <li>As a new reader finishing onboarding, I want no What's new card, so that my first day isn't about changes I never saw.</li>
+    <li>As a reader upgrading from a build before this feature, I want to see only the newest note, so that I'm not shown a backlog.</li>
+    <li>As a reader who has unravelled (account reset), I want to be treated as new, so that the card doesn't appear after re-onboarding.</li>
+    <li>As a reader, I want every past note under Knot › More › About › What's new, newest first, so that I can re-read a note I dismissed.</li>
+    <li>As a reader using a screen reader, I want the card announced politely, with a labelled 44pt dismiss button, so that it's as reachable as the study hint.</li>
+    <li>As a reader with large system text, I want the card's lines to wrap without clipping.</li>
+    <li>As a reader on an update with no new note (fixes only), I want no card.</li>
+    <li>As a reader, I want the What's new card and the study hint never to show together, so that the top of the page holds at most one card. What's new takes priority, and the study hint shows on a later sitting.</li>
+    <li>As the owner, I want a test to fail if a release entry is malformed (duplicate id, not ordered newest first, empty or more than 3 lines, a line over 120 characters), so that a bad entry can't ship.</li>
+  </ol>
+  <h3>Out of Scope</h3>
+  <ul class="requirements">
+    <li><strong>Matching the note to the installed native version.</strong> The bundled list is the source of truth, and a dev build simply shows whatever is bundled.</li>
+    <li><strong>Notes for releases before this feature (v0.6–v0.9).</strong> The first entry is the release that ships this. Backfilling would only be seen in the knot history, and the owner can add old entries later.</li>
+    <li><strong>Event-log rows for card views or dismissals.</strong> This would add data and analytics surface for no research question.</li>
+    <li><strong>Animation.</strong> The study hint has none, and this card matches it.</li>
+  </ul>
+  <h3>Testing Decisions</h3>
+  <ul class="requirements">
+    <li><strong>The seam is a pure function,</strong> <code>unseenReleases(releases, seenId)</code>, in <code>src/whatsNew/index.ts</code>. Cases:
+      <ul>
+        <li><code>seenId</code> null → newest only (story 6);</li>
+        <li><code>seenId</code> equal to the newest → none (stories 3 and 11);</li>
+        <li><code>seenId</code> older → every newer entry, newest first (story 2);</li>
+        <li>an unknown <code>seenId</code> → newest only;</li>
+        <li>an empty list → none.</li>
+      </ul>
+    </li>
+    <li><strong>Data invariants</strong> on the bundled <code>RELEASES</code> (story 13): unique ids, <code>vX.Y.Z</code> format, strictly descending by semver, 1–3 lines, each line 120 characters or less.</li>
+    <li><strong>Closest prior art:</strong> <code>test/year-review.test.ts</code> (a one-shot meta flag decision) and pure-module tests like <code>test/dismissalReadiness.test.ts</code>.</li>
+    <li><strong><code>test/brand-voice.test.ts</code></strong> already guards that the new <code>.tsx</code> files are classified.</li>
+    <li><strong>Not unit-tested:</strong> component rendering. The suite has no RN renderer, a known gap noted in <code>STATUS.md</code>. Placement in <code>Flow</code> and the knot row are checked on the dev client.</li>
+  </ul>
+</div>
+
+<div id="aesthetics" class="panel">
+  <h2>Aesthetics</h2>
+  <h3>Current-surface extraction</h3>
+  <table class="evidence-table">
+    <thead><tr><th>Layer</th><th>Current measured values/patterns</th><th>Source</th><th>Keep/change and why</th></tr></thead>
+    <tbody>
+      <tr><td>Tokens</td><td><code>ink15 #E0DACB</code> background, <code>ink60 #5B584F</code> text, <code>thread</code> for the dismiss label, <code>control.minTarget 44</code></td><td><code>src/ui/tokens.ts</code>; <code>src/flow/StudyHint.tsx</code> styles</td><td>Keep. The card is the study hint's sibling.</td></tr>
+      <tr><td>Typography</td><td><code>font.display</code> (Schibsted Grotesk) 13 body; dismiss 13/700. Heading: same family 13/700 <code>ink60</code>. Knot group label: <code>font.mono</code> 11, letterSpacing 1.5, uppercase, <code>ink40</code>.</td><td><code>StudyHint.tsx</code>; <code>MoreSection.tsx</code> <code>groupLabel</code></td><td>Keep. Add one 13/700 heading line ("New in this update") and no new sizes.</td></tr>
+      <tr><td>Spacing and layout</td><td>marginHorizontal 32, marginBottom 12, padding 10×14, gap 12, row layout</td><td><code>StudyHint.tsx</code> <code>wrap</code></td><td>Change to a column: heading, then up to 3 bullet lines, then "Got it" right-aligned. Same margins and padding.</td></tr>
+      <tr><td>Color and semantics</td><td>Neutral paper-on-rule tint, with no accent beyond the <code>thread</code> link colour</td><td><code>StudyHint.tsx</code></td><td>Keep. A note is information, not an alert, so no warning colour and no "Needs attention" dot.</td></tr>
+      <tr><td>Components and states</td><td>Pressable dismiss with a pressed opacity of 0.7 and <code>hitSlop</code> 8; knot <code>DisclosureSection nested</code> rows</td><td><code>StudyHint.tsx</code>; <code>MoreSection.tsx</code></td><td>Keep both patterns. History is a <code>DisclosureSection</code> listing release id (mono, <code>ink40</code>) over its lines.</td></tr>
+      <tr><td>Atmosphere and depth</td><td>Flat: no shadow, radius 10</td><td><code>StudyHint.tsx</code></td><td>Keep flat. Elevation would make it read as a popup over Scripture.</td></tr>
+      <tr><td>Motion and interaction</td><td>None. It appears and disappears instantly. <code>accessibilityLiveRegion="polite"</code>.</td><td><code>StudyHint.tsx</code></td><td>Keep. Reduced motion is satisfied trivially.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Intent:</strong> an extension of an existing pattern, not a new one. It should feel like a margin note left by the binder, read once and put away. <strong>Hygiene:</strong> only the tokens above. <strong>Details:</strong> pressed opacity 0.7; no loading state, because the data is bundled; the empty state renders nothing; entry and exit are instant; there's no error state, because a missing or unknown marker falls back to the newest entry only; lines wrap at large font scale; the card sits in the scroll content, so it never overlaps the seal.</p>
+  <h3>Mockups</h3>
+  <div class="mockup-grid">
+    <div class="mockup-card chosen"><h3>Quiet card in the flow</h3><p>The study-hint card, extended to a column with a heading and up to three lines, placed where the study hint sits above <code>ScriptureZone</code>. The owner chose it on 2026-10-07 over a bottom sheet and a centred modal, which were shown as ASCII previews in chat.</p></div>
+  </div>
+  <p class="note">Chosen direction: <strong>Quiet card in the flow</strong>. No HTML mockup was needed: the direction is a measured extension of <code>StudyHint</code>, and its only new element is a heading line in an existing type size.</p>
+</div>
+
+<div id="execution" class="panel">
+  <h2>Execution</h2>
+  <p><strong>Grade C2:</strong> 10 files is the C3 boundary by count. But 2 of them are documentation and inventory, there's one shared data module, no new cross-layer state (one <code>meta</code> key in an existing table), no protected mechanism, and 2 serial slices. Risk doesn't justify C3 depth.</p>
+  <p>The authoritative file recipes, commands, branching and rollback are in <a href="exec.md">exec.md</a>. Live status is recorded only in <a href="PROGRESS.md">PROGRESS.md</a>.</p>
+  <p><strong>S01</strong> adds the release list, the unseen logic and its tests, the flow card, and the onboarding marker. <strong>S02</strong> adds the knot history row, the copy inventory and the <code>AGENTS.md</code> release rule. Each slice is one commit on <code>feat/whats-new</code>, delivered as one PR.</p>
+</div>
+
+<div id="verify" class="panel">
+  <h2>Verification</h2>
+  <p><strong>Gate:</strong> <code>npx vitest run test/whatsNew.test.ts test/brand-voice.test.ts</code>, then <code>npm test</code> and <code>npm run typecheck</code>, then CI's APK build.</p>
+  <p><strong>Owner spot-check (optional, on the dev client):</strong></p>
+  <ul class="checklist">
+    <li><input type=checkbox><span>Open the app on the existing install → the card shows the newest note above the reading; "Got it" removes it and it stays gone after relaunch.</span></li>
+    <li><input type=checkbox><span>Knot › More › About › What's new → every note is listed, newest first.</span></li>
+    <li><input type=checkbox><span>The card and the study hint never appear together.</span></li>
+  </ul>
+</div>
+
+<script>
+function show(id){
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+}
+// Persist checklist state per plan file
+const KEY = 'plan-checks-' + location.pathname;
+document.querySelectorAll('.checklist input[type=checkbox]').forEach((cb, i) => {
+  cb.checked = localStorage.getItem(KEY + i) === '1';
+  cb.addEventListener('change', () => localStorage.setItem(KEY + i, cb.checked ? '1' : '0'));
+});
+</script>
+</body>
+</html>
