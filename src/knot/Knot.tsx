@@ -25,6 +25,8 @@ import { computeStreak, meta } from '../log/log';
 import { logicalToday } from '../log/time';
 import type { Services } from '../services';
 import { useMemoryEpoch } from '../state/memoryEpoch';
+import { useSealRehearsal } from '../state/sealRehearsal';
+import { ActionButton } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 import { ChapterStrip } from './ChapterStrip';
 import { ChapterViewer } from './ChapterViewer';
@@ -65,6 +67,7 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
   const cueState = useCue(cue);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [memoryOpen, setMemoryOpen] = useState(false);
+  const rehearsalPhase = useSealRehearsal((st) => st.phase);
   const [viewingEntry, setViewingEntry] = useState<HistoryEntry | null>(null);
   const [paused, setPaused] = useState(() => meta.get(db, 'paused') === '1');
 
@@ -291,6 +294,26 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
                   onScrollLock={(locked) => setScrollEnabled(!locked)}
                 />
               </DisclosureSection>
+
+              {/* Dev builds only: re-watch the seal's hold, animation and art
+                  without sealing anything (src/state/sealRehearsal.ts). */}
+              {__DEV__ && (
+                <View style={styles.devRow}>
+                  <ActionButton
+                    label={rehearsalPhase === 'off' ? 'Replay the seal (dev)' : 'Stop replaying the seal (dev)'}
+                    variant="quiet"
+                    accessibilityHint="Shows today's seal unsealed so the hold can be watched again. Nothing is saved."
+                    onPress={() => {
+                      if (rehearsalPhase === 'off') {
+                        useSealRehearsal.getState().start();
+                        handleClose();
+                      } else {
+                        useSealRehearsal.getState().stop();
+                      }
+                    }}
+                  />
+                </View>
+              )}
             </ScrollView>
 
             {/* Siblings of the ScrollView, not children of it — rendered inside the
@@ -324,6 +347,12 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
 }
 
 const styles = StyleSheet.create({
+  devRow: {
+    borderTopWidth: 1,
+    borderTopColor: tokens.color.ink15,
+    paddingTop: 12,
+    alignItems: 'flex-start',
+  },
   button: {
     position: 'absolute',
     // top/right are overridden inline with insets.top/insets.right added in

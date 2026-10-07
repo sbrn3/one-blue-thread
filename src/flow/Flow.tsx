@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
+  useAnimatedRef,
   runOnJS,
   useAnimatedScrollHandler,
   useReducedMotion,
@@ -20,6 +21,7 @@ import { buildYearReview, isYearReviewDue, type YearReviewReport } from '../lab/
 import { computeStreak, meta } from '../log/log';
 import type { Services } from '../services';
 import { useMemoryEpoch } from '../state/memoryEpoch';
+import { useSealRehearsal } from '../state/sealRehearsal';
 import { useSession } from '../state/session';
 import { logicalToday } from '../log/time';
 import type { Grade, Passage } from '../log/types';
@@ -66,6 +68,7 @@ export function Flow({ services }: FlowProps) {
   const scriptureTop = useSharedValue(0);
   const scriptureBottom = useSharedValue(0);
   const sealLineY = useSharedValue(-1);
+  const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const readingStartFired = useSharedValue(false);
   const scrollEndFired = useSharedValue(false);
 
@@ -270,6 +273,20 @@ export function Flow({ services }: FlowProps) {
       refreshBolt();
     });
   }, [session, db, log, text, today, refreshBolt, readingStartFired, scrollEndFired, notifier]);
+
+  // Dev builds only — "Replay the seal" (knot). The seal and rail show their
+  // unsealed look; a completed hold finishes the rehearsal instead of sealing,
+  // and a released hold logs nothing. Everything else reads the real day.
+  const rehearsal = useSealRehearsal((st) => st.phase);
+  const rehearsing = __DEV__ && rehearsal !== 'off';
+  const sealShown = rehearsing ? rehearsal === 'sealed' : session.sealedToday;
+  useEffect(() => {
+    if (!rehearsing || rehearsal !== 'ready') return;
+    // Bring the seal line into view to rehearse on.
+    const y = Math.max(0, sealLineY.value - layoutHeight.value / 2);
+    scrollRef.current?.scrollTo({ y, animated: true });
+  }, [rehearsing, rehearsal, sealLineY, layoutHeight, scrollRef]);
+  useEffect(() => () => useSealRehearsal.getState().stop(), []);
 
   const handleHoldCancel = useCallback(() => {
     log.write({ type: 'hold_cancel', book: session.book, chapter: session.chapter, sitting: session.sittingIndex });
@@ -602,10 +619,11 @@ export function Flow({ services }: FlowProps) {
         railHeight={railHeight}
         sealLineY={sealLineY}
         viewportTop={insets.top}
-        sealed={session.sealedToday}
+        sealed={sealShown}
         reducedMotion={reducedMotion}
       />
       <Animated.ScrollView
+        ref={scrollRef}
         style={styles.scroll}
         onScroll={onScroll}
         scrollEventThrottle={16}
@@ -675,13 +693,13 @@ export function Flow({ services }: FlowProps) {
           terms={visibleTermCues(termCues, rangeAnchor)}
         />
         <SealZone
-          sealed={session.sealedToday}
+          sealed={sealShown}
           reducedMotion={reducedMotion}
-          onSeal={handleSeal}
-          onHoldCancel={handleHoldCancel}
+          onSeal={rehearsing ? useSealRehearsal.getState().finish : handleSeal}
+          onHoldCancel={rehearsing ? () => undefined : handleHoldCancel}
           onScrollLock={(locked) => setScrollEnabled(!locked)}
           sealMode={sealMode}
-          canSeal={canSeal}
+          canSeal={rehearsing || canSeal}
           floor={floor}
           dayLabel={showDayCount ? session.daysInBook : null}
           onLineLayout={(y) => {
