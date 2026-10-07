@@ -115,10 +115,11 @@ describe('Memory (§13.3 /src/memory, §21)', () => {
   });
 
   it('promote() refuses an unknown id and a range already being learned', () => {
-    const { memory } = setup();
+    const { db, memory } = setup();
     expect(memory.promote(999, '2026-07-14')).toEqual({ ok: false, reason: 'missing' });
     expect(memory.add({ book: 'john', chapter: 3, verseStart: 16, verseEnd: 17 }, '2026-07-14').ok).toBe(true);
-    memory.markCandidate({ book: 'john', chapter: 3, verseStart: 16, verseEnd: 17 }, () => 5);
+    // A mark of the same range left over from before markCandidate refused it.
+    db.run("INSERT INTO passages (book, chapter, verse_start, verse_end, marked_at, box) VALUES ('john', 3, 16, 17, 5, 1)");
     const [mark] = memory.candidates('john');
     expect(memory.promote(mark.id, '2026-07-14')).toEqual({ ok: false, reason: 'duplicate' });
     expect(memory.learned()).toHaveLength(1);
@@ -246,6 +247,36 @@ describe('Memory (§13.3 /src/memory, §21)', () => {
     }
 
     expect(JSON.stringify(run('held'))).toBe(JSON.stringify(run('lost')));
+  });
+
+  describe('marked list repair (fix/marked-list)', () => {
+    const insertMark = (db: ReturnType<typeof setup>['db'], book: string, ch: number, a: number, b: number, at: number) =>
+      db.run('INSERT INTO passages (book, chapter, verse_start, verse_end, marked_at, box) VALUES (?, ?, ?, ?, ?, 1)', [book, ch, a, b, at]);
+
+    it('tidyMarks() keeps the earliest of identical marks and drops marks of a learned range', () => {
+      const { db, memory } = setup();
+      insertMark(db, 'john', 3, 16, 16, 1); // the kept copy
+      insertMark(db, 'john', 3, 16, 16, 2); // July re-tap copies
+      insertMark(db, 'john', 3, 16, 16, 3);
+      insertMark(db, 'john', 3, 16, 17, 4); // overlapping, not identical — kept
+      insertMark(db, 'psalms', 23, 1, 1, 5);
+      memory.add({ book: 'psalms', chapter: 23, verseStart: 1, verseEnd: 1 }, '2026-07-14'); // now learned
+      expect(memory.tidyMarks()).toBe(3);
+      expect(memory.marked().map((p) => `${p.book} ${p.chapter}:${p.verse_start}-${p.verse_end}@${p.marked_at}`).sort()).toEqual([
+        'john 3:16-16@1',
+        'john 3:16-17@4',
+      ]);
+      expect(memory.learned()).toHaveLength(1);
+      expect(memory.tidyMarks()).toBe(0); // idempotent
+    });
+
+    it('markCandidate() does not mark a range that is already being learned', () => {
+      const { db, memory } = setup();
+      memory.add({ book: 'john', chapter: 3, verseStart: 16, verseEnd: 17 }, '2026-07-14');
+      memory.markCandidate({ book: 'john', chapter: 3, verseStart: 16, verseEnd: 17 }, () => 9);
+      expect(memory.marked()).toHaveLength(0);
+      expect(db.all("SELECT * FROM events WHERE type = 'candidate_marked'")).toHaveLength(0);
+    });
   });
 
   describe('memory library (recall-settings)', () => {
