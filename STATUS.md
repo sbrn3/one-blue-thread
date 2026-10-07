@@ -159,9 +159,9 @@ all three bundled typefaces, and sat idle instead of pinning a core.
       2s bound. That guards this bug class, not the gap itself - nothing still
       renders `Flow`. The obvious route to a renderer adds `react-native-web`;
       with Apple support parked, that dependency choice is this item's own.
-- [ ] Install the dev-client APK (`Dev client APK` workflow) to retire the
-      ~20-minute build loop for JS-only changes. Note it needs Metro running to
-      start at all, so do not leave it as the only build on the phone.
+- [x] Install the dev-client APK. Done 2026-10-01 and confirmed over adb on
+      2026-10-07 (`DEBUGGABLE` plus the dev launcher). How to check it and how
+      to serve it a bundle is in `AGENTS.md` → "The owner's phone".
 - [ ] One Blue Thread: cultural content review of the origin context line by
       someone competent in Jewish biblical practice. Ticket 0 is otherwise
       closed - no domain will be registered, and the repo is now
