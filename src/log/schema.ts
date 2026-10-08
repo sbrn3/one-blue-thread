@@ -272,8 +272,30 @@ const V12: string[] = [
 // marks. Additive.
 const V13: string[] = [`ALTER TABLE passages ADD COLUMN source TEXT`];
 
+// v14 — bibleproject-book-videos: headnotes, one optional line per day in
+// the reader's own words. Deliberately NOT in the event log and deliberately
+// mutable (edit, delete): they are the reader's words, not evidence (JOURNAL
+// Decision 2026-10-07). Keyed to the seal they follow, so a reading of a book
+// is reconstructible from events ids. Nothing in /src/lab reads them.
+// Additive; `events` is untouched.
+const V14: string[] = [
+  `CREATE TABLE IF NOT EXISTS headnotes (
+    local_date TEXT PRIMARY KEY,
+    seal_event_id INTEGER NOT NULL,
+    book TEXT NOT NULL,
+    chapter INTEGER NOT NULL,
+    chapter_end INTEGER,
+    verse_start INTEGER,
+    verse_end INTEGER,
+    text TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_headnotes_book ON headnotes(book, seal_event_id)`,
+];
+
 // Index = schema version - 1. New migrations append; nothing is edited.
-export const MIGRATIONS: string[][] = [V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13];
+export const MIGRATIONS: string[][] = [V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14];
 
 export function migrate(db: SqlDb): void {
   const row = db.get<{ user_version: number }>('PRAGMA user_version');

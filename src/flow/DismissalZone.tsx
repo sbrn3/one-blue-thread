@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { headnoteReference, type Headnote } from '../headnote';
 import type { PendingReport } from '../lab/analysis/report';
 import type { PhaseMetric } from '../lab/analysis/reversal';
 import type { Passage } from '../log/types';
@@ -36,6 +37,11 @@ interface DismissalZoneProps {
   onKeepReport: (expId: string) => void;
   /** §04 zone 5 — see dismissalReadiness.ts. Only once true may "Now close the app" render. */
   terminalReady: boolean;
+  /** Today's seal exists, so a headnote can be offered (docs/plans/bibleproject-book-videos). Optional: it never gates terminalReady. */
+  canWriteHeadnote: boolean;
+  /** Today's headnote, once kept. */
+  headnote: Headnote | null;
+  onWriteHeadnote: () => void;
 }
 
 function reference(book: string, p: Passage): string {
@@ -68,6 +74,9 @@ export function DismissalZone({
   onApplyReport,
   onKeepReport,
   terminalReady,
+  canWriteHeadnote,
+  headnote,
+  onWriteHeadnote,
 }: DismissalZoneProps) {
   const [pending, setPending] = useState<string | null>(null);
   const pct = chapterCount > 0 ? Math.round((chapter / chapterCount) * 100) : 0;
@@ -83,6 +92,22 @@ export function DismissalZone({
         <Text style={styles.progress}>
           {bookName(book)} · {pct}% through
         </Text>
+      )}
+
+      {canWriteHeadnote && !headnote && (
+        <View style={styles.promoteBlock}>
+          <Text style={styles.promoteLabel}>A line for today?</Text>
+          <ActionButton label="Write a headnote" variant="secondary" onPress={onWriteHeadnote} />
+        </View>
+      )}
+      {canWriteHeadnote && headnote && (
+        <View style={styles.headnoteBlock}>
+          <Text style={styles.headnote}>{headnote.text}</Text>
+          <View style={styles.headnoteMeta}>
+            <Text style={styles.headnoteRef}>{headnoteReference(headnote)}</Text>
+            <ActionButton label="Edit" variant="link" onPress={onWriteHeadnote} />
+          </View>
+        </View>
       )}
 
       {justFinishedBook && candidates.length > 0 && !promotionResolved && (
@@ -198,6 +223,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: tokens.color.madder,
   },
+  // Today's headnote: the reader's words in the app's voice (never the
+  // Scripture face), with a madder rule — a mark you made.
+  headnoteBlock: {
+    alignSelf: 'stretch',
+    gap: tokens.space[1],
+    borderLeftWidth: 2,
+    borderLeftColor: tokens.color.madder,
+    paddingLeft: tokens.space[3],
+  },
+  headnote: {
+    fontFamily: tokens.font.display,
+    fontSize: 15,
+    lineHeight: 22,
+    color: tokens.color.ink,
+  },
+  headnoteMeta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  headnoteRef: { fontFamily: tokens.font.mono, fontSize: 12, color: tokens.color.ink40, flexShrink: 1 },
   queueBlock: {
     width: '100%',
     gap: 8,

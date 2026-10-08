@@ -43,6 +43,7 @@ function toRepoPath(file: string): string {
 const INTERACTIVE_CALLER_ALLOWLIST = new Set<string>([
   'src/errors/ErrorBoundary.tsx',
   'src/flow/DismissalZone.tsx',
+  'src/flow/HeadnoteSheet.tsx', // Close sits at tokens.control.minTarget
   'src/flow/ScriptureZone.tsx',
   'src/flow/SealZone.tsx',
   'src/flow/SrbaiZone.tsx',
@@ -71,6 +72,7 @@ const INTERACTIVE_CALLER_ALLOWLIST = new Set<string>([
   'src/study/VerseContextSheet.tsx',
   'src/ui/BookPicker.tsx',
   'src/ui/FeedbackState.tsx',
+  'src/ui/HeadnoteEditor.tsx', // links and Delete at tokens.control.minTarget; the field is multi-line
   'src/ui/KeyGuide.tsx', // the signup link sits at tokens.control.minTarget
   'src/ui/LaunchWeave.tsx',
   'src/ui/OverviewLink.tsx', // each part link sits at tokens.control.minTarget

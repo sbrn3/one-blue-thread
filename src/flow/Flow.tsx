@@ -18,6 +18,7 @@ import { gradeProbe, resolveTodaysProbe, type DailyProbe, type ProbeGrade } from
 import { getProfile } from '../lab/profile';
 import { eyeballDates, isSrbaiDue, saveSrbai, type SrbaiAnswers } from '../lab/srbai';
 import { buildYearReview, isYearReviewDue, type YearReviewReport } from '../lab/analysis/yearReview';
+import { getHeadnote, headnoteRange, latestSeal, removeHeadnote, saveHeadnote, type Headnote } from '../headnote';
 import { computeStreak, meta } from '../log/log';
 import type { Services } from '../services';
 import { useMemoryEpoch } from '../state/memoryEpoch';
@@ -26,6 +27,7 @@ import { useSession } from '../state/session';
 import { logicalToday } from '../log/time';
 import type { Grade, Passage } from '../log/types';
 import { bundledChapterCount } from '../text';
+import { bookName } from '../text/canon';
 import { RELEASES, WHATS_NEW_SEEN_KEY, latestReleaseId, unseenReleases } from '../whatsNew';
 import { ArrivalZone } from './ArrivalZone';
 import { LapseZone } from './LapseZone';
@@ -39,6 +41,7 @@ import { SrbaiZone } from './SrbaiZone';
 import { WeaveZone } from './WeaveZone';
 import { YearReviewZone } from './YearReviewZone';
 import { DismissalZone } from './DismissalZone';
+import { HeadnoteSheet } from './HeadnoteSheet';
 import { ThreadRail } from './ThreadRail';
 import { deriveBolt, type Bolt } from './bolt';
 import { isDismissalReady } from './dismissalReadiness';
@@ -379,6 +382,41 @@ export function Flow({ services }: FlowProps) {
   // docs/plans/recall-settings — the book end is an offer: learn none, one or
   // several, then Done.
   const handleFinishPromotion = useCallback(() => setPromotionResolved(true), []);
+
+  // docs/plans/bibleproject-book-videos — today's headnote, offered after the
+  // seal and never required. Keyed on the seal event itself (its own
+  // local_date and passage), never on this screen's mount-time `today` or on
+  // the session's book/chapter, which a restart has already moved on. Nothing
+  // here logs, and saving never reloads the session.
+  const headnoteSeal = useMemo(
+    () => (session.sealedToday && !rehearsing ? latestSeal(db) : null),
+    [session.sealedToday, rehearsing, db],
+  );
+  const [headnote, setHeadnote] = useState<Headnote | null>(null);
+  const [headnoteOpen, setHeadnoteOpen] = useState(false);
+  useEffect(() => {
+    setHeadnote(headnoteSeal ? getHeadnote(db, headnoteSeal.localDate) : null);
+  }, [headnoteSeal, db]);
+  // The merged-forward chapter span is only known in the sealing session,
+  // while the session still holds the sealed portion.
+  const headnoteChapterEnd =
+    headnoteSeal && session.book === headnoteSeal.book && session.chapter === headnoteSeal.chapter
+      ? session.portionChapters[session.portionChapters.length - 1] ?? null
+      : null;
+  const handleSaveHeadnote = useCallback(
+    (text: string) => {
+      if (!headnoteSeal) return;
+      setHeadnote(saveHeadnote(db, { seal: headnoteSeal, text, chapterEnd: headnoteChapterEnd }));
+      setHeadnoteOpen(false);
+    },
+    [db, headnoteSeal, headnoteChapterEnd],
+  );
+  const handleDeleteHeadnote = useCallback(() => {
+    if (!headnoteSeal) return;
+    removeHeadnote(db, headnoteSeal.localDate);
+    setHeadnote(null);
+    setHeadnoteOpen(false);
+  }, [db, headnoteSeal]);
 
   const refreshChapterCandidates = useCallback(() => {
     setChapterCandidates(memory.candidatesForChapter(session.book, session.chapter));
@@ -741,10 +779,31 @@ export function Flow({ services }: FlowProps) {
                 hasPromotionChoice: session.justFinishedBook !== null && candidates.length > 0,
                 promotionResolved,
               })}
+              canWriteHeadnote={headnoteSeal !== null}
+              headnote={headnote}
+              onWriteHeadnote={() => setHeadnoteOpen(true)}
             />
           </>
         )}
       </Animated.ScrollView>
+      {headnoteSeal && (
+        <HeadnoteSheet
+          visible={headnoteOpen}
+          heading={`${bookName(headnoteSeal.book)} ${headnoteSeal.chapter}`}
+          passageLabel={`About: ${headnoteRange(
+            headnote ?? {
+              chapter: headnoteSeal.chapter,
+              chapterEnd: headnoteChapterEnd,
+              verseStart: headnoteSeal.verseFirst,
+              verseEnd: headnoteSeal.verseLast,
+            },
+          )}`}
+          initialText={headnote?.text ?? ''}
+          onSave={handleSaveHeadnote}
+          onDelete={headnote ? handleDeleteHeadnote : undefined}
+          onClose={() => setHeadnoteOpen(false)}
+        />
+      )}
       <VerseContextSheet
         verse={contextTarget}
         resources={contextResources}

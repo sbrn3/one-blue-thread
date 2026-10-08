@@ -19,6 +19,7 @@ export const BACKUP_TABLES = [
   'probes',
   'profile',
   'meta',
+  'headnotes',
 ] as const;
 
 export interface BackupDump {
