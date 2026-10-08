@@ -73,6 +73,7 @@ const INTERACTIVE_CALLER_ALLOWLIST = new Set<string>([
   'src/ui/FeedbackState.tsx',
   'src/ui/KeyGuide.tsx', // the signup link sits at tokens.control.minTarget
   'src/ui/LaunchWeave.tsx',
+  'src/ui/OverviewLink.tsx', // each part link sits at tokens.control.minTarget
   'src/ui/controls.tsx',
 ]);
 

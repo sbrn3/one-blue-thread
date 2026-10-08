@@ -50,7 +50,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "build:tyndale": "node scripts/build-tyndale.mjs",
-    "check:tyndale": "node scripts/check-tyndale.mjs"
+    "check:tyndale": "node scripts/check-tyndale.mjs",
+    "check:overviews": "node scripts/check-overviews.mjs"
   },
   "private": true
 }

@@ -6,6 +6,7 @@ import type { Passage } from '../log/types';
 import { bookName } from '../text/canon';
 import { BookPicker } from '../ui/BookPicker';
 import { ActionButton } from '../ui/controls';
+import { OverviewLink } from '../ui/OverviewLink';
 import { tokens } from '../ui/tokens';
 import { ReportPrompt } from './ReportPrompt';
 
@@ -74,7 +75,10 @@ export function DismissalZone({
   return (
     <View style={styles.zone}>
       {justFinishedBook ? (
-        <Text style={styles.finished}>You finished {bookName(justFinishedBook)}.</Text>
+        <>
+          <Text style={styles.finished}>You finished {bookName(justFinishedBook)}.</Text>
+          <OverviewLink book={justFinishedBook} lead="And now," />
+        </>
       ) : (
         <Text style={styles.progress}>
           {bookName(book)} · {pct}% through
