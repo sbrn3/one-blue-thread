@@ -5,6 +5,7 @@ import {
   getHeadnote,
   headnoteRange,
   headnoteReference,
+  contentsFor,
   latestSeal,
   removeHeadnote,
   saveHeadnote,
@@ -146,5 +147,85 @@ describe('saving a headnote', () => {
     delete old.tables.headnotes;
     restoreDump(db, old);
     expect(db.all('SELECT * FROM headnotes')).toHaveLength(0);
+  });
+});
+
+describe('contents (a book read back through its headnotes)', () => {
+  // Seal a chapter on a date, optionally keeping a headnote for it.
+  function day(db: SqlDb, date: string, book: string, chapter: number, words?: string) {
+    event(db, { type: 'seal', date, book, chapter, first: 1, last: 10 });
+    if (words) saveHeadnote(db, { seal: latestSeal(db)!, text: words });
+  }
+
+  it('runs in book order, with chapters that have no headnote collapsed into bare runs', () => {
+    const db = fresh();
+    event(db, { type: 'book_start', date: '2026-10-01', book: 'philippians', chapter: 1 });
+    day(db, '2026-10-01', 'philippians', 1, 'Both outcomes');
+    day(db, '2026-10-02', 'philippians', 2);
+    day(db, '2026-10-03', 'philippians', 3);
+    day(db, '2026-10-04', 'philippians', 4, 'After the asking');
+    const [reading] = contentsFor(db, 'philippians');
+    expect(reading.startedOn).toBe('2026-10-01');
+    expect(reading.rows.map((r) => (r.kind === 'bare' ? `bare ${r.from}-${r.to}` : `${r.chapter} ${r.headnote.text}`))).toEqual([
+      '1 Both outcomes',
+      'bare 2-3',
+      '4 After the asking',
+    ]);
+  });
+
+  it('a reading in progress stops at its furthest sealed chapter', () => {
+    const db = fresh();
+    event(db, { type: 'book_start', date: '2026-10-01', book: 'psalms', chapter: 1 });
+    day(db, '2026-10-01', 'psalms', 1, 'Two ways');
+    day(db, '2026-10-02', 'psalms', 2);
+    const [reading] = contentsFor(db, 'psalms');
+    expect(reading.finished).toBe(false);
+    expect(reading.rows.at(-1)).toEqual({ kind: 'bare', from: 2, to: 2 });
+  });
+
+  it('keeps each reading apart, newest first', () => {
+    const db = fresh();
+    event(db, { type: 'book_start', date: '2025-03-01', book: 'jude', chapter: 1 });
+    day(db, '2025-03-01', 'jude', 1, 'First time');
+    event(db, { type: 'book_finish', date: '2025-03-01', book: 'jude', chapter: 1 });
+    event(db, { type: 'book_start', date: '2026-10-01', book: 'jude', chapter: 1 });
+    day(db, '2026-10-01', 'jude', 1, 'Second time');
+    const readings = contentsFor(db, 'jude');
+    expect(readings.map((r) => r.startedOn)).toEqual(['2026-10-01', '2025-03-01']);
+    expect(readings[1].finished).toBe(true);
+    expect(readings.map((r) => (r.rows[0].kind === 'headnote' ? r.rows[0].headnote.text : ''))).toEqual(['Second time', 'First time']);
+  });
+
+  it("a finish-day re-read of the same book keeps that day's headnote in the finished reading", () => {
+    const db = fresh();
+    event(db, { type: 'book_start', date: '2026-10-01', book: 'jude', chapter: 1 });
+    // Sealing the last chapter logs seal, book_finish, then the next reading's book_start — same book, same date.
+    event(db, { type: 'seal', date: '2026-10-01', book: 'jude', chapter: 1, first: 1, last: 25 });
+    const seal = latestSeal(db)!;
+    event(db, { type: 'book_finish', date: '2026-10-01', book: 'jude', chapter: 1 });
+    event(db, { type: 'book_start', date: '2026-10-01', book: 'jude', chapter: 1 });
+    saveHeadnote(db, { seal, text: 'Kept on the finishing day' });
+    const readings = contentsFor(db, 'jude');
+    expect(readings).toHaveLength(1); // the new reading has sealed nothing yet
+    expect(readings[0].finished).toBe(true);
+    expect(readings[0].rows).toEqual([{ kind: 'headnote', chapter: 1, headnote: getHeadnote(db, '2026-10-01') }]);
+  });
+
+  it('a merged-forward headnote covers its whole span, so nothing inside it shows as bare', () => {
+    const db = fresh();
+    event(db, { type: 'book_start', date: '2026-10-01', book: 'psalms', chapter: 117 });
+    event(db, { type: 'seal', date: '2026-10-01', book: 'psalms', chapter: 117, first: 1, last: 2 });
+    saveHeadnote(db, { seal: latestSeal(db)!, text: 'Short psalms', chapterEnd: 118 });
+    const rows = contentsFor(db, 'psalms')[0].rows;
+    expect(rows.filter((r) => r.kind === 'bare')).toEqual([{ kind: 'bare', from: 1, to: 116 }]);
+  });
+
+  it('a restored backup gives the same contents (event ids survive the dump)', () => {
+    const db = fresh();
+    event(db, { type: 'book_start', date: '2026-10-01', book: 'jude', chapter: 1 });
+    day(db, '2026-10-01', 'jude', 1, 'Contend');
+    const restored = fresh();
+    restoreDump(restored, buildDump(db));
+    expect(contentsFor(restored, 'jude')).toEqual(contentsFor(db, 'jude'));
   });
 });

@@ -6,6 +6,8 @@ export interface HistoryEntry {
   book: string;
   chapter: number;
   sitting: number | null;
+  /** Verses to highlight when the chapter viewer opens (a headnote's narrowed range). */
+  highlight?: { start: number; end: number };
 }
 
 export interface HistoryPage {

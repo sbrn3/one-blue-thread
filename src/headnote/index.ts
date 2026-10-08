@@ -166,3 +166,107 @@ export function headnoteRange(h: Pick<Headnote, 'chapter' | 'chapterEnd' | 'vers
 export function headnoteReference(h: Pick<Headnote, 'book' | 'chapter' | 'chapterEnd' | 'verseStart' | 'verseEnd'>): string {
   return `${bookName(h.book)} ${headnoteRange(h)}`;
 }
+
+// ---- Contents: a book's headnotes read back as its contents page ----
+
+/** One row of a contents page, in the book's own chapter order. */
+export type ContentsRow =
+  | { kind: 'headnote'; chapter: number; headnote: Headnote }
+  /** A run of chapters with no headnote, collapsed into one row ("3–17"). */
+  | { kind: 'bare'; from: number; to: number };
+
+/** One reading of a book: from a book_start to the next start of the same book. */
+export interface Reading {
+  /** local_date of the book_start that began it; for headnotes older than any start, their first date. */
+  startedOn: string;
+  /** True once the reading reached a book_finish. */
+  finished: boolean;
+  rows: ContentsRow[];
+  /** False when the reading has no headnotes at all. */
+  hasHeadnotes: boolean;
+}
+
+interface MarkerRow {
+  id: number;
+  local_date: string;
+  type: string;
+  chapter: number | null;
+}
+
+/**
+ * Every reading of `book`, newest first, each as its contents. A headnote
+ * belongs to the latest `book_start` of its book whose events id is below its
+ * seal's id — not to a date, because the day a book is finished also logs the
+ * next reading's start, which may be the same book again. Rows run from
+ * chapter 1 to the furthest chapter sealed in that reading; chapters with no
+ * headnote collapse into bare runs. Readings with nothing sealed are omitted.
+ */
+export function contentsFor(db: SqlDb, book: string): Reading[] {
+  const markers = db.all<MarkerRow>(
+    `SELECT id, local_date, type, chapter FROM events
+      WHERE book = ? AND type IN ('book_start', 'book_finish', 'seal')
+      ORDER BY id`,
+    [book],
+  );
+  const notes = db
+    .all<HeadnoteRow>(`SELECT * FROM headnotes WHERE book = ? ORDER BY seal_event_id, local_date`, [book])
+    .map(fromRow);
+
+  interface Draft {
+    startId: number;
+    startedOn: string | null;
+    finished: boolean;
+    furthest: number;
+    notes: Headnote[];
+  }
+  // A leading draft collects anything older than the first recorded start.
+  const drafts: Draft[] = [{ startId: -Infinity, startedOn: null, finished: false, furthest: 0, notes: [] }];
+  for (const m of markers) {
+    const current = drafts[drafts.length - 1];
+    if (m.type === 'book_start') drafts.push({ startId: m.id, startedOn: m.local_date, finished: false, furthest: 0, notes: [] });
+    else if (m.type === 'book_finish') current.finished = true;
+    else if (m.chapter != null) current.furthest = Math.max(current.furthest, m.chapter);
+  }
+  for (const n of notes) {
+    let owner = drafts[0];
+    for (const d of drafts) if (d.startId < n.sealEventId) owner = d;
+    owner.notes.push(n);
+    owner.furthest = Math.max(owner.furthest, n.chapterEnd ?? n.chapter);
+  }
+
+  return drafts
+    .filter((d) => d.furthest > 0)
+    .map((d) => ({
+      startedOn: d.startedOn ?? d.notes[0]?.localDate ?? '',
+      finished: d.finished,
+      rows: rowsFor(d.furthest, d.notes),
+      hasHeadnotes: d.notes.length > 0,
+    }))
+    .reverse();
+}
+
+function rowsFor(furthest: number, notes: Headnote[]): ContentsRow[] {
+  const byChapter = new Map<number, Headnote[]>();
+  const covered = new Set<number>();
+  for (const n of notes) {
+    byChapter.set(n.chapter, [...(byChapter.get(n.chapter) ?? []), n]);
+    for (let c = n.chapter; c <= (n.chapterEnd ?? n.chapter); c++) covered.add(c);
+  }
+  const rows: ContentsRow[] = [];
+  let bareFrom: number | null = null;
+  const closeBare = (to: number) => {
+    if (bareFrom !== null) rows.push({ kind: 'bare', from: bareFrom, to });
+    bareFrom = null;
+  };
+  for (let c = 1; c <= furthest; c++) {
+    const here = byChapter.get(c);
+    if (here) {
+      closeBare(c - 1);
+      for (const h of here) rows.push({ kind: 'headnote', chapter: c, headnote: h });
+    } else if (!covered.has(c)) {
+      if (bareFrom === null) bareFrom = c;
+    }
+  }
+  closeBare(furthest);
+  return rows;
+}

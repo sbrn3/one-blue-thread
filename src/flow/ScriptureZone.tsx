@@ -16,6 +16,8 @@ interface ScriptureZoneProps {
   selectionAnchor?: number | null;
   terms?: TermCue[];
   remembered?: Passage[];
+  /** Verses to highlight like a remembered passage — a headnote's range in the chapter viewer. */
+  highlight?: { start: number; end: number };
 }
 
 export interface ScriptureZoneHandle { focusVerse:(verse:number)=>void }
@@ -31,6 +33,7 @@ export const ScriptureZone = forwardRef<ScriptureZoneHandle,ScriptureZoneProps>(
   selectionAnchor = null,
   terms = [],
   remembered = [],
+  highlight,
 }, ref) {
   const verseRefs=useRef(new Map<number,View>());
   useImperativeHandle(ref,()=>({focusVerse:(verse)=>{const handle=findNodeHandle(verseRefs.current.get(verse)??null);if(handle)AccessibilityInfo.setAccessibilityFocus(handle);}}),[]);
@@ -82,9 +85,9 @@ export const ScriptureZone = forwardRef<ScriptureZoneHandle,ScriptureZoneProps>(
       ) : null}
 
       {verses.map((verse) => {
-        const marked = remembered.some(
-          (passage) => verse.verse >= passage.verse_start && verse.verse <= passage.verse_end,
-        );
+        const marked =
+          remembered.some((passage) => verse.verse >= passage.verse_start && verse.verse <= passage.verse_end) ||
+          (highlight !== undefined && verse.verse >= highlight.start && verse.verse <= highlight.end);
         const selecting = selectionAnchor !== null && onSelectEndpoint;
         return (
           <Pressable
