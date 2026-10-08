@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, findNodeHandle, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, ActivityIndicator, findNodeHandle, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScriptureZone } from '../flow/ScriptureZone';
-import { getHeadnote, headnoteRange, removeHeadnote, saveHeadnote, type Headnote } from '../headnote';
+import { getHeadnote, headnoteRange, removeHeadnote, saveHeadnote, sealById, type Headnote, type SealRef } from '../headnote';
 import type { SqlDb } from '../log/db';
 import type { HistoryEntry } from './history';
 import type { TextProvider, Verse } from '../text/provider';
@@ -42,22 +42,47 @@ export function ChapterViewer({ entry, text, db, reducedMotion, onClose }: Chapt
   // ScrollView); the words typed so far are kept here across the swap.
   const [picking, setPicking] = useState(false);
   const [draft, setDraft] = useState<string | null>(null);
+  // A chosen range waits for "Keep it", as in the reading flow's sheet:
+  // undefined keeps the headnote's passage, null returns to the whole passage.
+  const [narrowed, setNarrowed] = useState<{ start: number; end: number } | null | undefined>(undefined);
   useEffect(() => {
     setEditing(false);
     setPicking(false);
+    setNarrowed(undefined);
     const h = entry ? getHeadnote(db, entry.local_date) : null;
     setHeadnote(h && entry && h.book === entry.book && h.chapter === entry.chapter ? h : null);
   }, [db, entry]);
-  const seal = (h: Headnote) => ({ id: h.sealEventId, localDate: h.localDate, book: h.book, chapter: h.chapter, verseFirst: h.verseStart, verseLast: h.verseEnd });
+  // The seal the headnote followed carries the whole sealed passage; fall back
+  // to the headnote's own passage if that event is somehow missing.
+  const sealOf = (h: Headnote): SealRef =>
+    sealById(db, h.sealEventId) ?? { id: h.sealEventId, localDate: h.localDate, book: h.book, chapter: h.chapter, verseFirst: h.verseStart, verseLast: h.verseEnd };
+  const startEditing = () => {
+    setDraft(null);
+    setNarrowed(undefined);
+    setPicking(false);
+    setEditing(true);
+  };
   const saveEdit = (words: string) => {
     if (!headnote) return;
-    setHeadnote(saveHeadnote(db, { seal: seal(headnote), text: words }));
+    const range = narrowed === undefined ? undefined : narrowed === null ? null : { chapter: headnote.chapter, ...narrowed };
+    setHeadnote(saveHeadnote(db, { seal: sealOf(headnote), text: words, narrowed: range }));
     setEditing(false);
   };
-  const narrowTo = (start: number, end: number) => {
-    if (!headnote) return;
-    setHeadnote(saveHeadnote(db, { seal: seal(headnote), text: (draft ?? headnote.text).trim() || headnote.text, narrowed: { chapter: headnote.chapter, start, end } }));
-    setPicking(false);
+  const isNarrowed = (h: Headnote) => {
+    const sealed = sealOf(h);
+    return h.chapter !== sealed.chapter || h.verseStart !== sealed.verseFirst || h.verseEnd !== sealed.verseLast;
+  };
+  const editLabel = (h: Headnote) =>
+    narrowed === null
+      ? 'About: the whole passage you read'
+      : narrowed
+        ? `About: ${headnoteRange({ chapter: h.chapter, chapterEnd: null, verseStart: narrowed.start, verseEnd: narrowed.end })}`
+        : `About: ${headnoteRange(h)}`;
+  // Hardware back steps out one level: picker → editor → chapter → close.
+  const back = () => {
+    if (picking) setPicking(false);
+    else if (editing) setEditing(false);
+    else onClose();
   };
   const deleteHeadnote = () => {
     if (!headnote) return;
@@ -86,7 +111,7 @@ export function ChapterViewer({ entry, text, db, reducedMotion, onClose }: Chapt
   }, []);
 
   return (
-    <Modal visible={entry !== null} animationType={reducedMotion ? 'none' : 'slide'} onRequestClose={onClose} onShow={focusClose}>
+    <Modal visible={entry !== null} animationType={reducedMotion ? 'none' : 'slide'} onRequestClose={back} onShow={focusClose}>
       <View style={[styles.wrap, { paddingTop: insets.top, paddingBottom: insets.bottom }]} accessibilityViewIsModal>
         <Pressable ref={closeRef} style={styles.closeRow} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
           <Text style={styles.close}>Close</Text>
@@ -96,35 +121,41 @@ export function ChapterViewer({ entry, text, db, reducedMotion, onClose }: Chapt
             <PassagePicker
               mode="headnote"
               text={text}
-              initial={{ book: headnote.book, chapter: headnote.chapter, start: headnote.verseStart ?? 1, end: headnote.verseEnd ?? headnote.verseStart ?? 1 }}
-              onConfirm={(ref) => narrowTo(ref.verseStart, ref.verseEnd)}
+              initial={{
+                book: headnote.book,
+                chapter: headnote.chapter,
+                start: narrowed?.start ?? headnote.verseStart ?? 1,
+                end: narrowed?.end ?? headnote.verseEnd ?? headnote.verseStart ?? 1,
+              }}
+              onConfirm={(ref) => {
+                setNarrowed({ start: ref.verseStart, end: ref.verseEnd });
+                setPicking(false);
+              }}
               onCancel={() => setPicking(false)}
             />
           </View>
         ) : entry && editing && headnote ? (
-          <ScrollView contentContainerStyle={styles.editor} keyboardShouldPersistTaps="handled">
-            <HeadnoteEditor
-              heading={`${bookName(entry.book)} ${entry.chapter}`}
-              passageLabel={`About: ${headnoteRange(headnote)}`}
-              initialText={draft ?? headnote.text}
-              onTextChange={setDraft}
-              onSave={saveEdit}
-              onDelete={deleteHeadnote}
-              onChooseVerses={() => setPicking(true)}
-            />
-            <ActionButton label="Cancel" variant="link" onPress={() => setEditing(false)} />
-          </ScrollView>
+          <KeyboardAvoidingView style={styles.editorWrap} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+            <ScrollView contentContainerStyle={styles.editor} keyboardShouldPersistTaps="handled">
+              <HeadnoteEditor
+                heading={`${bookName(entry.book)} ${entry.chapter}`}
+                passageLabel={editLabel(headnote)}
+                initialText={draft ?? headnote.text}
+                onTextChange={setDraft}
+                onSave={saveEdit}
+                onDelete={deleteHeadnote}
+                onChooseVerses={() => setPicking(true)}
+                onWholePassage={(narrowed === undefined ? isNarrowed(headnote) : narrowed !== null) ? () => setNarrowed(null) : undefined}
+              />
+              <ActionButton label="Cancel" variant="link" onPress={() => setEditing(false)} />
+            </ScrollView>
+          </KeyboardAvoidingView>
         ) : entry && (
           <>
             {headnote && (
               <View style={styles.headnote}>
                 <Text style={styles.headnoteText}>{headnote.text}</Text>
-                <ActionButton label="Edit headnote" variant="link" onPress={() => {
-                    setDraft(null);
-                    setEditing(true);
-                  }}
-                  style={styles.editLink}
-                />
+                <ActionButton label="Edit headnote" variant="link" onPress={startEditing} style={styles.editLink} />
               </View>
             )}
             <Text style={styles.title}>
@@ -187,6 +218,7 @@ const styles = StyleSheet.create({
     color: tokens.color.ink60,
   },
   editLink: { alignSelf: 'flex-start', paddingHorizontal: 0 },
+  editorWrap: { flex: 1 },
   editor: { padding: 24, gap: 8 },
   picker: { flex: 1, padding: 24 },
   title: {

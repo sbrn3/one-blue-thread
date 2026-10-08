@@ -9,6 +9,7 @@ import {
   latestSeal,
   removeHeadnote,
   saveHeadnote,
+  sealById,
 } from '../src/headnote';
 import type { SqlDb } from '../src/log/db';
 import { migrate } from '../src/log/schema';
@@ -250,5 +251,26 @@ describe('narrowing a headnote to verses', () => {
     saveHeadnote(db, { seal, text: 'x', narrowed: { chapter: 4, start: 6, end: 7 } });
     const h = saveHeadnote(db, { seal, text: 'x', narrowed: null })!;
     expect([h.verseStart, h.verseEnd]).toEqual([1, 23]);
+  });
+});
+
+describe('audit fixes', () => {
+  it("a finish that merged forward extends the reading's contents to its last chapter", () => {
+    const db = fresh();
+    event(db, { type: 'book_start', date: '2026-10-01', book: 'psalms', chapter: 148 });
+    event(db, { type: 'seal', date: '2026-10-01', book: 'psalms', chapter: 148, first: 1, last: 14 });
+    saveHeadnote(db, { seal: latestSeal(db)!, text: 'Everything that has breath' });
+    // The last day folded 149–150 in; the finish names 150.
+    event(db, { type: 'book_finish', date: '2026-10-01', book: 'psalms', chapter: 150 });
+    const rows = contentsFor(db, 'psalms')[0].rows;
+    expect(rows.at(-1)).toEqual({ kind: 'bare', from: 149, to: 150 });
+  });
+
+  it('sealById finds the seal a past headnote followed, and nothing else', () => {
+    const db = fresh();
+    const id = event(db, { type: 'seal', date: '2026-10-07', book: 'philippians', chapter: 4, first: 1, last: 23 });
+    const other = event(db, { type: 'book_finish', date: '2026-10-07', book: 'philippians', chapter: 4 });
+    expect(sealById(db, id)).toEqual({ id, localDate: '2026-10-07', book: 'philippians', chapter: 4, verseFirst: 1, verseLast: 23 });
+    expect(sealById(db, other)).toBeNull();
   });
 });

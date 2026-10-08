@@ -80,14 +80,14 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.7 },
   number: {
     alignSelf: 'flex-start',
-    width: 22,
+    minWidth: 22,
     fontFamily: tokens.font.mono,
     fontWeight: '600',
     fontSize: 12,
     lineHeight: 22,
     color: tokens.color.ink40,
   },
-  bare: { width: undefined, minWidth: 22 },
+  bare: {},
   line: {
     flexShrink: 1,
     maxWidth: '72%',
