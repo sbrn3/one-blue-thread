@@ -18,7 +18,7 @@ import { gradeProbe, resolveTodaysProbe, type DailyProbe, type ProbeGrade } from
 import { getProfile } from '../lab/profile';
 import { eyeballDates, isSrbaiDue, saveSrbai, type SrbaiAnswers } from '../lab/srbai';
 import { buildYearReview, isYearReviewDue, type YearReviewReport } from '../lab/analysis/yearReview';
-import { getHeadnote, headnoteRange, latestSeal, removeHeadnote, saveHeadnote, type Headnote } from '../headnote';
+import { contentsFor, getHeadnote, headnoteRange, latestSeal, removeHeadnote, saveHeadnote, type Headnote } from '../headnote';
 import { computeStreak, meta } from '../log/log';
 import type { Services } from '../services';
 import { useMemoryEpoch } from '../state/memoryEpoch';
@@ -411,6 +411,15 @@ export function Flow({ services }: FlowProps) {
     },
     [db, headnoteSeal, headnoteChapterEnd],
   );
+  // The finished reading's contents at "You finished" — recomputed when today's
+  // headnote changes, so a line kept on the finishing day appears straight
+  // away. One-shot by design (justFinishedBook clears on any reload);
+  // Reading history is the durable home.
+  const finishedContents = useMemo(() => {
+    if (!session.justFinishedBook) return null;
+    const reading = contentsFor(db, session.justFinishedBook)[0];
+    return reading?.hasHeadnotes ? reading.rows : null;
+  }, [db, session.justFinishedBook, headnote]);
   const handleDeleteHeadnote = useCallback(() => {
     if (!headnoteSeal) return;
     removeHeadnote(db, headnoteSeal.localDate);
@@ -782,6 +791,7 @@ export function Flow({ services }: FlowProps) {
               canWriteHeadnote={headnoteSeal !== null}
               headnote={headnote}
               onWriteHeadnote={() => setHeadnoteOpen(true)}
+              finishedContents={finishedContents}
             />
           </>
         )}

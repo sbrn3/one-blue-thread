@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { headnoteReference, type Headnote } from '../headnote';
+import { headnoteReference, type ContentsRow, type Headnote } from '../headnote';
 import type { PendingReport } from '../lab/analysis/report';
 import type { PhaseMetric } from '../lab/analysis/reversal';
 import type { Passage } from '../log/types';
 import { bookName } from '../text/canon';
 import { BookPicker } from '../ui/BookPicker';
+import { Contents } from '../ui/Contents';
 import { ActionButton } from '../ui/controls';
+import { Ornament } from '../ui/Ornament';
 import { OverviewLink } from '../ui/OverviewLink';
 import { tokens } from '../ui/tokens';
 import { ReportPrompt } from './ReportPrompt';
@@ -42,6 +44,8 @@ interface DismissalZoneProps {
   /** Today's headnote, once kept. */
   headnote: Headnote | null;
   onWriteHeadnote: () => void;
+  /** The just-finished reading's contents, when it has any headnotes; null shows none (no empty list, no nudge). */
+  finishedContents: ContentsRow[] | null;
 }
 
 function reference(book: string, p: Passage): string {
@@ -77,6 +81,7 @@ export function DismissalZone({
   canWriteHeadnote,
   headnote,
   onWriteHeadnote,
+  finishedContents,
 }: DismissalZoneProps) {
   const [pending, setPending] = useState<string | null>(null);
   const pct = chapterCount > 0 ? Math.round((chapter / chapterCount) * 100) : 0;
@@ -86,6 +91,18 @@ export function DismissalZone({
       {justFinishedBook ? (
         <>
           <Text style={styles.finished}>You finished {bookName(justFinishedBook)}.</Text>
+          {finishedContents && (
+            <View style={styles.contentsBlock}>
+              <Text style={styles.bookName} accessibilityRole="header">
+                {bookName(justFinishedBook)}
+              </Text>
+              <Text style={styles.promoteLabel}>Contents</Text>
+              <Contents rows={finishedContents} />
+              <View style={styles.tailpiece}>
+                <Ornament kind="tail" />
+              </View>
+            </View>
+          )}
           <OverviewLink book={justFinishedBook} lead="And now," />
         </>
       ) : (
@@ -223,6 +240,16 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: tokens.color.madder,
   },
+  // The finished reading's contents page — the book returned in the reader's words.
+  contentsBlock: { alignSelf: 'stretch', gap: tokens.space[2] },
+  bookName: {
+    fontFamily: tokens.font.display,
+    fontWeight: '900',
+    fontSize: 34,
+    lineHeight: 38,
+    color: tokens.color.thread,
+  },
+  tailpiece: { alignItems: 'center', paddingTop: tokens.space[2] },
   // Today's headnote: the reader's words in the app's voice (never the
   // Scripture face), with a madder rule — a mark you made.
   headnoteBlock: {
