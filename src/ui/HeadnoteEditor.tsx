@@ -15,6 +15,8 @@ interface HeadnoteEditorProps {
   onDelete?: () => void;
   /** Opens the verse picker (docs/plans exec S05); omitted hides the link. */
   onChooseVerses?: () => void;
+  /** Mirrors the words to the host, so they survive a swap to the verse picker. */
+  onTextChange?: (text: string) => void;
 }
 
 /**
@@ -24,7 +26,7 @@ interface HeadnoteEditorProps {
  * its chapter — the app's voice, a madder rule for a mark you made — never in
  * the Scripture face.
  */
-export function HeadnoteEditor({ heading, passageLabel, initialText, onSave, onDelete, onChooseVerses }: HeadnoteEditorProps) {
+export function HeadnoteEditor({ heading, passageLabel, initialText, onSave, onDelete, onChooseVerses, onTextChange }: HeadnoteEditorProps) {
   const [text, setText] = useState(initialText);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const blank = text.trim().length === 0;
@@ -36,7 +38,10 @@ export function HeadnoteEditor({ heading, passageLabel, initialText, onSave, onD
       </Text>
       <TextInput
         value={text}
-        onChangeText={setText}
+        onChangeText={(t) => {
+          setText(t);
+          onTextChange?.(t);
+        }}
         maxLength={MAX_HEADNOTE}
         multiline
         autoFocus={initialText.length === 0}

@@ -229,3 +229,26 @@ describe('contents (a book read back through its headnotes)', () => {
     expect(contentsFor(restored, 'jude')).toEqual(contentsFor(db, 'jude'));
   });
 });
+
+describe('narrowing a headnote to verses', () => {
+  it('stores the single-chapter range, clears a merged span, and the contents show it', () => {
+    const db = fresh();
+    event(db, { type: 'book_start', date: '2026-10-01', book: 'psalms', chapter: 117 });
+    event(db, { type: 'seal', date: '2026-10-01', book: 'psalms', chapter: 117, first: 1, last: 2 });
+    const seal = latestSeal(db)!;
+    saveHeadnote(db, { seal, text: 'Short psalms', chapterEnd: 118 });
+    const h = saveHeadnote(db, { seal, text: 'Short psalms', narrowed: { chapter: 117, start: 2, end: 2 } })!;
+    expect(h).toMatchObject({ chapter: 117, chapterEnd: null, verseStart: 2, verseEnd: 2 });
+    const row = contentsFor(db, 'psalms')[0].rows.find((r) => r.kind === 'headnote')!;
+    expect(row.kind === 'headnote' && headnoteRange(row.headnote)).toBe('117:2');
+  });
+
+  it('narrowed: null returns the headnote to the whole sealed passage', () => {
+    const db = fresh();
+    event(db, { type: 'seal', date: '2026-10-07', book: 'philippians', chapter: 4, first: 1, last: 23 });
+    const seal = latestSeal(db)!;
+    saveHeadnote(db, { seal, text: 'x', narrowed: { chapter: 4, start: 6, end: 7 } });
+    const h = saveHeadnote(db, { seal, text: 'x', narrowed: null })!;
+    expect([h.verseStart, h.verseEnd]).toEqual([1, 23]);
+  });
+});
