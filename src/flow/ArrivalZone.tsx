@@ -1,6 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native';
 import type { Cue } from '../cue';
 import { bookName } from '../text/canon';
+import { Ornament } from '../ui/Ornament';
+import { OverviewLink } from '../ui/OverviewLink';
 import { tokens } from '../ui/tokens';
 
 interface ArrivalZoneProps {
@@ -36,6 +38,9 @@ export function ArrivalZone({
   showDayCount,
   showSittingCount,
 }: ArrivalZoneProps) {
+  // A book's first sitting opens like a book: a headpiece, and BibleProject's
+  // overview before you begin (docs/plans/bibleproject-book-videos).
+  const firstSitting = chapter === 1 && sittingIndex === 0;
   const chapterLabel =
     showSittingCount && sittingsTotal > 1
       ? `${bookName(book)} ${chapter} · sitting ${sittingIndex + 1} of ${sittingsTotal}`
@@ -43,6 +48,7 @@ export function ArrivalZone({
 
   return (
     <View style={styles.zone}>
+      {firstSitting && <Ornament kind="head" />}
       <Text style={styles.day}>{formatDay(today)}</Text>
       <Text style={styles.echo}>
         {cue ? `After ${cue.anchor}, in ${cue.place}.` : 'No cue set yet — read when it suits you.'}
@@ -53,6 +59,7 @@ export function ArrivalZone({
           Day {daysInBook} in {bookName(book)}
         </Text>
       )}
+      {firstSitting && <OverviewLink book={book} lead="Before you begin:" />}
     </View>
   );
 }
