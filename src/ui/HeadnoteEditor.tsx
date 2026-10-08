@@ -15,6 +15,8 @@ interface HeadnoteEditorProps {
   onDelete?: () => void;
   /** Opens the verse picker (docs/plans exec S05); omitted hides the link. */
   onChooseVerses?: () => void;
+  /** Back to the whole sealed passage; shown only while the headnote is narrowed. */
+  onWholePassage?: () => void;
   /** Mirrors the words to the host, so they survive a swap to the verse picker. */
   onTextChange?: (text: string) => void;
 }
@@ -26,7 +28,7 @@ interface HeadnoteEditorProps {
  * its chapter — the app's voice, a madder rule for a mark you made — never in
  * the Scripture face.
  */
-export function HeadnoteEditor({ heading, passageLabel, initialText, onSave, onDelete, onChooseVerses, onTextChange }: HeadnoteEditorProps) {
+export function HeadnoteEditor({ heading, passageLabel, initialText, onSave, onDelete, onChooseVerses, onWholePassage, onTextChange }: HeadnoteEditorProps) {
   const [text, setText] = useState(initialText);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const blank = text.trim().length === 0;
@@ -59,6 +61,11 @@ export function HeadnoteEditor({ heading, passageLabel, initialText, onSave, onD
         {onChooseVerses && (
           <Pressable accessibilityRole="button" accessibilityLabel="Choose verses" onPress={onChooseVerses} style={styles.inlineLink}>
             <Text style={styles.inlineLinkText}>choose verses</Text>
+          </Pressable>
+        )}
+        {onWholePassage && (
+          <Pressable accessibilityRole="button" accessibilityLabel="Use the whole passage" onPress={onWholePassage} style={styles.inlineLink}>
+            <Text style={styles.inlineLinkText}>whole passage</Text>
           </Pressable>
         )}
       </View>

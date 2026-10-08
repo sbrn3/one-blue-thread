@@ -80,6 +80,16 @@ export function latestSeal(db: SqlDb): SealRef | null {
   return { id: r.id, localDate: r.local_date, book: r.book, chapter: r.chapter, verseFirst: r.verse_first, verseLast: r.verse_last };
 }
 
+/** A seal by its events id — the passage a past headnote was written after. */
+export function sealById(db: SqlDb, id: number): SealRef | null {
+  const r = db.get<{ id: number; local_date: string; book: string | null; chapter: number | null; verse_first: number | null; verse_last: number | null }>(
+    `SELECT id, local_date, book, chapter, verse_first, verse_last FROM events WHERE id = ? AND type = 'seal'`,
+    [id],
+  );
+  if (!r || !r.book || r.chapter == null) return null;
+  return { id: r.id, localDate: r.local_date, book: r.book, chapter: r.chapter, verseFirst: r.verse_first, verseLast: r.verse_last };
+}
+
 export function getHeadnote(db: SqlDb, localDate: string): Headnote | null {
   const r = db.get<HeadnoteRow>(`SELECT * FROM headnotes WHERE local_date = ?`, [localDate]);
   return r ? fromRow(r) : null;
@@ -224,7 +234,11 @@ export function contentsFor(db: SqlDb, book: string): Reading[] {
   for (const m of markers) {
     const current = drafts[drafts.length - 1];
     if (m.type === 'book_start') drafts.push({ startId: m.id, startedOn: m.local_date, finished: false, furthest: 0, notes: [] });
-    else if (m.type === 'book_finish') current.finished = true;
+    else if (m.type === 'book_finish') {
+      // The finish names the last chapter the final day merged forward to.
+      current.finished = true;
+      if (m.chapter != null) current.furthest = Math.max(current.furthest, m.chapter);
+    }
     else if (m.chapter != null) current.furthest = Math.max(current.furthest, m.chapter);
   }
   for (const n of notes) {

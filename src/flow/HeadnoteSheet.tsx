@@ -22,7 +22,10 @@ interface HeadnoteSheetProps {
   text: TextProvider;
   /** The chapter a headnote may be narrowed within, and where the picker starts; null hides "choose verses". */
   narrowable: { book: string; chapter: number; start: number; end: number } | null;
-  onSave: (words: string, narrowed?: NarrowedRange) => void;
+  /** True when today's kept headnote is already narrowed — offers "the whole passage" again. */
+  narrowedAtOpen: boolean;
+  /** `narrowed`: a range, null for back to the whole passage, or undefined to keep the headnote's passage. */
+  onSave: (words: string, narrowed?: NarrowedRange | null) => void;
   /** Present only when today's headnote already exists. */
   onDelete?: () => void;
   onClose: () => void;
@@ -37,25 +40,33 @@ interface HeadnoteSheetProps {
  * scroll — and the words typed so far survive the swap. Closing without
  * saving keeps nothing.
  */
-export function HeadnoteSheet({ visible, heading, passageLabel, initialText, text, narrowable, onSave, onDelete, onClose }: HeadnoteSheetProps) {
+export function HeadnoteSheet({ visible, heading, passageLabel, initialText, text, narrowable, narrowedAtOpen, onSave, onDelete, onClose }: HeadnoteSheetProps) {
   const reducedMotion = useReducedMotion();
   const closeRef = useRef<View>(null);
   const [draft, setDraft] = useState(initialText);
-  const [narrowed, setNarrowed] = useState<NarrowedRange | undefined>(undefined);
+  // undefined: keep the headnote's passage · a range: narrowed · null: back to the whole passage.
+  const [narrowed, setNarrowed] = useState<NarrowedRange | null | undefined>(undefined);
   const [picking, setPicking] = useState(false);
+  // Each opening is a fresh editor: the key remounts it with that opening's
+  // words, so words typed and closed, or a headnote just deleted, never return.
+  const [openKey, setOpenKey] = useState(0);
   useEffect(() => {
-    if (!visible) return;
-    setDraft(initialText);
+    setDraft(visible ? initialText : '');
     setNarrowed(undefined);
     setPicking(false);
-  }, [visible, initialText]);
+    if (visible) setOpenKey((k) => k + 1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+  const showWhole = narrowed === undefined ? narrowedAtOpen : narrowed !== null;
 
   const focusClose = () => {
     const handle = findNodeHandle(closeRef.current);
     if (handle) AccessibilityInfo.setAccessibilityFocus(handle);
   };
 
-  const label = narrowed
+  const label = narrowed === null
+    ? "About: the whole passage you read"
+    : narrowed
     ? `About: ${headnoteRange({ chapter: narrowed.chapter, chapterEnd: null, verseStart: narrowed.start, verseEnd: narrowed.end })}`
     : passageLabel;
 
@@ -88,6 +99,7 @@ export function HeadnoteSheet({ visible, heading, passageLabel, initialText, tex
             <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
               {visible && (
                 <HeadnoteEditor
+                  key={openKey}
                   heading={heading}
                   passageLabel={label}
                   initialText={draft}
@@ -95,6 +107,7 @@ export function HeadnoteSheet({ visible, heading, passageLabel, initialText, tex
                   onSave={(words) => onSave(words, narrowed)}
                   onDelete={onDelete}
                   onChooseVerses={narrowable ? () => setPicking(true) : undefined}
+                  onWholePassage={showWhole ? () => setNarrowed(null) : undefined}
                 />
               )}
             </ScrollView>

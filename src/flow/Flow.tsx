@@ -404,7 +404,7 @@ export function Flow({ services }: FlowProps) {
       ? session.portionChapters[session.portionChapters.length - 1] ?? null
       : null;
   const handleSaveHeadnote = useCallback(
-    (words: string, narrowed?: NarrowedRange) => {
+    (words: string, narrowed?: NarrowedRange | null) => {
       if (!headnoteSeal) return;
       setHeadnote(saveHeadnote(db, { seal: headnoteSeal, text: words, chapterEnd: headnoteChapterEnd, narrowed }));
       setHeadnoteOpen(false);
@@ -814,6 +814,10 @@ export function Flow({ services }: FlowProps) {
             const start = headnote?.verseStart ?? headnoteSeal.verseFirst ?? 1;
             return { book: headnoteSeal.book, chapter: headnoteSeal.chapter, start, end: headnote?.verseEnd ?? headnoteSeal.verseLast ?? start };
           })()}
+          narrowedAtOpen={
+            !!headnote &&
+            (headnote.chapter !== headnoteSeal.chapter || headnote.verseStart !== headnoteSeal.verseFirst || headnote.verseEnd !== headnoteSeal.verseLast)
+          }
           onSave={handleSaveHeadnote}
           onDelete={headnote ? handleDeleteHeadnote : undefined}
           onClose={() => setHeadnoteOpen(false)}

@@ -20,7 +20,7 @@ Nothing to install.
 
 **[Get the app →](https://github.com/sbrn3/one-blue-thread/releases/latest)**
 download `one-blue-thread.apk`, allow "install unknown apps," done. Android, free,
-no account, nothing leaves your phone.
+no account, no telemetry.
 
 ## First run
 
@@ -57,7 +57,7 @@ deliberate, held-down reset that starts you over from scratch.
 - **Headnotes and contents.** After you seal, you may keep one line about
   the day in your own words — a headnote, optional and editable. Each book's
   headnotes read back as its contents page: at "You finished" and, for every
-  reading of every book, in Reading history.
+  reading of every book, in Reading history, alongside its overview.
 - **Book bookends.** A book's first sitting and its finish link to
   BibleProject's video overview of it (opened in the browser, never embedded).
 - **The book end.** When you finish a book: learn any of the verses you
