@@ -3,18 +3,20 @@
 _A quiet place to read Scripture._
 
 One Blue Thread helps one reader arrive, read, remember, and return. Scripture
-is the voice: no generated devotionals, summaries, or takeaways; one flow, no
-feed, and no streak to defend. See [`docs/BRAND.md`](docs/BRAND.md) for the
-origin of the name and the product's editorial rule.
+is the voice: the app writes no devotionals, summaries, or takeaways of its own;
+one flow, no feed, and no streak to defend. See [`docs/BRAND.md`](docs/BRAND.md)
+for the origin of the name and the product's editorial rule.
 
-It is a free, open-source **Bible reading app for Android**. The translation is
-bundled, so it works fully offline; spaced repetition brings passages back for
-recall; and there is no account, no feed, no ads, and no telemetry — nothing
-leaves your phone.
+It is a free, open-source **Bible reading app for Android**. The World English
+Bible is bundled, so it works fully offline; memory passages come back as cloze
+cards on a spaced ladder; and there is no account, no feed, no ads, and no
+telemetry. The network is used only for a licensed translation (NIV or ESV) you
+add your own free key for, and for links you choose to open.
 
 **[Try the demo →](https://sbrn3.github.io/one-blue-thread/)**
-a browser preview of the daily flow — arrival, recall, scripture, seal,
-weave. Nothing to install.
+a browser preview of the daily flow — arrival, recall and the probe, scripture
+with study notes, the seal, the weave, the knot, and the book end. Nothing to
+install.
 
 **[Get the app →](https://github.com/sbrn3/one-blue-thread/releases/latest)**
 download `one-blue-thread.apk`, allow "install unknown apps," done. Android, free,
@@ -31,6 +33,39 @@ After that it's the same each day: your cue, a passage, sometimes a verse
 to recall from memory, then hold to seal. Miss a day and nothing happens —
 no streak, no catch-up. The only irreversible thing in the app is a
 deliberate, held-down reset that starts you over from scratch.
+
+## What's in it
+
+- **One daily flow.** Arrival (the day, your cue, today's chapter), recall
+  (memory passages due today), sometimes a next-day probe on a few verses you
+  read, the Scripture itself, the seal, the weave, and dismissal ("Now close
+  the app.").
+- **Scripture as the voice.** One paragraph per verse. Tap a verse for
+  Tyndale study notes, or to remember it or a passage; a dotted word opens the
+  Bible dictionary. Book introductions and the full dictionary, with search,
+  are offline.
+- **Memory on a ladder.** Passages you choose to learn come back on a
+  five-box Leitner schedule as cloze cards: a few key words hidden, then most,
+  then all of it, first with letter stubs and then with plain gaps. A daily cap
+  (2 by default) keeps it small; the memory library lets you add any passage,
+  edit, start over, delete, or review ahead.
+- **The seal.** Hold to seal the day along the fell line, or switch to two
+  taps in the knot.
+- **The weave.** Each book is a bolt of cloth: one warp thread per chapter,
+  one weft pass per day read, and gaps that stay visible without counting
+  against you.
+- **The book end.** When you finish a book: learn any of the verses you
+  marked, then pick what's next.
+- **The knot** (the gear, top right). Practice (your cue), Memory, and
+  searchable Reading history every day; under More, Translation (WEB bundled;
+  NIV or ESV with your own key, with a short guide), Sealing, Partner,
+  Adaptive policy, Safekeeping (encrypted backup and an on-device recovery
+  snapshot), Starting over (hold to unravel), What's new, Study library,
+  Origin story, and Support.
+- **The lab.** Dormant for your first year, then it learns quietly which kind
+  of reminder gets you back — only whether and when it nudges, never what or
+  how much you read. One tap freezes it. See
+  [what the app asks you](https://sbrn3.github.io/one-blue-thread/what-thread-asks-you.html).
 
 Curious how it's built, or want to run it yourself? Read on.
 
@@ -56,7 +91,9 @@ npm run typecheck  # tsc --noEmit, strict
 /src
   /onboarding  Premise·anchor·place·net·translation·books·safekeeping  (§05 ✓)
   /flow      Arrival · Recall · Scripture · Seal · Weave · Dismissal   (W3–W6a)
-  /knot      Sheet: weave, reading history, cue editor, safekeeping    (W5)
+  /knot      The settings sheet: everyday tier (cue, memory library,
+             reading history) and rare tier (translation, sealing,
+             partner, adaptive, safekeeping, unravel, about)           (W5)
   /cue       Cue model, cue_strength metric, anchor validation         (W1 ✓ / §05)
   /notify    Rolling 30d window, cancel-on-seal + decision voiding     (W7 ✓)
   /text      TextProvider (WEB/NIV/ESV), sitting splitter              (W2 ✓ / §08)
@@ -64,10 +101,14 @@ npm run typecheck  # tsc --noEmit, strict
   /log       Event log: schema, driver, writer, time                   (W1 ✓)
   /lab       PRNG, phase assignment, ladder, reconcile, experiments,
              analysis (NAP/randomization/MRT/reports)                  (W1 ✓ / W8 ✓ / W9 (engine only) / W10 ✓)
-  /memory    Leitner scheduler                                         (W1 ✓ / W6a)
+  /memory    Leitner scheduler, cloze ladder, memory library            (W1 ✓ / W6a)
   /partner   Hand-off only. No network, by construction                (W12 ✓)
   /backup    On-device recovery snapshots + external export/restore    (W11 ✓)
-  /ui        Design tokens                                             (W1 ✓)
+  /reset     The unravel: erase everything, back to first run
+  /whatsNew  Bundled release notes, keyed by tag
+  /brand     Numbers 15:37–41 origin, shown in full
+  /state     Zustand stores (session, seal rehearsal)
+  /ui        Design tokens ("The Loom"), cloth renderer, shared controls (W1 ✓)
 /test        vitest suite incl. §13.6 import-boundary invariants
 /assets/bible  Bundled public-domain translation (W2 ✓)
 /assets/tyndale  CC BY-SA study notes and dictionary (transformed)
@@ -86,11 +127,12 @@ npm run typecheck  # tsc --noEmit, strict
 
 Every push to `main` builds `one-blue-thread.apk` in GitHub Actions (Actions → latest
 run → Artifacts). Tagging a version publishes it under **Releases** — the
-link this README's "Get the app" points people to. Latest is `v0.6.1`; bump
-the patch/minor number for the next one:
+link this README's "Get the app" points people to. Latest is `v0.10.0`; bump
+the patch/minor number for the next one, and add its What's new entry first
+(see `AGENTS.md`):
 
 ```sh
-git tag v0.6.2 && git push --tags
+git tag v0.10.1 && git push --tags
 ```
 
 The signing key is stable across builds, so updates install over the old

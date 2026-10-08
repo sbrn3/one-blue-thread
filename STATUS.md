@@ -88,6 +88,7 @@ all three bundled typefaces, and sat idle instead of pinning a core.
 
 ## Active plans
 
+- **bibleproject-book-videos** — 🔨 in progress (C4, approved 2026-10-08). BibleProject overview links at a book's start and end. Optional daily **headnotes**, read back as the book's **contents** at "You finished" and in Reading history. Hairline headpiece/tailpiece ornaments. The README and website are refreshed for today's app. 7 slices (S00–S06) on `feat/headnotes` (worktree `../thread-headnotes`). See `docs/plans/bibleproject-book-videos/`.
 - **whats-new** — 🔨 in progress (C2, approved 2026-10-07). After an update, a
   quiet What's new card above the reading, and every note under Knot › More ›
   About. Notes are bundled per release tag in `src/whatsNew/`, and new readers

@@ -1,5 +1,5 @@
 {
-  "docs/index.html": ["scripture", "marketing", "behavioural-fact"],
+  "docs/index.html": ["scripture", "marketing", "behavioural-fact", "attributed-human-commentary"],
   "src/brand/BrandOrigin.tsx": ["scripture", "marketing"],
   "src/errors/ErrorBoundary.tsx": ["operation-consent-error"],
   "src/flow/ArrivalZone.tsx": ["reader-owned", "behavioural-fact"],

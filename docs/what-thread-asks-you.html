@@ -3,23 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>What Thread Asks You</title>
+<title>What One Blue Thread asks you</title>
+<meta name="description" content="The three self-graded prompts One Blue Thread uses: the next-day probe, memory recall on the cloze ladder, and a monthly check-in.">
+<link rel="icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Newsreader:ital,wght@0,400;0,500;1,400;1,500&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 
-  /* Thread's own design tokens — src/ui/tokens.ts — one accent,
-     two voices, no gradients, no shadows beyond a hairline. This
-     document borrows that register rather than inventing its own. */
+  /* One Blue Thread's own tokens — src/ui/tokens.ts, "The Loom" —
+     natural dyes, two voices, no gradients, no shadows beyond a hairline.
+     This page borrows that register rather than inventing its own. */
   :root{
-    --paper: #FBFAF7;
-    --ink: #16161A;
-    --thread: #1F3FFF;
-    --ink60: #5E5D66;
-    --ink40: #9C9BA3;
-    --ink15: #E6E5E1;
-    --ink08: #F1F0EC;
+    --paper: #F4F1E9;
+    --ink: #1A1A17;
+    --thread: #2E3A8C;
+    --madder: #B5482F;
+    --ink60: #5B584F;
+    --ink40: #726D5C;
+    --ink15: #E0DACB;
+    --ink08: #ECE8DD;
+    --dye-soft: #E7E9F4;
   }
 
   *{ box-sizing: border-box; }
@@ -302,12 +306,12 @@
 <body>
 <div class="page">
 
-  <div class="eyebrow">thread · src/lab + src/flow</div>
-  <h1>What Thread asks you</h1>
-  <p class="dek">Thread only ever <b>watches</b> one thing directly: whether you opened your Bible and how far you got. Everything else about how the habit is going — whether it stuck, whether you remember what you read — it has to <b>ask</b>. Three prompts do that.</p>
+  <div class="eyebrow"><a href="./" style="color:inherit">one blue thread</a> · src/lab + src/flow + src/memory</div>
+  <h1>What One Blue Thread asks you</h1>
+  <p class="dek">One Blue Thread only ever <b>watches</b> one thing directly: whether you opened your Bible and how far you got. Everything else about how the habit is going — whether it stuck, whether you remember what you read — it has to <b>ask</b>. Three prompts do that.</p>
 
   <div class="rule">
-    <p>Every answer below is self‑graded and consequence‑free. Grading a passage “lost” cannot touch your streak, cannot un‑seal a day, cannot shrink tomorrow's reading. The one exception is quiet and aggregate: probe grades feed a running score of which daily dose size actually gets remembered — never anything about the day you graded.</p>
+    <p>Every answer below is self‑graded and consequence‑free. Grading a passage “lost” cannot un‑seal a day, cannot shrink tomorrow's reading, and there is no streak for it to break. The one exception is quiet and aggregate: probe grades feed a running score of which daily dose size actually gets remembered — never anything about the day you graded.</p>
     <span class="src">src/lab/ladder.ts §13.6 · src/lab/analysis/dose.ts §14 E10</span>
   </div>
 
@@ -315,11 +319,11 @@
   <div class="test">
     <div class="test-eyebrow"><span class="num">1</span> Next‑day recall probe <span class="cadence">· daily, fires ~60% of days, randomized</span></div>
     <h2>What do you remember?</h2>
-    <p class="desc">The morning after a sealed day, Thread sometimes — not always, and never predictably — asks you to recall what you read <b>before</b> it shows you the text again. It's a free‑recall test on yesterday's chapter, separate from any verse you're deliberately memorizing.</p>
+    <p class="desc">The day after a sealed day, One Blue Thread sometimes — not always, and never predictably — asks about <b>a few verses</b> you read, <b>before</b> it shows them again. The span is a short run chosen by the trial seed, always inside the verses you actually read, and it never looks at the verses you marked: memory work and the probe run separately.</p>
 
     <div class="mock">
-      <div class="label">arrival zone</div>
-      <p class="prompt">"Yesterday you read Philippians 3. What do you remember?"</p>
+      <div class="label">probe zone · above today's reading</div>
+      <p class="prompt">"What do you remember of verses 13–14?"</p>
       <div class="chiprow">
         <span class="chip ghost">Reveal</span>
       </div>
@@ -343,18 +347,19 @@
         <tr><td class="grade">Skip</td><td class="num">0.5</td><td>Declined to answer — scored neutral, not penalized.</td></tr>
       </tbody>
     </table>
-    <div class="consequence">Decided once per day and locked in — reopening the app never re‑rolls whether today's probe fires. Your grade is logged and, in aggregate across many days, becomes <b>recall_score</b> — one half of the composite Thread uses to work out which daily dose size (10/20/30/45 verses) people actually retain, not just complete.</div>
+    <div class="consequence">Decided once per day and locked in — reopening the app never re‑rolls whether today's probe fires. Your grade is logged and, in aggregate across many days, becomes <b>recall_score</b> — one half of the composite (recall × seal rate) the lab uses to work out which daily portion you actually retain, not just complete: a full chapter, half a sitting (~20 verses), a single passage (~10), or one verse.</div>
   </div>
 
   <!-- TEST 2 — LEITNER RECALL -->
   <div class="test">
-    <div class="test-eyebrow"><span class="num">2</span> Memory‑verse recall <span class="cadence">· daily, up to 2 passages when due</span></div>
+    <div class="test-eyebrow"><span class="num">2</span> Memory‑verse recall <span class="cadence">· daily, up to your cap (2 by default, 1–10) when due</span></div>
     <h2>The passages you chose to keep</h2>
-    <p class="desc">Anything you've marked as a memory candidate and had promoted follows a Leitner box schedule — five boxes, at growing intervals — and comes back for recall exactly when it's due, never more often just because you're anxious about it.</p>
+    <p class="desc">A passage you chose to learn — one you marked while reading and then picked with “Learn this”, or any passage you added in the memory library — follows a Leitner schedule: five boxes at growing intervals, back for recall exactly when it's due. Each time it comes back as a <b>cloze card</b> on the ladder: a few key words hidden first, then most of them, then the whole passage, each amount met first with letter stubs and then with plain gaps. The library can review ahead whenever you like.</p>
 
     <div class="mock">
-      <div class="label">recall zone · reference only, no text shown</div>
+      <div class="label">recall zone · a cloze card, step 1 of 4</div>
       <p class="prompt" style="font-style:normal; font-family:'JetBrains Mono',monospace; font-size:14px; letter-spacing:0.02em; color:var(--ink60);">PHILIPPIANS 4:6–7</p>
+      <p class="prompt" style="font-style:normal">In nothing be <span class="mono" style="color:var(--thread);font-size:14px">a––––––</span>, but in everything, by prayer and petition with thanksgiving, let your requests be made known to God. And the <span class="mono" style="color:var(--thread);font-size:14px">p––––</span> of God, which surpasses all understanding, will guard your hearts and your thoughts in Christ Jesus.</p>
       <div class="chiprow"><span class="chip ghost">Reveal</span></div>
     </div>
     <div class="mock">
@@ -368,21 +373,21 @@
     </div>
 
     <table class="keytable">
-      <thead><tr><th>Your grade</th><th>Box moves</th><th>Next due</th></tr></thead>
+      <thead><tr><th>Your grade</th><th>Box · ladder</th><th>Next due</th></tr></thead>
       <tbody>
-        <tr><td class="grade">Held it</td><td class="num">+1 (capped at 5)</td><td>Further out — box intervals run 1 → 3 → 7 → 21 → 60 days.</td></tr>
-        <tr><td class="grade">Partly</td><td class="num">stays</td><td>Same interval, comes back at the same spacing.</td></tr>
-        <tr><td class="grade">Lost it</td><td class="num">→ box 1</td><td>Back to a 1‑day interval — deliberately not Anki's easier reset.</td></tr>
+        <tr><td class="grade">Held it</td><td class="num">+1 box (max 5) · up a rung</td><td>Further out — box intervals run 1 → 3 → 7 → 21 → 60 days.</td></tr>
+        <tr><td class="grade">Partly</td><td class="num">stays · stays</td><td>Same interval, comes back at the same spacing.</td></tr>
+        <tr><td class="grade">Lost it</td><td class="num">→ box 1 · back one rung</td><td>Back to a 1‑day interval — deliberately not Anki's easier reset — and the card hides a little less next time.</td></tr>
       </tbody>
     </table>
-    <div class="consequence">Skippable in one tap, and skipping doesn't move anything. Grading here has no import path into seal, streak, weave, or dose at all — not aggregate, not individual. It only ever moves that one passage between boxes.</div>
+    <div class="consequence">Skippable in one tap, and skipping doesn't move anything. Grading here has no path into the seal, the weave, or the dose at all — not aggregate, not individual. It only ever moves that one passage between boxes and rungs.</div>
   </div>
 
   <!-- TEST 3 — SRBAI -->
   <div class="test">
     <div class="test-eyebrow"><span class="num">3</span> SRBAI check‑in <span class="cadence">· monthly, once per calendar month</span></div>
     <h2>Has this become automatic?</h2>
-    <p class="desc">The Self‑Report Behavioural Automaticity Index, reworded to measure <b>initiation</b> rather than the reading itself — whether opening the app has become automatic, independent of whether that particular day got read. It's the one place Thread asks instead of infers, because this one thing genuinely can't be read off the log.</p>
+    <p class="desc">The Self‑Report Behavioural Automaticity Index, reworded to measure <b>initiation</b> rather than the reading itself — whether opening the app has become automatic, independent of whether that particular day got read. It's the one place One Blue Thread asks instead of infers, because this one thing genuinely can't be read off the log.</p>
 
     <div class="mock">
       <div class="label">four statements · strongly disagree (1) to strongly agree (5)</div>
@@ -391,14 +396,14 @@
       <div class="likert-row"><span class="q">Reading my Bible is something that would feel strange to skip.</span><span class="scale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></span></div>
       <div class="likert-row"><span class="q">Reading my Bible is something I do without having to remember to.</span><span class="scale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></span></div>
       <div class="reflect">
-        <div class="cap">one line, free text — the "formational line"</div>
+        <div class="cap">one line, free text — "One line — anything stayed with you this month?" · or "Nothing this month."</div>
         <div class="line"></div>
       </div>
     </div>
 
     <div class="mock">
       <div class="label">shown alongside the survey — "the monthly eyeball"</div>
-      <p class="prompt" style="font-size:15px;">A plain list of every date Thread believes you read this month. Deliberately not a chart — a chart can be subtly wrong and still look plausible; a list of dates is checkable against your own memory in ten seconds.</p>
+      <p class="prompt" style="font-size:15px;">A plain list of every date One Blue Thread believes you read this month. Deliberately not a chart — a chart can be subtly wrong and still look plausible; a list of dates is checkable against your own memory in ten seconds.</p>
     </div>
 
     <div class="consequence">Never re‑asked twice in the same calendar month, whatever you answer. The four scores average into one point on a monthly trend line — the only survey‑derived curve anywhere in the app.</div>
@@ -407,7 +412,7 @@
   <div class="aside">
     <div class="kicker">related, but not a test</div>
     <h3>The lapse check‑in</h3>
-    <p>After 4–7 days of silence, Thread has usually formed a guess about <em>why</em> — a changed cue, fatigue with the current book, a dose that's gotten too heavy, real life, or nothing sharp at all — and asks exactly one question matched to that guess. There's no score and no wrong answer; it's a nudge, not an instrument. It never fires inside the first 7 days of an unexplained total silence, and it never contacts your accountability partner without your tap.</p>
+    <p>After 4–7 days of silence, One Blue Thread has usually formed a guess about <em>why</em> — a changed cue, fatigue with the current book, a dose that's gotten too heavy, real life, or nothing sharp at all — and asks exactly one question matched to that guess. There's no score and no wrong answer; it's a nudge, not an instrument. It never fires inside the first 7 days of an unexplained total silence, and it never contacts your partner: “Talk to …” only opens your messages app, empty, when you tap it.</p>
     <ul>
       <li>"You used to read at the same point in your day; lately it's drifted, or stopped. Has something changed?"</li>
       <li>"This book's been a slog lately, even though reading was going fine before it. Permission to stop here — that's allowed."</li>
@@ -417,7 +422,7 @@
   </div>
 
   <footer>
-    <span>src/lab/probe.ts · src/lab/srbai.ts · src/memory (Leitner) · src/lab/ladder.ts</span>
+    <span>src/lab/probe.ts · src/lab/srbai.ts · src/memory (Leitner, cloze ladder) · src/lab/ladder.ts</span>
     <span>rendered by src/flow/ProbeZone, RecallZone, SrbaiZone, LapseZone</span>
   </footer>
 
