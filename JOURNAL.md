@@ -5,6 +5,22 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## 2026-10-08 — book bookends built: BibleProject overviews and headnotes (C4)
+
+Merged in slice order as PRs #57–#64, with no release tagged yet.
+- **#57 (S00):** the README and both website pages refreshed for the shipped app: features, the Loom tokens and the real copy. This covers the cloze recall, the probe, the verse sheet, the fell-line seal, the gear, the knot's tiers and the book end. Claims were checked against the code.
+- **#58 (S01):** BibleProject overview links on a book's first sitting and at "You finished". All 71 URLs were verified by page title (`npm run check:overviews`), because the site answers 202 to any path.
+- **#59 (S02):** an additive **V14 `headnotes`** table; the optional "Write a headnote" sheet after the seal; backup and reset coverage; boundary tests.
+- **#60 (S03):** each book's contents in Reading history, and the headnote above the chapter in the viewer.
+- **#61 (S04):** the contents at "You finished".
+- **#62 (S05):** narrowing a headnote to verses.
+- **#63 (S06):** the site and README show the feature.
+- **#64:** final-audit fixes. The audit found no HIGH issues; the MEDIUM finding was the sheet reviving stale words.
+
+Design: five rounds. Headnotes was chosen in round 3, and round 5 kept it clean with two hairline ornaments. Round 4's "woven" art was rejected as tacky (see the plan's Aesthetics tab).
+**Handoff:** the plan's **mandatory migration/backup/reset checklist has not been run** on the dev client (`com.sngugi.thread.dev`). Don't tag a release until it has. Once it has: tag `v0.11.0` with the What's-new lines drafted in PROGRESS.md, then write OUTCOME.md.
+**Branch:** feat/headnotes (worktree `../thread-headnotes`)
+
 ## Decision 2026-10-07 — takeaways (now "headnotes") are the reader's editable words, kept outside the event log
 
 **Decision:** a daily takeaway is optional, offered after the seal, and linked to the day's passage (or to verses the reader narrows it to). The reader can edit and delete it, so it lives in its own table rather than in the append-only `events` log.
