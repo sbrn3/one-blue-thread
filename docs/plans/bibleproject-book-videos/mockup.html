@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Book bookends &amp; takeaways — design review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400..900&family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* Values from src/ui/tokens.ts. Scripture is WEB (public domain, bundled). The reader's lines are synthetic. */
+:root{--paper:#F4F1E9;--ink:#1A1A17;--thread:#2E3A8C;--warp:#8F8779;--madder:#B5482F;--dyeSoft:#E7E9F4;--ink60:#5B584F;--ink40:#726D5C;--ink15:#E0DACB;
+--display:'Schibsted Grotesk',system-ui,sans-serif;--scripture:'Newsreader',Georgia,serif;--mono:'JetBrains Mono',ui-monospace,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 var(--display)}
+main{max-width:980px;margin:0 auto;padding:40px 20px 80px}
+h1{font:900 30px/1.15 var(--display);margin:0 0 6px}
+h2{font:600 12px var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--thread);margin:48px 0 14px;border-top:1px solid var(--ink15);padding-top:20px}
+p.lede{color:var(--ink60);max-width:68ch;margin:0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:9px 10px;border-bottom:1px solid var(--ink15)}
+th{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink40)}
+td b{font-weight:700}
+ol.stories{padding-left:1.6em;margin:0;columns:2 420px;column-gap:40px}
+ol.stories li{margin:0 0 8px;break-inside:avoid;font-size:14px}
+.grp{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink40);list-style:none;margin:14px 0 6px -1.6em!important}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+.rule{border-left:3px solid var(--thread);padding:2px 0 2px 14px;font-size:14px}
+.rule b{display:block;font-size:15px;margin-bottom:2px}
+.stage{display:flex;flex-wrap:wrap;gap:22px;justify-content:center;margin-top:18px}
+.phone{width:330px;max-width:100%;min-height:600px;background:var(--paper);border:1px solid var(--ink15);border-radius:28px;box-shadow:0 10px 36px rgba(26,26,23,.10);padding:30px 24px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden}
+.cap{font:600 10px var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--thread);margin:0 0 4px}
+.story{font:400 10px var(--mono);color:var(--ink40)}
+.day{font:12px var(--mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--ink40)}
+.echo{font:italic 19px/28px var(--scripture);color:var(--ink60)}
+.chap{font:900 34px var(--display);margin-top:10px}
+.prog{font:12px var(--mono);color:var(--ink40)}
+.link{min-height:44px;display:inline-flex;align-items:center;font:600 14px var(--display);color:var(--ink40);text-decoration:underline}
+.label{font:11px var(--mono);letter-spacing:1.3px;text-transform:uppercase;color:var(--ink40)}
+.btn2{min-height:44px;padding:0 20px;border-radius:999px;border:1px solid var(--ink);background:transparent;font:600 14px var(--display);align-self:center}
+.btnP{min-height:48px;border-radius:12px;background:var(--thread);color:var(--paper);font:800 15px var(--display);border:0;width:100%}
+.finished{font:700 18px var(--display);color:var(--thread);text-align:center}
+.close{font:italic 20px var(--scripture);color:var(--ink60);text-align:center}
+.weave{height:56px;border-radius:3px;background:repeating-linear-gradient(90deg,var(--thread) 0 3px,transparent 3px 7px),var(--dyeSoft);opacity:.85}
+/* the pair — the one new component */
+.pair{padding:12px 0;border-top:1px solid var(--ink15);display:flex;flex-direction:column;gap:6px}
+.verse{font:17px/26px var(--scripture);color:var(--ink)}
+.verse sup{font:10px var(--mono);color:var(--ink40);margin-right:3px}
+.ref{font:11px var(--mono);color:var(--ink40)}
+.mine{font:500 15px/22px var(--display);color:var(--ink);border-left:2px solid var(--madder);padding-left:10px}
+/* sheet */
+.scrim{position:absolute;inset:0;background:rgba(26,26,23,.45);display:flex;flex-direction:column;justify-content:flex-end}
+.sheet{background:var(--paper);border-radius:20px 20px 0 0;border-top:1px solid var(--ink15)}
+.shead{display:flex;justify-content:space-between;align-items:center;padding:10px 20px;border-bottom:1px solid var(--ink15)}
+.shead b{font:800 18px var(--display)} .shead span{font:700 14px var(--display);color:var(--thread)}
+.sbody{padding:16px 20px 20px;display:flex;flex-direction:column;gap:10px}
+.pick{font:15px/22px var(--scripture);color:var(--ink60);padding:6px 8px;border-radius:8px}
+.pick sup{font:10px var(--mono);color:var(--ink40);margin-right:3px}
+.pick.on{background:rgba(46,58,140,.08);color:var(--ink);box-shadow:inset 2px 0 0 var(--madder)}
+.field{border:1.5px solid var(--ink15);border-radius:10px;padding:10px 12px;font:500 15px/22px var(--display);min-height:66px}
+.count{font:10px var(--mono);color:var(--ink40);text-align:right}
+.hdr{display:flex;justify-content:space-between;align-items:center;min-height:44px}
+.hdr b{font:700 22px var(--display)} .hdr span{font:13px var(--mono);color:var(--ink40)}
+.q{background:#fff8;border:1px solid var(--ink15);border-radius:12px;padding:14px 16px;font-size:14px}
+.q li{margin-bottom:6px}
+code{font:12px var(--mono);background:var(--ink15);padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body><main>
+
+<h1>Book bookends &amp; takeaways</h1>
+<p class="lede">This replaces the earlier mockup rounds A–E, which are archived in <code>mockup-rounds-1-2.html</code>. The page has five parts: what those rounds taught us, the user stories, the method, three candidates with the chosen direction, and the questions left for you.</p>
+
+<h2>1 · What the five rejected options taught us</h2>
+<table>
+<tr><th>Option</th><th>What it was</th><th>Why it failed</th><th>Lesson</th></tr>
+<tr><td><b>A</b> Margin line</td><td>A ruled input and a list with mono margins</td><td>A notes app wearing our fonts</td><td rowspan="3">We designed <b>containers for text</b> (field, card, list, timeline) instead of the <b>moment</b>. Restyling a form is still a form.</td></tr>
+<tr><td><b>B</b> Card</td><td>A panel, a textarea and cards</td><td>The heaviest and most generic option; it adds a new register</td></tr>
+<tr><td><b>C</b> Thread</td><td>A vertical line with beads</td><td>The stock stepper or timeline</td></tr>
+<tr><td><b>D</b> Selvedge ties</td><td>Tails on the cloth's edge</td><td>"Weird": the mark meant nothing unless someone explained it</td><td><b>Meaning before metaphor.</b> A device has to say something the reader would understand without being told. Decorating the cloth isn't meaning.</td></tr>
+<tr><td><b>E</b> As built</td><td>Existing styles reassembled</td><td>Consistent but lifeless</td><td>Reuse gives <b>coherence, not a moment</b>. Borrowing chrome first is its own kind of template.</td></tr>
+<tr><td colspan="3"><b>All five</b> set the reader's line in italic Newsreader, the face the app uses for Scripture.</td><td>When your words sit next to the verse, they <b>must not share its voice</b>. The app's own rule (Scripture-first voice) says Scripture comes first, verbatim and attributed, and your language comes next.</td></tr>
+</table>
+
+<h2>2 · User stories</h2>
+<ol class="stories">
+<li class="grp">Overview video</li>
+<li>As a reader starting a book, I see BibleProject's overview link on my first sitting, so I get the book's shape before I read.</li>
+<li>As a reader of a two-part book, I see both parts, labelled, so I can watch the one for where I am.</li>
+<li>As a reader who has just finished, I see the overview again, so I can watch it with the whole book fresh.</li>
+<li>As a reader, I can open any book's overview later from Reading history, so skipping it on day 1 loses nothing.</li>
+<li>As a reader whose link fails to open, I see the address to type, and nothing else breaks.</li>
+<li>As a reader of a book that shares a video (1–3 John, Ezra–Nehemiah…), I get that video, honestly labelled.</li>
+<li class="grp">Writing a line</li>
+<li>As a reader who has just sealed, I'm <i>offered</i> one line to keep, never required to write one, so consolidating is a choice, not a chore.</li>
+<li>As a reader writing, I see today's verses again and can tap the ones my line is about, so <b>re-reading becomes the consolidating</b>. If I pick nothing, the line belongs to the whole passage.</li>
+<li>As a reader, the field stays above the keyboard, holds 280 characters with a visible count, and can't be saved blank.</li>
+<li>As a reader who closes without saving, nothing is kept and nothing is logged.</li>
+<li>As a reader, I keep one line per day. If I've already written today's, Dismissal shows it and lets me edit it.</li>
+<li>As a reader who reopens later the same day, my line still belongs to the passage I sealed, not tomorrow's chapter.</li>
+<li>As a reader with the app open past 4 AM, my line belongs to the day I sealed.</li>
+<li class="grp">Reading it back</li>
+<li>As a reader finishing a book, I see this reading's lines oldest first, each under the verse it's about, so the book comes back to me in Scripture and in my words. Today's line appears as soon as I save it.</li>
+<li>As a reader who wrote no lines, "You finished" shows no empty list and no nudge.</li>
+<li>As a reader, I can open any book in Reading history, finished or in progress, and see the same read-back and its overview.</li>
+<li>As a reader re-reading a book, its history shows every reading's lines, dated. "You finished" shows only this reading's.</li>
+<li>As a reader, tapping a reference opens that chapter with those verses highlighted.</li>
+<li>As a reader, I can edit a past line's words or verses, or delete it after confirming.</li>
+<li>As a reader whose licensed translation fails to load, I still see my lines and their references, never a blank screen.</li>
+<li class="grp">Data, privacy, access</li>
+<li>As a reader, my lines are in my encrypted backup and come back on restore. Restoring an older backup without lines warns that they'll be replaced.</li>
+<li>As a reader who unravels the account, my lines are erased with everything else.</li>
+<li>As the lab (a silent actor), I never see lines. Nothing is logged and no experiment reads them.</li>
+<li>As any reader: 44pt targets; labelled controls; the read-back reads verse, then line, then reference; works at the largest font scale; honours reduced motion.</li>
+</ol>
+
+<h2>3 · How we avoid a vibe-coded design</h2>
+<div class="rules">
+<div class="rule"><b>Design the moment, not the widget</b>Each surface gets a one-sentence job taken from a story. Anything that doesn't serve that job is cut before styling starts.</div>
+<div class="rule"><b>Take the rules from the product's own constitution</b>Scripture-first voice: verse first, verbatim and attributed, then your words in a different voice. The fell line is the only progress indicator, so no counts. One reader, so no feed.</div>
+<div class="rule"><b>Meaning before metaphor</b>A visual device must be legible without being explained. If it needs a caption, it goes.</div>
+<div class="rule"><b>Type and space first</b>Compose with the three existing faces and the spacing scale. Add chrome (borders, panels, pills) only when a story needs an affordance.</div>
+<div class="rule"><b>Ground it in the real app</b>Next round, sketch over screenshots from the dev build on your phone instead of HTML approximations of it.</div>
+<div class="rule"><b>Critique before showing</b>Could another app ship this unchanged? Does any element exist only to look designed? Does it break a voice or §13.6 rule? Any yes sends it back.</div>
+</div>
+
+<style>
+.cands{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:10px}
+.cand{border:1px solid var(--ink15);border-radius:12px;padding:14px 16px;font-size:14px}
+.cand.pick{border-color:var(--thread);box-shadow:inset 0 3px 0 var(--thread)}
+.cand h3{font:800 16px var(--display);margin:0 0 4px}
+.cand .v{font:11px var(--mono);color:var(--ink40);text-transform:uppercase;letter-spacing:.08em}
+.bookname{font:900 34px/1.05 var(--display);color:var(--thread)}
+.toc{display:flex;flex-direction:column}
+.toc-row{display:flex;align-items:baseline;gap:6px;min-height:48px;padding:8px 0;border-top:1px solid var(--ink15)}
+.toc-n{font:600 12px var(--mono);color:var(--ink40);width:18px;flex:none}
+.toc-line{font:500 15px/22px var(--display);color:var(--ink)}
+.toc-dots{flex:1;min-width:16px;border-bottom:1.5px dotted var(--ink40);transform:translateY(-4px)}
+.toc-ref{font:12px var(--mono);color:var(--ink40);flex:none}
+.toc-row.bare .toc-line{color:var(--ink40)}
+.headnote{font:15px/22px var(--display);color:var(--ink60);border-left:2px solid var(--madder);padding-left:10px}
+.vtitle{font:900 26px var(--display)}
+.vtext{font:18px/28px var(--scripture);color:var(--ink)}
+.vtext sup{font:10px var(--mono);color:var(--ink40);margin-right:3px}
+.again{font:11px var(--mono);color:var(--ink40);letter-spacing:.08em;text-transform:uppercase;margin-top:10px}
+</style>
+
+<h2>4 · Round 3: three candidates, one chosen</h2>
+<p class="lede">The diagnosis: every earlier option treated a takeaway as <b>a note kept beside the Bible</b>, and any notes app ships that. Printed Bibles already have a place for exactly this. The Geneva Bible opens each book with <i>The Argument</i>, the 1611 King James puts a one-line <i>headnote</i> before every chapter, and both have a <i>contents</i> page. The BibleProject video is the Argument, your daily line is the headnote, and the end-of-book summary is the book's contents page, in your words. The full divergence log is in git history, in the deleted <code>level-up.md</code> (git history).</p>
+<div class="cands">
+  <div class="cand pick"><span class="v">Recommended</span><h3>1 · Headnotes</h3>Your lines become the book's apparatus: a contents page with chapter numbers, dot leaders and references. A chapter you didn't write about shows just its number, the bare-warp principle. Distinctive, legible without explanation, and its peak is finishing the book.</div>
+  <div class="cand"><span class="v">Not chosen</span><h3>2 · Pairs (F)</h3>A verse, then your line. Honest about voice, but a column of quote-plus-note is Kindle highlights. Another app ships it unchanged. Its "choose a verse" move survives as the optional verse range.</div>
+  <div class="cand"><span class="v">Borrowed, later slice</span><h3>3 · Relay</h3>Yesterday's line echoes under the cue at Arrival: spaced recall from your own words. Good mechanism but a small surface, so it becomes an optional follow-on, not the direction.</div>
+</div>
+
+<style>
+ol.stories{list-style:none;counter-reset:s;padding-left:0}
+ol.stories li:not(.grp){counter-increment:s;padding-left:1.9em;text-indent:-1.9em}
+ol.stories li:not(.grp)::before{content:counter(s) ". ";display:inline-block;width:1.9em;text-indent:0;font:600 12px var(--mono);color:var(--ink40)}
+ol.stories .grp{margin-left:0!important}
+.toc-row .toc-line{flex:0 1 auto;max-width:72%}
+.orn{display:block;width:100%;height:auto;overflow:visible}
+.orn path{fill:none;stroke:var(--thread);stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
+.orn .faint{stroke:var(--warp);stroke-width:.9;opacity:.55}
+.hn-rule{border-left:2px solid var(--madder);padding-left:10px;font:15px/22px var(--display);color:var(--ink60)}
+.ornset{display:flex;flex-wrap:wrap;gap:28px;justify-content:center;margin:16px 0 4px}
+.ornset figure{margin:0;width:240px;text-align:center}
+.ornset figcaption{font:10px var(--mono);color:var(--ink40);letter-spacing:.08em;text-transform:uppercase;margin-top:8px}
+</style>
+
+<h2>5 · "Headnotes", clean, with a little art</h2>
+<p class="lede">This is round 3's layout and behaviour, unchanged: dotted contents, your lines in the app's own voice, nothing encoded in the art. Round 4's woven cloth inside the rows was tacky, so it's gone. The art is now <b>ornament only</b>: a single fine thread, the way printed books use a headpiece to open a section and a tailpiece to close it. It's one hairline in the thread colour, at two moments: where a book begins and where it ends. It means nothing, and it doesn't have to.</p>
+
+<div class="ornset">
+  <figure><svg class="orn" viewBox="0 0 240 28" aria-hidden="true"><path d="M8 16 C 52 16, 74 9, 104 12 C 124 14, 132 22, 124 24 C 114 26, 112 10, 132 9 C 156 8, 186 15, 232 14"/></svg><figcaption>Headpiece · a book begins</figcaption></figure>
+  <figure><svg class="orn" viewBox="0 0 240 28" aria-hidden="true"><path class="faint" d="M40 15 H 200"/><path d="M70 15 C 96 15, 108 8, 120 8 C 132 8, 134 20, 120 20 C 108 20, 110 11, 128 11 C 146 11, 152 15, 170 15"/></svg><figcaption>Tailpiece · a book ends</figcaption></figure>
+</div>
+
+<div class="stage">
+  <div class="phone">
+    <p class="cap">Arrival · first sitting</p><span class="story">stories 1, 2</span>
+    <svg class="orn" viewBox="0 0 240 28" aria-hidden="true" style="margin:6px 0 2px"><path d="M8 16 C 52 16, 74 9, 104 12 C 124 14, 132 22, 124 24 C 114 26, 112 10, 132 9 C 156 8, 186 15, 232 14"/></svg>
+    <div class="day">Wednesday, October 7</div>
+    <div class="echo">After coffee, in the kitchen chair.</div>
+    <div class="chap">Philippians 1</div>
+    <div class="prog">Day 1 in Philippians</div>
+    <span class="link">Before you begin: BibleProject's overview ↗</span>
+    <div class="story" style="margin-top:auto">The headpiece appears only on a book's first sitting, so a new book feels like opening one.</div>
+  </div>
+
+  <div class="phone">
+    <p class="cap">Dismissal → the sheet</p><span class="story">stories 7–11</span>
+    <div class="weave"></div>
+    <div class="label" style="text-align:center;margin-top:10px">A line for today?</div>
+    <button class="btn2">Write a headnote</button>
+    <div class="scrim" style="top:190px">
+      <div class="sheet">
+        <div class="shead"><b>Philippians 4</b><span>Close</span></div>
+        <div class="sbody">
+          <div class="label">As it will sit above the chapter</div>
+          <div class="field hn-rule" style="border:1.5px solid var(--ink15);border-left:2px solid var(--madder);border-radius:10px;color:var(--ink)">The peace comes after the asking, not before it.</div>
+          <div class="count">48 / 280</div>
+          <div class="ref">About: all of 4:1–23 · <u>choose verses</u></div>
+          <button class="btnP">Keep it</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="phone">
+    <p class="cap">"You finished Philippians."</p><span class="story">stories 3, 14, 15</span>
+    <div class="finished" style="text-align:left">You finished Philippians.</div>
+    <div class="bookname">Philippians</div>
+    <div class="label">Contents</div>
+    <div class="toc">
+      <div class="toc-row"><span class="toc-n">1</span><span class="toc-line">He'd made peace with both outcomes. That's the freedom.</span><span class="toc-dots"></span><span class="toc-ref">1:21</span></div>
+      <div class="toc-row"><span class="toc-n">2</span><span class="toc-line">Humility starts as a way of thinking.</span><span class="toc-dots"></span><span class="toc-ref">2:3–5</span></div>
+      <div class="toc-row bare"><span class="toc-n">3</span><span class="toc-line"></span><span class="toc-dots" style="border-color:var(--ink15)"></span><span class="toc-ref">3</span></div>
+      <div class="toc-row"><span class="toc-n">4</span><span class="toc-line">The peace comes after the asking, not before it.</span><span class="toc-dots"></span><span class="toc-ref">4:6–7</span></div>
+    </div>
+    <svg class="orn" viewBox="0 0 240 28" aria-hidden="true" style="margin:6px 0"><path class="faint" d="M40 15 H 200"/><path d="M70 15 C 96 15, 108 8, 120 8 C 132 8, 134 20, 120 20 C 108 20, 110 11, 128 11 C 146 11, 152 15, 170 15"/></svg>
+    <span class="link" style="align-self:center">And now, BibleProject's overview ↗</span>
+  </div>
+
+  <div class="phone">
+    <p class="cap">Tap a row → the chapter</p><span class="story">stories 18, 19</span>
+    <div class="hdr"><b style="font-size:13px;font-weight:400;font-family:var(--mono);color:var(--ink40)">‹ Contents</b><span>Close</span></div>
+    <div class="hn-rule">The peace comes after the asking, not before it.</div>
+    <div class="vtitle">Philippians 4</div>
+    <div class="vtext"><sup>4</sup>Rejoice in the Lord always! Again I will say, “Rejoice!” … <span style="background:rgba(46,58,140,.08)"><sup>6</sup>In nothing be anxious, but in everything, by prayer and petition with thanksgiving, let your requests be made known to God. <sup>7</sup>And the peace of God, which surpasses all understanding, will guard your hearts and your thoughts in Christ Jesus.</span></div>
+    <div class="ref" style="margin-top:auto"><u>Edit headnote</u> · World English Bible</div>
+  </div>
+
+  <div class="phone">
+    <p class="cap">Reading history → Philippians</p><span class="story">stories 4, 16, 17</span>
+    <div class="hdr"><b style="font-size:13px;font-weight:400;font-family:var(--mono);color:var(--ink40)">‹ History</b><span>Close</span></div>
+    <svg class="orn" viewBox="0 0 240 28" aria-hidden="true"><path d="M8 16 C 52 16, 74 9, 104 12 C 124 14, 132 22, 124 24 C 114 26, 112 10, 132 9 C 156 8, 186 15, 232 14"/></svg>
+    <div class="bookname">Philippians</div>
+    <span class="link">BibleProject overview ↗</span>
+    <div class="label">Contents · Oct 2026</div>
+    <div class="toc">
+      <div class="toc-row"><span class="toc-n">1</span><span class="toc-line">He'd made peace with both outcomes.</span><span class="toc-dots"></span><span class="toc-ref">1:21</span></div>
+      <div class="toc-row"><span class="toc-n">2</span><span class="toc-line">Humility starts as a way of thinking.</span><span class="toc-dots"></span><span class="toc-ref">2:3–5</span></div>
+    </div>
+    <div class="again">Contents · Mar 2025 (earlier reading)</div>
+    <div class="toc">
+      <div class="toc-row"><span class="toc-n">1</span><span class="toc-line">Chains, and the gospel still moved.</span><span class="toc-dots"></span><span class="toc-ref">1:12</span></div>
+    </div>
+  </div>
+</div>
+
+<h2>6 · Questions for you</h2>
+<div class="q"><ol>
+<li>Is this the right amount of art: two hairline ornaments, at a book's start and end, and nothing else? Or do you want the ornament elsewhere too, for example on the sheet or under the seal?</li>
+<li>Copy: keep <b>"headnote"</b>, or use plainer words?</li>
+<li>Do you want the <b>relay</b> (yesterday's headnote echoed at the next Arrival) as a later slice?</li>
+</ol></div>
+
+</main></body>
+</html>

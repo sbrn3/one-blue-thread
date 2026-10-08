@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan — Book bookends: overviews &amp; headnotes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&display=swap" rel="stylesheet">
+<style>
+/* ── One Blue Thread identity — mirrors docs/index.html / src/ui/tokens.ts. Do not swap for generic styles ── */
+:root {
+  --bg:            #FBFAF7;
+  --surface:       #ffffff;
+  --card-bg:       #ffffff;
+  --border:        #E6E5E1;
+  --border-strong: #d8d7d2;
+  --text:          #16161A;
+  --text-2:        #5E5D66;
+  --text-muted:    #9C9BA3;
+  --primary:       #1F3FFF;
+  --primary-dark:  #1732cc;
+  --primary-tint:  #EEF0FF;
+  --success:       #155724;
+  --success-bg:    #d4edda;
+  --warning:       #856404;
+  --warning-bg:    #fff3cd;
+  --danger:        #c0392b;
+  --danger-bg:     #fde8e8;
+  --font-head:     'Newsreader', Georgia, serif;
+  --font-body:     'Schibsted Grotesk', system-ui, -apple-system, sans-serif;
+  --radius:        12px;
+  --shadow:        0 4px 6px rgba(0,0,0,0.08);
+  --shadow-lg:     0 8px 32px rgba(0,0,0,0.16);
+}
+* { box-sizing: border-box; }
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(600px 400px at 0% -5%, rgba(26,58,92,0.06), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2.2rem 1.6rem 4rem;
+}
+h1 { font-family: var(--font-head); font-size: 2rem; font-weight: 400; margin: 0 0 .3rem; letter-spacing: .01em; }
+h2 { font-family: var(--font-head); font-size: 1.25rem; font-weight: 400; color: var(--primary); margin: 1.8rem 0 .8rem; }
+h3 { font-size: .95rem; font-weight: 600; color: var(--text); margin: 1.3rem 0 .4rem; }
+a { color: var(--primary); }
+code { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: .85em; color: var(--primary-dark); background: var(--primary-tint); padding: .1em .4em; border-radius: 5px; }
+.meta { font-size: .82rem; color: var(--text-muted); margin-bottom: 1.6rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.badge { display: inline-block; padding: .25em .7em; border-radius: 999px; font-size: .74rem; font-weight: 600; border: 1px solid var(--border); background: var(--surface); }
+.badge.navy   { color: var(--primary); border-color: var(--primary); background: var(--primary-tint); }
+.badge.green  { color: var(--success); background: var(--success-bg); border-color: #c3e6cb; }
+.badge.yellow { color: var(--warning); background: var(--warning-bg); border-color: #ffeeba; }
+.badge.red    { color: var(--danger);  background: var(--danger-bg);  border-color: #f5c6cb; }
+/* Stat row */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: .8rem; margin-bottom: 2rem; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .9rem 1.1rem; box-shadow: var(--shadow); }
+.stat-value { font-family: var(--font-head); font-size: 1.7rem; color: var(--primary); font-variant-numeric: tabular-nums; }
+.stat-label { font-size: .72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+/* Tabs */
+.tabs { display: flex; gap: .4rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 1.6rem; }
+.tab { padding: .5rem 1rem; border: none; background: none; cursor: pointer; font-family: var(--font-body); font-size: .87rem; color: var(--text-2); border-radius: 8px 8px 0 0; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: var(--text); background: var(--primary-tint); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; background: var(--primary-tint); }
+.panel { display: none; animation: fade .25s ease; }
+.panel.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+/* Checklist */
+.checklist { list-style: none; padding: 0; margin: .5rem 0; }
+.checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; font-size: .9rem; border-bottom: 1px solid var(--border); }
+.checklist li:last-child { border-bottom: none; }
+.checklist input { margin-top: .3rem; flex-shrink: 0; accent-color: var(--primary); width: 16px; height: 16px; }
+.checklist input:checked + span { color: var(--text-muted); text-decoration: line-through; }
+/* Notes / callouts */
+.note { background: var(--warning-bg); border: 1px solid #ffeeba; border-radius: var(--radius); padding: .7rem 1rem; font-size: .86rem; margin: .8rem 0; color: var(--text); }
+.mockup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: .9rem; margin: 1rem 0; }
+.mockup-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); }
+.mockup-card.chosen { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary), var(--shadow-lg); }
+.mockup-card h3 { margin-top: 0; }
+.requirements { font-size: .92rem; line-height: 2; padding-left: 1.3rem; }
+.evidence-table { width: 100%; border-collapse: collapse; margin: .8rem 0 1.2rem; font-size: .84rem; }
+.evidence-table th, .evidence-table td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: left; vertical-align: top; }
+.evidence-table th { background: var(--primary-tint); color: var(--primary); }
+</style>
+</head>
+<body>
+
+
+<h1>Book bookends: BibleProject overviews &amp; headnotes</h1>
+<div class="meta">
+  2026-10-07
+  <span class="badge navy">C4 Programme</span>
+  <span class="badge navy">~36 files</span>
+  <span class="badge navy">7 slices · ~9 commits</span>
+  <span class="badge yellow">~7 sessions</span>
+  <span class="badge green">Smart Review: done, HIGH/MED resolved</span>
+  <span class="badge navy">Aesthetics: approved (level-up round 5)</span>
+</div>
+
+<div class="stat-row">
+  <div class="stat"><div class="stat-value">36</div><div class="stat-label">Files</div></div>
+  <div class="stat"><div class="stat-value">7</div><div class="stat-label">Slices</div></div>
+  <div class="stat"><div class="stat-value">6</div><div class="stat-label">Test files</div></div>
+  <div class="stat"><div class="stat-value">~7</div><div class="stat-label">Sessions</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="intent" onclick="show('intent')">Intent</button>
+  <button class="tab" data-tab="requirements" onclick="show('requirements')">Requirements</button>
+  <button class="tab" data-tab="aesthetics" onclick="show('aesthetics')">Aesthetics</button>
+  <button class="tab" data-tab="execution" onclick="show('execution')">Execution</button>
+  <button class="tab" data-tab="review" onclick="show('review')">Smart Review</button>
+  <button class="tab" data-tab="verify" onclick="show('verify')">Verification</button>
+</div>
+
+<div id="intent" class="panel active">
+  <h2>Problem &amp; Intent</h2>
+  <h3>Status, owner &amp; next action</h3>
+  <p><b>Awaiting final approval.</b> The owner accepted the direction ("Ok I'll accept that for now. let's move on to implementing") and then asked for the README and website refresh (S00, S06) to be added first. <b>Next action:</b> the owner approves this plan and authorizes the git gates (below). Then S00 and S01 start in a sibling worktree.</p>
+  <h3>Outcome and constraints</h3>
+  <p>The reader wants <i>context with a summary before and after reading a book, "to help consolidate things"</i>. That means two things:</p>
+  <ol>
+    <li>BibleProject's overview video, linked at a book's start and end.</li>
+    <li>An optional one-line <b>headnote</b> per day, in the reader's own words, read back as that book's <b>contents</b> page when the book is finished and at any time in Reading history.</li>
+  </ol>
+  <p>The README and the public site must also show the app as it ships today: its features, aesthetics, artwork and functionality.</p>
+  <p><b>Boundaries:</b></p>
+  <ul>
+    <li><b>Scripture-first voice.</b> The app never writes a headnote, and a headnote is never set in the Scripture face.</li>
+    <li><b>Nothing about headnotes is logged</b>, and the lab never reads them (a new boundaries rule).</li>
+    <li>Migrations stay additive-only, and <code>events</code> is untouched.</li>
+    <li>Headnotes are in the encrypted backup and are wiped by the unravel.</li>
+    <li>Overviews are links, never embeds.</li>
+    <li>BRAND.md applies: no tassel or blue symbolism; the full Numbers 15 passage wherever it is cited; synthetic data only.</li>
+  </ul>
+  <h3>Scope and non-goals</h3>
+  <p><b>In scope:</b></p>
+  <ul>
+    <li>Overview links on Arrival (first sitting), at "You finished", and on the history book page.</li>
+    <li>Headnotes: write, edit and delete, with an optional verse range.</li>
+    <li>The contents page, per reading, at "You finished" and in Reading history.</li>
+    <li>Headnotes above the chapter in the chapter viewer.</li>
+    <li>Headpiece and tailpiece ornaments.</li>
+    <li>The README and website refresh.</li>
+  </ul>
+  <p><b>Non-goals:</b> see the Requirements tab, Out of scope.</p>
+  <h3>Dependencies and unresolved gates</h3>
+  <ul>
+    <li><b>Git:</b> creating the worktree, committing, pushing, opening PRs, merging and tagging are not authorized by plan approval.</li>
+    <li><b>Publishing:</b> merging S00 or S06 publishes the GitHub Pages site and needs explicit approval.</li>
+    <li><b>URL table:</b> every BibleProject URL is verified by WebFetch page title. HTTP status is useless, because the site returns 202 for any path.</li>
+    <li><b>Device:</b> migration checks run on the dev client <code>com.sngugi.thread.dev</code> only, never on the release app, which holds real data.</li>
+    <li><b>Open product calls (non-blocking):</b> whether to keep the word "headnote" on screen (default: keep), and whether to add the relay (yesterday's headnote at the next Arrival), which is deferred.</li>
+  </ul>
+  <h3>Evidence and decisions</h3>
+  <ul>
+    <li>Grill and level-up: their decisions are folded into this plan and <code>mockup.html</code> (lessons §1, stories §2, method §3, candidates §4, the approved direction §5). The scratch files <code>grill-summary.md</code> and <code>mockup.html</code> §1 were deleted on approval and remain in git history (the planning commit on <code>feat/headnotes</code>).</li>
+    <li>Design rounds: Rounds 1–2 were rejected. <b>Round 3, Headnotes</b>, was chosen. Round 4 (woven art) was rejected as "tacky". <b>Round 5: round 3 plus ornament only</b>, approved. The archived rounds are in <code>mockup-rounds-1-2.html</code>.</li>
+    <li>Journal: <i>Decision 2026-10-07 — takeaways (now "headnotes") are the reader's editable words, kept outside the event log</i>.</li>
+    <li>Glossary: <code>docs/CONTEXT.md</code>, the "Your words" section (Headnote, Contents, Overview).</li>
+    <li>Code evidence:
+      <ul>
+        <li><code>src/state/session.ts</code> <code>seal()</code> ~:126–192;</li>
+        <li><code>src/log/log.ts</code> <code>deriveDayRow</code> ~:91;</li>
+        <li><code>src/log/schema.ts</code> V12/V13 ~:258–276;</li>
+        <li><code>src/backup/dump.ts</code> <code>BACKUP_TABLES</code>;</li>
+        <li><code>src/reset/index.ts</code> <code>RESET_TABLES</code>;</li>
+        <li><code>src/knot/Knot.tsx</code> ~:323–340 (sibling modals);</li>
+        <li><code>src/knot/PassagePicker.tsx</code>;</li>
+        <li><code>test/ui-contracts.test.ts</code>;</li>
+        <li><code>test/brand-voice.test.ts</code>, which forbids "daily takeaway".</li>
+      </ul>
+    </li>
+    <li><code>main</code> moved to <code>f05cd0d</code> during planning (What's new, seal rehearsal, dev variant). It was re-checked: Dismissal is still gated on <code>session.sealedToday</code>, and the modals are still siblings.</li>
+  </ul>
+  <h3>Documentation effects</h3>
+  <ul>
+    <li><code>README.md</code>, <code>docs/index.html</code> and <code>docs/what-thread-asks-you.html</code> change in S00 and S06.</li>
+    <li>One <code>RELEASES</code> entry per tagged release (drafts in PROGRESS).</li>
+    <li><code>docs/brand-voice-inventory.json</code>, for each new copy file.</li>
+    <li><code>STATUS.md</code> and <code>docs/plans/README.md</code> change on approval.</li>
+    <li>A <code>JOURNAL.md</code> entry per merged slice.</li>
+    
+  </ul>
+</div>
+
+<div id="requirements" class="panel">
+  <h2>Requirements (confirmed)</h2>
+  <h3>User stories</h3>
+  <p class="note">This list numbers the stories from 1. The two mockups count the group headings, so the same stories appear there as 2–28 (this list's 1–6 are their 2–7, 7–13 their 9–15, 14–20 their 17–23, and 21–24 their 25–28). <code>exec.md</code> uses this list's numbers.</p>
+  <ol class="requirements">
+    <li>As a reader starting a book, I see BibleProject's overview link on my first sitting, so I get the book's shape before I read.</li>
+    <li>As a reader of a two-part book, I see both parts, labelled, so I can watch the one for where I am.</li>
+    <li>As a reader who has just finished, I see the overview again, after my contents, so I can watch it with the whole book fresh.</li>
+    <li>As a reader, I can open any book's overview later from Reading history, so skipping it on day 1 loses nothing.</li>
+    <li>As a reader whose link fails to open, I see the address to type, and nothing else breaks.</li>
+    <li>As a reader of a book that shares a video (1–3 John, Ezra–Nehemiah, Kings, Chronicles), I get that video, honestly labelled.</li>
+    <li>As a reader who has just sealed, I'm <i>offered</i> one headnote, never required to write one, so consolidating is a choice.</li>
+    <li>As a reader writing a headnote, it belongs to the day's passage by default, and I can narrow it to specific verses in that chapter.</li>
+    <li>As a reader, the field stays above the keyboard, holds 280 characters with a visible count, and can't be saved blank.</li>
+    <li>As a reader who closes the sheet without saving, nothing is kept and nothing is logged.</li>
+    <li>As a reader, I keep one headnote per day. If today's exists, Dismissal shows it and lets me edit it.</li>
+    <li>As a reader who reopens later the same day, my headnote belongs to the passage I sealed, not tomorrow's chapter.</li>
+    <li>As a reader with the app open past 4 AM, my headnote belongs to the day of the seal.</li>
+    <li>As a reader finishing a book, I see this reading's contents: chapter numbers, my headnotes, dotted leaders and references, with today's appearing as soon as I save it.</li>
+    <li>As a reader who wrote no headnotes, "You finished" shows no empty contents and no nudge.</li>
+    <li>As a reader, I can open any book in Reading history, finished or in progress, and see its contents and overview.</li>
+    <li>As a reader re-reading a book, each reading keeps its own dated contents, newest first, and "You finished" shows only this reading's.</li>
+    <li>As a reader, tapping a contents row opens that chapter with my headnote above it and the verses highlighted.</li>
+    <li>As a reader, I can edit a past headnote's words or verses, or delete it after confirming.</li>
+    <li>As a reader whose licensed translation fails to load, I still see my contents, and the viewer offers Retry.</li>
+    <li>As a reader, my headnotes are in my encrypted backup and come back on restore. Restoring an older backup replaces them, under the existing "overwrites everything" warning.</li>
+    <li>As a reader who unravels the account, my headnotes are erased with everything else.</li>
+    <li>As the lab (a silent actor), I never see headnotes: nothing is logged, and <code>/src/lab</code> cannot import them.</li>
+    <li>As any reader, controls are 44pt and labelled; contents rows read as headnote, then reference; bare chapters read "no headnote"; ornaments are hidden from screen readers; it works at the largest font scale and under reduced motion.</li>
+  </ol>
+  <h3>Documentation stories</h3>
+  <ol class="requirements">
+    <li value="101"><b>D1.</b> As a visitor to the website, I see the daily flow as it ships today (the cloze recall, the probe, study notes and the dictionary, hold or tap to seal, the weave, the book end), so the demo is honest.</li>
+    <li><b>D2.</b> As a visitor, I see what's in the knot (memory library, reading history, translations with your own key, encrypted backup, the unravel, partner hand-off, What's new), so I know the whole app before installing.</li>
+    <li><b>D3.</b> As a visitor, the site's palette, type and artwork match the app (Loom tokens, the cloth renderer, the rail), and the full Numbers 15 passage stays.</li>
+    <li><b>D4.</b> As a reader of the README, the feature list and the privacy claims are accurate. The network is used only for an optional licensed translation and for links you open.</li>
+    <li><b>D5.</b> After the feature ships, the site and README show overviews, headnotes, contents and the ornaments.</li>
+  </ol>
+  <h3>Out of Scope</h3>
+  <ul class="requirements">
+    <li><b>The relay</b> (yesterday's headnote echoed at Arrival): deferred until the owner decides.</li>
+    <li><b>Embedding video, or any fetch from bibleproject.com</b>: links only, which keeps the app offline-first.</li>
+    <li><b>Generated summaries or prompts</b>, which would break the Scripture-first voice.</li>
+    <li><b>Cloth, dye or thread encoding in the contents rows</b>, which round 4 rejected.</li>
+    <li><b>Restyling the Reading-history list itself</b>, apart from the tappable section header. <b>The shelf of finished bolts</b>: separate work.</li>
+    <li><b>Changing the seal, the event log or <code>isDismissalReady</code></b>: the headnote is optional.</li>
+    <li><b>iOS and web builds</b>: parked.</li>
+  </ul>
+  <h3>Testing Decisions</h3>
+  <ul class="requirements">
+    <li>Pure-module tests, no rendering, following the repo's Vitest logic-only suite:
+      <ul>
+        <li><code>test/overviews.test.ts</code>: every <code>CANON</code> id; URL shape; two-part and shared books.</li>
+        <li><code>test/headnote.test.ts</code>: <code>latestSeal</code>; upsert, delete, cap, trim; the default passage; readings grouped by the <code>book_start</code> id before the seal (including the same-day re-read case); collapsed bare runs; narrowing.</li>
+      </ul>
+    </li>
+    <li>Existing contract tests are extended:
+      <ul>
+        <li><code>test/schema.test.ts</code>: v13→v14 upgrade, following V13's test.</li>
+        <li><code>test/backup.test.ts</code>: a headnote round-trip.</li>
+        <li><code>test/boundaries.test.ts</code>: the lab cannot import headnotes.</li>
+        <li><code>test/ui-contracts.test.ts</code>: the allowlist and modal rules.</li>
+        <li><code>test/brand-voice.test.ts</code>: the inventory.</li>
+      </ul>
+    </li>
+    <li><code>test/reset.test.ts</code> and <code>test/dismissalReadiness.test.ts</code> stay green unchanged.</li>
+    <li>Not unit-tested, so covered by device checks instead: the keyboard and sheet behaviour, screen-reader order, font scale, Linking failure, and the published site.</li>
+  </ul>
+</div>
+
+<div id="aesthetics" class="panel">
+  <h2>Aesthetics</h2>
+  <h3>Current-surface extraction</h3>
+  <table class="evidence-table">
+    <thead><tr><th>Layer</th><th>Current measured values/patterns</th><th>Source</th><th>Keep/change and why</th></tr></thead>
+    <tbody>
+      <tr><td>Tokens</td><td>paper #F4F1E9, ink #1A1A17, thread #2E3A8C, madder #B5482F, ink40 #726D5C (4.59:1), ink15 #E0DACB; space 4–48; radius input 10, panel 12, sheet 20, pill 999; minTarget 44</td><td><code>src/ui/tokens.ts</code></td><td>Keep. No new tokens.</td></tr>
+      <tr><td>Typography</td><td>display = Schibsted (titles 22–34, 700–900); scripture = Newsreader (verses 18/27); mono = JetBrains (labels 11 uppercase, refs 12–13)</td><td>tokens; <code>MemoryModal</code>, <code>ArrivalZone</code> styles</td><td>Keep. <b>Headnotes are display 15/22, never scripture.</b></td></tr>
+      <tr><td>Spacing and layout</td><td>Dismissal is centred with a 16 gap; modal screens pad 24; rows min 48 with an ink15 hairline</td><td><code>DismissalZone</code>, <code>HistoryModal</code></td><td>Keep. Contents rows: min 48, hairline top.</td></tr>
+      <tr><td>Color and semantics</td><td>thread = progress and selection; madder = "a mark you made"; ink40 = metadata</td><td>tokens comments</td><td>Keep. Madder for the headnote rule; thread for ornaments and the book name.</td></tr>
+      <tr><td>Components and states</td><td>ActionButton (primary, secondary, link); the VerseContextSheet bottom sheet; MemoryModal screens and confirm-delete; ChapterViewer loading, error and Retry</td><td><code>src/ui/controls.tsx</code>, <code>src/study/VerseContextSheet.tsx</code>, <code>src/knot/MemoryModal.tsx</code></td><td>Reuse all of them. New: <code>Contents</code>, <code>HeadnoteEditor</code>, <code>Ornament</code>, <code>OverviewLink</code>.</td></tr>
+      <tr><td>Atmosphere and depth</td><td>No shadows beyond a hairline; the scrim behind sheets; the Loom cloth as the only illustration</td><td>tokens header</td><td>Keep. Add hairline ornaments only.</td></tr>
+      <tr><td>Motion and interaction</td><td>Sheet slide (<code>tokens.motion.sheet</code>); reduced motion honoured; the seal's hold</td><td><code>VerseContextSheet</code>, <code>SealZone</code></td><td>Keep. Ornaments are static; nothing new animates.</td></tr>
+    </tbody>
+  </table>
+  <p><b>Intent:</b> an extension of the existing register, not a new pattern. Printed-Bible apparatus: the Argument (overview), the headnote, and the contents. <b>Hygiene:</b> token values only, verified against <code>tokens.ts</code>. <b>Details:</b></p>
+  <ul>
+    <li>Pressed state is opacity 0.7, as in MemoryModal.</li>
+    <li>Empty means no contents block in Dismissal, and "No headnotes in {book} yet." in history.</li>
+    <li>Errors: the viewer's Retry; a Linking failure shows the address to type.</li>
+    <li>Focus moves to the sheet's Close on show.</li>
+    <li>At the largest font scale the line wraps and the reference never truncates.</li>
+    <li>Under reduced motion the sheet appears without a slide.</li>
+  </ul>
+  <h3>Mockups</h3>
+  <div class="mockup-grid">
+    <div class="mockup-card chosen"><h3>Headnotes, clean, with a little art</h3><p>Round 3's layout plus two hairline thread ornaments (a headpiece and a tailpiece). Approved: "Ok I'll accept that for now."</p><a href="mockup.html">Open approved mockup ↗ (§5)</a></div>
+    <div class="mockup-card"><h3>Rejected rounds</h3><p>A margin line, B card, C thread, D selvedge ties, E as-built, F pairs, round 4 woven. The lessons are in mockup §1 and <code>mockup.html</code> §1.</p><a href="mockup-rounds-1-2.html">Archive ↗</a></div>
+  </div>
+  <p class="note">Chosen direction: <strong>Headnotes, round 5</strong>. Art adorns and never encodes; elegance comes from restraint. The ornament paths in mockup §5 become <code>src/ui/Ornament.tsx</code>.</p>
+</div>
+
+<div id="execution" class="panel">
+  <h2>Execution</h2>
+  <p><b>Grade C4:</b> a new table in the protected migration chain, backup and reset coverage, 7 slices and about 36 files across the flow, the knot, the log, backup, reset and the public docs. That warranted the Smart Review, the mandatory migration checklist and a final independent audit.</p>
+  <p>The authoritative file recipes, slice dependencies, commands, budgets, branching strategy, delegation decisions and rollback steps are in <a href="exec.md">exec.md</a>. Live status is recorded only in <a href="PROGRESS.md">PROGRESS.md</a>.</p>
+  <table class="evidence-table">
+    <thead><tr><th>Slice</th><th>What the reader gets</th><th>Depends</th></tr></thead>
+    <tbody>
+      <tr><td>S00</td><td>README and website show today's app (features, aesthetics, artwork)</td><td>—</td></tr>
+      <tr><td>S01</td><td>BibleProject overview links at a book's start and end</td><td>—</td></tr>
+      <tr><td>S02</td><td>Write, edit and keep one headnote after sealing (V14 table, backup, reset)</td><td>S01</td></tr>
+      <tr><td>S03</td><td>A book's contents in Reading history; the headnote above the chapter</td><td>S02</td></tr>
+      <tr><td>S04</td><td>The contents at "You finished"</td><td>S03</td></tr>
+      <tr><td>S05</td><td>Narrow a headnote to verses</td><td>S03</td></tr>
+      <tr><td>S06</td><td>README and website add the new feature</td><td>S00, S04</td></tr>
+    </tbody>
+  </table>
+  <p>Work happens in a sibling worktree <code>../thread-headnotes</code> on <code>feat/headnotes</code>, with stacked PRs merged in slice order. S00 is disjoint from the code slices.</p>
+</div>
+
+<div id="review" class="panel">
+  <h2>Smart Review</h2>
+  <p>An independent read-only reviewer (authorized by the owner) checked the draft against the code.</p>
+  <table class="evidence-table">
+    <thead><tr><th>Sev.</th><th>Finding</th><th>Resolution</th></tr></thead>
+    <tbody>
+      <tr><td>HIGH</td><td>PassagePicker's FlatLists break inside Flow's ScrollView; its edit copy is memory-specific; its back control walks up to other chapters.</td><td>The editor lives in a new <code>HeadnoteSheet</code> Modal and in a ChapterViewer screen. A new <code>'headnote'</code> picker mode locks the chapter and has its own copy (S02, S05).</td></tr>
+      <tr><td>HIGH</td><td>A "since book_start" date breaks when the finish-day seal logs a <code>book_start</code> for the same book.</td><td>Headnotes store <code>seal_event_id</code>. A reading is the latest <code>book_start</code> with an id below the seal's id, with a dedicated test (S03).</td></tr>
+      <tr><td>MED</td><td><code>days</code> can carry an abandoned book, and merge-forward chapters are lost.</td><td>The passage comes from the seal event. <code>chapter_end</code> comes from the in-memory portion, or is null after a restart (documented).</td></tr>
+      <tr><td>MED</td><td>The finish summary is one-shot: <code>justFinishedBook</code> clears on <code>load()</code>.</td><td>Saving never calls <code>load()</code>; the contents recompute after a save; Reading history is the durable home (S04).</td></tr>
+      <tr><td>MED</td><td>Flow has no keyboard handling, and the seal toggles <code>scrollEnabled</code>.</td><td>The sheet Modal has its own KeyboardAvoidingView, outside the ScrollView.</td></tr>
+      <tr><td>MED</td><td><code>today</code> is frozen at mount, which matters past 4 AM.</td><td>Headnotes are keyed on the seal event's own <code>local_date</code>.</td></tr>
+      <tr><td>LOW</td><td>The ChapterViewer must stay a sibling Modal; <code>remembered</code> expects Passage objects.</td><td>Open through <code>onSelectEntry</code>; a new <code>highlight</code> prop on ScriptureZone.</td></tr>
+      <tr><td>LOW</td><td>Restoring an old backup wipes headnotes.</td><td>The existing warning already says "overwrites everything". No change.</td></tr>
+      <tr><td>LOW</td><td>Links leave the device.</td><td>Precedent exists (Tyndale links). The README wording is corrected in S00.</td></tr>
+    </tbody>
+  </table>
+  <p>The final independent diff audit against this plan and <code>exec.md</code> runs after S06 (C4). <code>OUTCOME.md</code> is created then.</p>
+</div>
+
+<div id="verify" class="panel">
+  <h2>Verification</h2>
+  <p><b>Automated (every slice):</b> focused <code>npx vitest run …</code>, then <code>npm test</code> and <code>npm run typecheck</code>, plus CI's APK build.</p>
+  <p><b>Mandatory migration, backup and reset checklist</b>, run on the dev client <code>com.sngugi.thread.dev</code> (<code>APP_VARIANT=development</code>), <b>never on the release app</b>:</p>
+  <ul class="checklist">
+    <li><input type="checkbox"><span>Install the S02 build over an existing dev install at schema v13 → the app opens, Dismissal shows "A line for today?" after a seal, and nothing else changes</span></li>
+    <li><input type="checkbox"><span>Seal, write a headnote and keep it → it shows in Dismissal; kill and reopen the app → it is still there, tied to today's sealed passage (not tomorrow's chapter)</span></li>
+    <li><input type="checkbox"><span>Edit it, then save it blank → it is removed; open and close the sheet without saving → nothing changes</span></li>
+    <li><input type="checkbox"><span>Type with the keyboard up → the field and Keep it stay visible</span></li>
+    <li><input type="checkbox"><span>Export an encrypted backup, unravel, restore → the headnote is back</span></li>
+    <li><input type="checkbox"><span>Restore a backup made before S02 → it restores cleanly with no headnotes, behind the existing "overwrites everything" warning</span></li>
+    <li><input type="checkbox"><span>Unravel with headnotes present → after first run, no headnote remains anywhere (history contents are empty)</span></li>
+    <li><input type="checkbox"><span>Failure: put the device in airplane mode and tap an overview → the address-to-type fallback shows and nothing else breaks</span></li>
+  </ul>
+  <p><b>Visual (default):</b> compare against <code>mockup.html</code> §5 on the dev build at one narrow phone width and one tablet width, with reduced motion on. Also check the largest font scale on the contents page (it is visually load-bearing).</p>
+  <p><b>Owner spot-check (optional):</b> finish a short book (e.g. Jude) on the dev build and check that its contents read well. Read a long book's history contents (bare runs collapse). Then open the published site after S00 is merged.</p>
+  <p><b>Plan audit (C4):</b> an independent review of the final diff against this plan and <code>exec.md</code>. HIGH and MEDIUM gaps are fixed before <code>OUTCOME.md</code>.</p>
+</div>
+<script>
+function show(id){
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+}
+// Persist checklist state per plan file
+const KEY = 'plan-checks-' + location.pathname;
+document.querySelectorAll('.checklist input[type=checkbox]').forEach((cb, i) => {
+  cb.checked = localStorage.getItem(KEY + i) === '1';
+  cb.addEventListener('change', () => localStorage.setItem(KEY + i, cb.checked ? '1' : '0'));
+});
+</script>
+</body>
+</html>

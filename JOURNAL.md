@@ -5,6 +5,13 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## Decision 2026-10-07 — takeaways (now "headnotes") are the reader's editable words, kept outside the event log
+
+**Decision:** a daily takeaway is optional, offered after the seal, and linked to the day's passage (or to verses the reader narrows it to). The reader can edit and delete it, so it lives in its own table rather than in the append-only `events` log.
+**Why:** these are the reader's own words. A typo or a regretted line has to be fixable, which the log's append-only rule can't allow. Making a takeaway optional keeps the seal unchanged and keeps it from becoming a chore.
+**Consequences:** migrations are additive-only, so the table is permanent once shipped. Takeaways can't be reconstructed from the log, so backup and the unravel must handle them explicitly. Book summaries will have gaps on days with no takeaway.
+**Branch:** main (grill only; `docs/plans/bibleproject-book-videos/`)
+
 ## Decision 2026-10-07 — Apple support parked; the web/PWA plan is discarded
 
 **Decision:** drop `apple-web-pwa` from the plans and STATUS; keep Apple support only as a distant ❄️ item in `ROADMAP.md` → Parked. The plan files were never committed; their only copy was discarded with the `thread-aesthetic-loom/` worktree.

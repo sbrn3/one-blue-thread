@@ -83,6 +83,23 @@ to be confused with the everyday tier's "Practice" row, which is the cue.
 **The cue** — the one if-then sentence ("After X, I read in Y") that the whole
 product is built to deliver.
 
+## Your words
+
+**Headnote** — one line, in the reader's own words, about a day's reading,
+named after the one-line summary printed Bibles set before each chapter.
+Optional; skipping it costs nothing. It belongs to the passage read that day,
+or to the specific verses the reader narrows it to. Set in the app's voice,
+never in the Scripture face. The app never writes one. (Planned as a
+"takeaway"; the product word is headnote.)
+
+**Contents** — a book's headnotes read back as its contents page, one row per
+chapter in the book's own order. A chapter with no headnote shows only its
+number. Each reading of a book keeps its own contents.
+
+**Overview** — BibleProject's video overview of a book, linked (never
+embedded) before the first sitting and after finishing. External, attributed
+human commentary.
+
 ## Memory
 
 **Cloze card** — a recall card for a memory passage with some of its key words
