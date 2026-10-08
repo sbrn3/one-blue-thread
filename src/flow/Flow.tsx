@@ -41,7 +41,7 @@ import { SrbaiZone } from './SrbaiZone';
 import { WeaveZone } from './WeaveZone';
 import { YearReviewZone } from './YearReviewZone';
 import { DismissalZone } from './DismissalZone';
-import { HeadnoteSheet } from './HeadnoteSheet';
+import { HeadnoteSheet, type NarrowedRange } from './HeadnoteSheet';
 import { ThreadRail } from './ThreadRail';
 import { deriveBolt, type Bolt } from './bolt';
 import { isDismissalReady } from './dismissalReadiness';
@@ -404,9 +404,9 @@ export function Flow({ services }: FlowProps) {
       ? session.portionChapters[session.portionChapters.length - 1] ?? null
       : null;
   const handleSaveHeadnote = useCallback(
-    (text: string) => {
+    (words: string, narrowed?: NarrowedRange) => {
       if (!headnoteSeal) return;
-      setHeadnote(saveHeadnote(db, { seal: headnoteSeal, text, chapterEnd: headnoteChapterEnd }));
+      setHeadnote(saveHeadnote(db, { seal: headnoteSeal, text: words, chapterEnd: headnoteChapterEnd, narrowed }));
       setHeadnoteOpen(false);
     },
     [db, headnoteSeal, headnoteChapterEnd],
@@ -809,6 +809,11 @@ export function Flow({ services }: FlowProps) {
             },
           )}`}
           initialText={headnote?.text ?? ''}
+          text={text}
+          narrowable={(() => {
+            const start = headnote?.verseStart ?? headnoteSeal.verseFirst ?? 1;
+            return { book: headnoteSeal.book, chapter: headnoteSeal.chapter, start, end: headnote?.verseEnd ?? headnoteSeal.verseLast ?? start };
+          })()}
           onSave={handleSaveHeadnote}
           onDelete={headnote ? handleDeleteHeadnote : undefined}
           onClose={() => setHeadnoteOpen(false)}

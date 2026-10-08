@@ -8,7 +8,10 @@ import { ActionButton } from '../ui/controls';
 import { tokens } from '../ui/tokens';
 import { EMPTY_SEL, filterBooks, isSelected, rangeLabel, selectedRange, tapVerse, type RangeSel } from './passageRange';
 
-export type PickerMode = 'add' | 'edit' | 'learn';
+// 'headnote' (docs/plans/bibleproject-book-videos): narrow a headnote to verses
+// of its own chapter — always opened with `initial`, so back cancels instead of
+// walking up to another chapter, and none of the memory copy shows.
+export type PickerMode = 'add' | 'edit' | 'learn' | 'headnote';
 
 interface PassagePickerProps {
   mode: PickerMode;
@@ -27,8 +30,8 @@ interface PassagePickerProps {
 
 type Step = { kind: 'books' } | { kind: 'chapters'; book: string } | { kind: 'verses'; book: string; chapter: number };
 
-const CONFIRM: Record<PickerMode, string> = { add: 'Add', edit: 'Save', learn: 'Learn' };
-const TITLE: Record<PickerMode, string> = { add: 'Add a passage', edit: 'Edit verses', learn: 'Learn this' };
+const CONFIRM: Record<PickerMode, string> = { add: 'Add', edit: 'Save', learn: 'Learn', headnote: 'Use these verses' };
+const TITLE: Record<PickerMode, string> = { add: 'Add a passage', edit: 'Edit verses', learn: 'Learn this', headnote: 'Which verses?' };
 
 /**
  * docs/plans/recall-settings — the memory library's passage picker and
