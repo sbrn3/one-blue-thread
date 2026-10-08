@@ -15,8 +15,8 @@ add your own free key for, and for links you choose to open.
 
 **[Try the demo →](https://sbrn3.github.io/one-blue-thread/)**
 a browser preview of the daily flow — arrival, recall and the probe, scripture
-with study notes, the seal, the weave, the knot, and the book end. Nothing to
-install.
+with study notes, the seal, the weave, the knot, headnotes, and the book end.
+Nothing to install.
 
 **[Get the app →](https://github.com/sbrn3/one-blue-thread/releases/latest)**
 download `one-blue-thread.apk`, allow "install unknown apps," done. Android, free,
@@ -54,6 +54,12 @@ deliberate, held-down reset that starts you over from scratch.
 - **The weave.** Each book is a bolt of cloth: one warp thread per chapter,
   one weft pass per day read, and gaps that stay visible without counting
   against you.
+- **Headnotes and contents.** After you seal, you may keep one line about
+  the day in your own words — a headnote, optional and editable. Each book's
+  headnotes read back as its contents page: at "You finished" and, for every
+  reading of every book, in Reading history.
+- **Book bookends.** A book's first sitting and its finish link to
+  BibleProject's video overview of it (opened in the browser, never embedded).
 - **The book end.** When you finish a book: learn any of the verses you
   marked, then pick what's next.
 - **The knot** (the gear, top right). Practice (your cue), Memory, and

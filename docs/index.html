@@ -247,6 +247,29 @@
   .bookend .cand { font: 400 14px var(--display); padding: 12px 20px; border-radius: 999px; border: 1px solid var(--ink15); }
   .bookend .now { font: italic 400 20px var(--scripture); color: var(--ink60); margin-top: 14px; }
 
+  /* ---- headnotes and the book's contents (src/ui/Contents.tsx, src/ui/Ornament.tsx) ---- */
+  .orn { display: block; width: 240px; max-width: 70%; height: auto; overflow: visible; }
+  .orn path { fill: none; stroke: var(--thread); stroke-width: 1.15; stroke-linecap: round; stroke-linejoin: round; }
+  .orn .faint { stroke: var(--warp); stroke-width: .9; opacity: .55; }
+  .first-sitting { margin-top: 30px; }
+  .first-sitting .lead { font: 400 13px/1.5 var(--display); color: var(--ink40); margin-top: 12px; }
+  .first-sitting .lead a, .contents-wrap .ov a { font: 600 14px var(--display); color: var(--ink40); }
+  .daily-line { max-width: 460px; margin: 0 auto 38px; display: grid; gap: 10px; justify-items: center; }
+  .daily-line .pill { font: 600 14px var(--display); padding: 12px 22px; border-radius: 999px; border: 1px solid var(--ink); }
+  .daily-line .kept { justify-self: stretch; text-align: left; border-left: 2px solid var(--madder); padding-left: 12px; font: 500 15px/22px var(--display); }
+  .daily-line .kept small { display: block; font: 400 12px var(--mono); color: var(--ink40); margin-top: 4px; }
+  .contents-wrap { width: 100%; max-width: 480px; text-align: left; justify-self: stretch; display: grid; gap: 8px; margin: 6px 0 4px; }
+  .contents-wrap .bookname { font: 900 34px/1.05 var(--display); color: var(--thread); }
+  .toc-row { display: flex; align-items: flex-end; gap: 8px; min-height: 48px; padding: 8px 0; border-top: 1px solid var(--ink15); }
+  .toc-n { align-self: flex-start; width: 22px; flex: none; font: 600 12px/22px var(--mono); color: var(--ink40); }
+  .toc-line { flex: 0 1 auto; max-width: 72%; font: 500 15px/22px var(--display); }
+  .toc-dots { flex: 1; min-width: 16px; margin-bottom: 6px; border-bottom: 1.5px dotted var(--ink40); }
+  .toc-ref { flex: none; font: 400 12px/22px var(--mono); color: var(--ink40); }
+  .toc-row.bare .toc-n { width: auto; min-width: 22px; }
+  .toc-row.bare .toc-dots { border-color: var(--ink15); }
+  .contents-wrap .tail { justify-self: center; margin-top: 4px; }
+  .contents-wrap .ov { text-align: center; font: 400 13px var(--display); color: var(--ink40); }
+
   @media (max-width: 760px) {
     .thesis { justify-content: flex-start; }
     .thesis-box { text-align: left; }
@@ -307,6 +330,11 @@
         <h2 class="rv d1">Every day starts the same way.</h2>
         <p class="cue-line rv d2">After <span class="blank" data-type="my morning coffee"></span>, I read in <span class="blank" data-type="the armchair by the window"></span>.<span class="caret"></span></p>
         <p class="tapnote rv d3">the cue is one sentence, set once and echoed back every day — edit it anytime from the knot</p>
+        <div class="first-sitting rv" aria-label="On a book's first sitting">
+          <svg class="orn" viewBox="0 0 240 28" aria-hidden="true"><path d="M8 16 C 52 16, 74 9, 104 12 C 124 14, 132 22, 124 24 C 114 26, 112 10, 132 9 C 156 8, 186 15, 232 14"/></svg>
+          <p class="lead">Before you begin: BibleProject's overview, in two parts: <a href="https://bibleproject.com/videos/john-1-12/">Part 1 ↗</a> · <a href="https://bibleproject.com/videos/john-13-21/">Part 2 ↗</a></p>
+          <p class="tapnote">on a book's first sitting only · a link to bibleproject.com, never embedded</p>
+        </div>
       </div>
     </section>
 
@@ -427,8 +455,25 @@
 
     <section class="chapter center c-dismiss locked" id="dismissChapter" data-anchor="0.5">
       <div class="zone-head"><span class="zone-tag"><b>zone 06</b> · dismissal</span></div>
+      <div class="daily-line rv" aria-label="After the seal, every day">
+        <p class="ask" style="font:400 12px var(--mono);letter-spacing:.05em;text-transform:uppercase;color:var(--ink40)">A line for today?</p>
+        <p class="pill">Write a headnote</p>
+        <p class="kept">The well was deep, and he still asked her for a drink.<small>John 4:7–15 · Edit</small></p>
+        <p class="tapnote">optional, one line in your own words · it sits above the chapter, like the headnote of a printed Bible</p>
+      </div>
       <div class="bookend rv" aria-label="When you finish a book">
         <p class="finished">You finished John.</p>
+        <div class="contents-wrap" aria-label="John's contents, made of your headnotes">
+          <p class="bookname">John</p>
+          <p class="ask" style="text-align:left">Contents</p>
+          <div class="toc-row"><span class="toc-n">1</span><span class="toc-line">Before anything else, the Word.</span><span class="toc-dots"></span><span class="toc-ref">1:1–5</span></div>
+          <div class="toc-row bare"><span class="toc-n">2–3</span><span class="toc-dots"></span></div>
+          <div class="toc-row"><span class="toc-n">4</span><span class="toc-line">The well was deep, and he still asked her for a drink.</span><span class="toc-dots"></span><span class="toc-ref">4:7–15</span></div>
+          <div class="toc-row bare"><span class="toc-n">5–20</span><span class="toc-dots"></span></div>
+          <div class="toc-row"><span class="toc-n">21</span><span class="toc-line">Breakfast on the shore, and a question asked three times.</span><span class="toc-dots"></span><span class="toc-ref">21:15–17</span></div>
+          <svg class="orn tail" viewBox="0 0 240 28" aria-hidden="true"><path class="faint" d="M40 15 H 200"/><path d="M70 15 C 96 15, 108 8, 120 8 C 132 8, 134 20, 120 20 C 108 20, 110 11, 128 11 C 146 11, 152 15, 170 15"/></svg>
+          <p class="ov">And now, BibleProject's overview, in two parts: <a href="https://bibleproject.com/videos/john-1-12/">Part 1 ↗</a> · <a href="https://bibleproject.com/videos/john-13-21/">Part 2 ↗</a></p>
+        </div>
         <p class="ask">Learn any of what you marked?</p>
         <p class="cand">John 4:14 · Learn this</p>
         <p class="ask">What's next, after John?</p>

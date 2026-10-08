@@ -79,6 +79,7 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.7 },
   number: {
+    alignSelf: 'flex-start',
     width: 22,
     fontFamily: tokens.font.mono,
     fontWeight: '600',
