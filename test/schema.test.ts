@@ -24,6 +24,7 @@ describe('schema + migration harness (W1)', () => {
       'srbai',
       'reports',
       'meta',
+      'headnotes',
     ]) {
       expect(tables).toContain(t);
     }
@@ -70,6 +71,22 @@ describe('schema + migration harness (W1)', () => {
     migrate(db);
     expect(schemaVersion(db)).toBe(MIGRATIONS.length);
     expect(db.get<{ source: string | null; rung: number }>('SELECT source, rung FROM passages')).toEqual({ source: null, rung: 4 });
+    migrate(db);
+    expect(schemaVersion(db)).toBe(MIGRATIONS.length);
+  });
+
+  it('v14 adds the headnotes table on a v13 db, leaving events untouched', () => {
+    const db = openTestDb();
+    for (const stmt of MIGRATIONS.slice(0, 13).flat()) db.run(stmt);
+    db.run('PRAGMA user_version = 13');
+    db.run(`INSERT INTO events (ts, tz_offset, local_date, type, build_sha) VALUES (1, 0, '2026-10-07', 'seal', 'x')`);
+    const eventCols = db.all<{ name: string }>('PRAGMA table_info(events)').map((c) => c.name);
+    migrate(db);
+    expect(schemaVersion(db)).toBe(MIGRATIONS.length);
+    const cols = db.all<{ name: string }>('PRAGMA table_info(headnotes)').map((c) => c.name);
+    expect(cols).toEqual(['local_date', 'seal_event_id', 'book', 'chapter', 'chapter_end', 'verse_start', 'verse_end', 'text', 'created_at', 'updated_at']);
+    expect(db.all<{ name: string }>('PRAGMA table_info(events)').map((c) => c.name)).toEqual(eventCols);
+    expect(db.all('SELECT * FROM events')).toHaveLength(1);
     migrate(db);
     expect(schemaVersion(db)).toBe(MIGRATIONS.length);
   });

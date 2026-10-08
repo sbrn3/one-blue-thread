@@ -19,6 +19,7 @@ export const RESET_TABLES = [
   'probes',
   'profile',
   'meta',
+  'headnotes',
   'chapter_cache',
   'error_log',
 ] as const;

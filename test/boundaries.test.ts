@@ -42,6 +42,23 @@ describe('import boundaries (§13.6)', () => {
     }
   });
 
+  it("nothing in /src/lab imports /src/headnote — the lab never reads the reader's own words", () => {
+    for (const f of walk(join(SRC, 'lab'))) {
+      for (const imp of importsOf(f)) {
+        expect(imp, `${f} imports ${imp}`).not.toMatch(/\/headnote(\/|$)/);
+      }
+    }
+  });
+
+  it('/src/headnote logs nothing and reaches neither the lab nor the network', () => {
+    for (const f of walk(join(SRC, 'headnote'))) {
+      for (const imp of importsOf(f)) {
+        expect(imp, `${f} imports ${imp}`).not.toMatch(/\/lab(\/|$)|\/notify(\/|$)|\/log\/log$|expo-notifications|fetch/);
+      }
+      expect(codeOf(f)).not.toMatch(/\.write\(|INSERT INTO events/);
+    }
+  });
+
   it('/src/memory imports nothing from /src/lab — a recall grade cannot affect the habit', () => {
     for (const f of walk(join(SRC, 'memory'))) {
       for (const imp of importsOf(f)) {
