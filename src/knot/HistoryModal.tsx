@@ -15,6 +15,8 @@ import type { SqlDb } from '../log/db';
 import { bookName } from '../text/canon';
 import { ActionButton } from '../ui/controls';
 import { tokens } from '../ui/tokens';
+import type { Headnote } from '../headnote';
+import { BookContents } from './BookContents';
 import { listHistoryPage, matchingBookIds, type HistoryEntry } from './history';
 
 const PAGE_SIZE = 40;
@@ -25,6 +27,8 @@ interface HistoryModalProps {
   reducedMotion: boolean;
   onClose: () => void;
   onSelectEntry: (entry: HistoryEntry) => void;
+  /** Bumped by the knot after the chapter viewer closes, so a book's contents re-read edited headnotes. */
+  refreshKey?: number;
 }
 
 interface Section {
@@ -49,8 +53,25 @@ function toSections(entries: HistoryEntry[]): Section[] {
  * portion; a merge-forward day (§21.2) may have folded in more than one
  * chapter, so this never claims "every chapter read".
  */
-export function HistoryModal({ visible, db, reducedMotion, onClose, onSelectEntry }: HistoryModalProps) {
+export function HistoryModal({ visible, db, reducedMotion, onClose, onSelectEntry, refreshKey = 0 }: HistoryModalProps) {
   const insets = useSafeAreaInsets();
+  // docs/plans/bibleproject-book-videos — a book's contents, as a screen in
+  // this same modal (never a second Modal).
+  const [bookScreen, setBookScreen] = useState<string | null>(null);
+  useEffect(() => {
+    if (!visible) setBookScreen(null);
+  }, [visible]);
+  const openHeadnote = useCallback(
+    (h: Headnote) =>
+      onSelectEntry({
+        local_date: h.localDate,
+        book: h.book,
+        chapter: h.chapter,
+        sitting: null,
+        highlight: h.verseStart != null && h.verseEnd != null ? { start: h.verseStart, end: h.verseEnd } : undefined,
+      }),
+    [onSelectEntry],
+  );
   const [query, setQuery] = useState('');
   const [entries, setEntries] = useState<HistoryEntry[]>([]);
   const [cursor, setCursor] = useState<string | null | undefined>(undefined);
@@ -100,7 +121,7 @@ export function HistoryModal({ visible, db, reducedMotion, onClose, onSelectEntr
   }, []);
 
   return (
-    <Modal visible={visible} animationType={reducedMotion ? 'none' : 'slide'} onRequestClose={onClose} onShow={focusClose}>
+    <Modal visible={visible} animationType={reducedMotion ? 'none' : 'slide'} onRequestClose={bookScreen ? () => setBookScreen(null) : onClose} onShow={focusClose}>
       <View style={[styles.wrap, { paddingTop: insets.top, paddingBottom: insets.bottom }]} accessibilityViewIsModal>
         <View style={styles.headerRow}>
           <Text style={styles.title}>Reading history</Text>
@@ -109,6 +130,10 @@ export function HistoryModal({ visible, db, reducedMotion, onClose, onSelectEntr
           </Pressable>
         </View>
 
+        {bookScreen ? (
+          <BookContents db={db} book={bookScreen} refreshKey={refreshKey} onBack={() => setBookScreen(null)} onOpen={openHeadnote} />
+        ) : (
+        <>
         <TextInput
           style={styles.search}
           placeholder="Search by book…"
@@ -136,7 +161,17 @@ export function HistoryModal({ visible, db, reducedMotion, onClose, onSelectEntr
           <SectionList
             sections={sections}
             keyExtractor={(item) => item.local_date}
-            renderSectionHeader={({ section }) => <Text style={styles.sectionHeader}>{bookName(section.title)}</Text>}
+            renderSectionHeader={({ section }) => (
+              <Pressable
+                style={styles.sectionHeaderRow}
+                onPress={() => setBookScreen(section.title)}
+                accessibilityRole="button"
+                accessibilityLabel={`${bookName(section.title)}, open its contents and overview`}
+              >
+                <Text style={styles.sectionHeader}>{bookName(section.title)}</Text>
+                <Text style={styles.sectionHeaderAction}>Contents ›</Text>
+              </Pressable>
+            )}
             renderItem={({ item }) => (
               <Pressable
                 style={styles.row}
@@ -157,6 +192,8 @@ export function HistoryModal({ visible, db, reducedMotion, onClose, onSelectEntr
               ) : null
             }
           />
+        )}
+        </>
         )}
       </View>
     </Modal>
@@ -200,14 +237,25 @@ const styles = StyleSheet.create({
     color: tokens.color.ink,
     marginVertical: 12,
   },
+  sectionHeaderRow: {
+    minHeight: tokens.control.minTarget,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: tokens.color.paper,
+  },
   sectionHeader: {
     fontFamily: tokens.font.mono,
     fontSize: 11,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     color: tokens.color.ink40,
-    backgroundColor: tokens.color.paper,
     paddingVertical: 8,
+  },
+  sectionHeaderAction: {
+    fontFamily: tokens.font.mono,
+    fontSize: 11,
+    color: tokens.color.thread,
   },
   row: {
     minHeight: 48,

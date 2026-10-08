@@ -50,6 +50,7 @@ const INTERACTIVE_CALLER_ALLOWLIST = new Set<string>([
   'src/flow/StudyHint.tsx',
   'src/flow/WhatsNewCard.tsx',
   'src/knot/BackupSection.tsx',
+  'src/knot/BookContents.tsx', // Back sits at tokens.control.minTarget
   'src/knot/ChapterStrip.tsx',
   'src/knot/ChapterViewer.tsx',
   'src/knot/CueEditor.tsx',
@@ -71,6 +72,7 @@ const INTERACTIVE_CALLER_ALLOWLIST = new Set<string>([
   'src/study/DictionaryLibrary.tsx',
   'src/study/VerseContextSheet.tsx',
   'src/ui/BookPicker.tsx',
+  'src/ui/Contents.tsx', // each row is 48pt tall (minHeight 48)
   'src/ui/FeedbackState.tsx',
   'src/ui/HeadnoteEditor.tsx', // links and Delete at tokens.control.minTarget; the field is multi-line
   'src/ui/KeyGuide.tsx', // the signup link sits at tokens.control.minTarget

@@ -69,6 +69,8 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
   const [memoryOpen, setMemoryOpen] = useState(false);
   const rehearsalPhase = useSealRehearsal((st) => st.phase);
   const [viewingEntry, setViewingEntry] = useState<HistoryEntry | null>(null);
+  // Bumped when the chapter viewer closes, so a book's contents re-read a headnote edited there.
+  const [historyEpoch, setHistoryEpoch] = useState(0);
   const [paused, setPaused] = useState(() => meta.get(db, 'paused') === '1');
 
   // The everyday tier's own two disclosures: Practice, and the "More" door
@@ -326,6 +328,7 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
               reducedMotion={reducedMotion}
               onClose={() => setHistoryOpen(false)}
               onSelectEntry={handleSelectHistoryEntry}
+              refreshKey={historyEpoch}
             />
 
             <MemoryModal
@@ -337,7 +340,16 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
               onClose={() => setMemoryOpen(false)}
             />
 
-            <ChapterViewer entry={viewingEntry} text={text} reducedMotion={reducedMotion} onClose={() => setViewingEntry(null)} />
+            <ChapterViewer
+              entry={viewingEntry}
+              text={text}
+              db={db}
+              reducedMotion={reducedMotion}
+              onClose={() => {
+                setViewingEntry(null);
+                setHistoryEpoch((n) => n + 1);
+              }}
+            />
           </View>
           </GestureHandlerRootView>
         </KeyboardAvoidingView>
