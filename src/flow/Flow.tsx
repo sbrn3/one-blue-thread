@@ -46,6 +46,7 @@ import { ThreadRail } from './ThreadRail';
 import { deriveBolt, type Bolt } from './bolt';
 import { isDismissalReady } from './dismissalReadiness';
 import { scriptureFitsOnScreen } from './readingProgress';
+import { releaseSplash } from '../startup/splash';
 import { mark, summary } from '../startup/timing';
 import { ErrorState } from '../ui/FeedbackState';
 import { LaunchWeave } from '../ui/LaunchWeave';
@@ -646,6 +647,7 @@ export function Flow({ services }: FlowProps) {
   }, []);
   useEffect(() => {
     if (session.status === 'ready') mark('sessionReady');
+    if (session.status === 'error') releaseSplash(); // the error screen replaces the weave
   }, [session.status]);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 

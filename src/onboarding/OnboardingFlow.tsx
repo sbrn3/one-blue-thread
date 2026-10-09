@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { meta } from '../log/log';
 import { logicalToday } from '../log/time';
 import type { Services } from '../services';
@@ -12,6 +12,7 @@ import { PremiseScreen } from './screens/PremiseScreen';
 import { SafekeepingScreen } from './screens/SafekeepingScreen';
 import { TranslationScreen } from './screens/TranslationScreen';
 import { EMPTY_DRAFT, type OnboardingDraft } from './types';
+import { releaseSplash } from '../startup/splash';
 
 interface OnboardingFlowProps {
   services: Services;
@@ -27,6 +28,7 @@ type Step = 'premise' | 'anchor' | 'place' | 'net' | 'translation' | 'books' | '
  * itself the very last user action).
  */
 export function OnboardingFlow({ services, onDone }: OnboardingFlowProps) {
+  useEffect(() => releaseSplash(), []); // first run has no launch weave
   const [step, setStep] = useState<Step>('premise');
   const [draft, setDraft] = useState<OnboardingDraft>(EMPTY_DRAFT);
 
