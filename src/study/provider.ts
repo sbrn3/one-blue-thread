@@ -51,20 +51,42 @@ interface LocatedCue extends CueCandidate {
 
 const cueCache = new WeakMap<DictionaryIndexEntry[], CueCandidate[]>();
 
+/**
+ * The index already carries every alias normalised at build time
+ * (scripts/build-tyndale.mjs uses the same normalizeSearch). Re-normalising
+ * ~7,900 aliases here cost about 10.7 s on Hermes during Flow's first render,
+ * and that was the white launch screen (docs/plans/reading-screen-and-motion,
+ * F1). Fall back to normalizing only for a row built without them.
+ */
 function cueCandidates(index: DictionaryIndexEntry[]): CueCandidate[] {
   const cached = cueCache.get(index);
   if (cached) return cached;
   const prepared = index
-    .flatMap((entry) => entry.aliases.map((alias) => ({ entry, alias, normalized: normalizeSearch(alias) })))
+    .flatMap((entry) =>
+      entry.aliases.map((alias, i) => ({ entry, alias, normalized: entry.normalizedAliases?.[i] ?? normalizeSearch(alias) })),
+    )
     .filter((candidate) => candidate.normalized.length >= 3);
   cueCache.set(index, prepared);
   return prepared;
 }
 
-function normalizedWithOffsets(original: string): { value:string; offsets:number[] } {
+/**
+ * Exported for tests only. ASCII takes a fast path that gives exactly what NFD
+ * plus toLocaleLowerCase('en') would. Those calls are slow per character on
+ * Hermes, and nearly all of the bundled text is ASCII.
+ */
+export function normalizedWithOffsets(original: string): { value:string; offsets:number[] } {
   let value='';
   const offsets:number[]=[];
   for(let index=0;index<original.length;){
+    const code=original.charCodeAt(index);
+    if(code<128){
+      const lower=code>=65&&code<=90?String.fromCharCode(code+32):original[index];
+      if((lower>='a'&&lower<='z')||(lower>='0'&&lower<='9')){value+=lower;offsets.push(index);}
+      else if(lower!=="'"&&value.at(-1)!==' '){value+=' ';offsets.push(index);}
+      index+=1;
+      continue;
+    }
     const character=String.fromCodePoint(original.codePointAt(index) as number);
     const normalized=character.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('en');
     if(/[a-z0-9]/.test(normalized)){
@@ -108,6 +130,7 @@ function locateCandidates(
 }
 
 export function cueTerms(verses: Verse[], index: DictionaryIndexEntry[], limit = 4): TermCue[] {
+  if (verses.length === 0 || limit <= 0) return [];
   const candidates = cueCandidates(index);
   const usedArticles = new Set<string>();
   const cues: TermCue[] = [];
