@@ -138,6 +138,9 @@ export function MoreSection({
         nested
       >
         <ResetSection db={db} log={log} onScrollLock={onScrollLock} />
+        {/* Dev builds only: the same hold and ring with the erase swapped for a
+            no-op, so the unravel can be checked on a phone without losing data. */}
+        {__DEV__ && <ResetSection db={db} log={log} onScrollLock={onScrollLock} rehearsal />}
       </DisclosureSection>
 
       <Text style={styles.groupLabel}>About</Text>

@@ -1,20 +1,18 @@
 import * as Haptics from 'expo-haptics';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AccessibilityInfo, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   cancelAnimation,
-  Easing,
-  runOnJS,
   useAnimatedProps,
   useAnimatedStyle,
   useSharedValue,
-  withSequence,
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 import { ActionButton } from '../ui/controls';
 import { fellLineLength, fellLinePath, lineAmp } from '../ui/fellLine';
+import { useHoldGesture } from '../ui/holdGesture';
 import { tokens } from '../ui/tokens';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -81,7 +79,6 @@ export function SealZone({
   const [twoTapArmed, setTwoTapArmed] = useState(false);
   const ringProgress = useSharedValue(sealed ? 1 : 0);
   const sealFade = useSharedValue(sealed ? 1 : 0);
-  const pulseTick = useSharedValue(0);
 
   useEffect(() => {
     if (sealed) setTwoTapArmed(false);
@@ -103,37 +100,37 @@ export function SealZone({
     onSeal();
   };
 
-  const hold = Gesture.LongPress()
-    .minDuration(tokens.seal.holdMs)
-    .maxDistance(tokens.seal.maxDriftPx)
-    .enabled(canSeal)
-    .onBegin(() => {
-      runOnJS(onScrollLock)(true);
-      ringProgress.value = withTiming(1, { duration: tokens.seal.holdMs, easing: Easing.linear });
-      pulseTick.value = 0;
-      pulseTick.value = withSequence(
-        ...Array.from({ length: PULSES }, () =>
-          withTiming(1, { duration: tokens.seal.holdMs / PULSES }, (finished) => {
-            if (finished) runOnJS(triggerPulse)();
-          }),
-        ),
-      );
-    })
-    .onFinalize((_event, success) => {
-      runOnJS(onScrollLock)(false);
-      cancelAnimation(pulseTick);
-      if (success) {
-        cancelAnimation(ringProgress);
-        ringProgress.value = 1;
-        runOnJS(triggerSuccess)();
-      } else {
-        cancelAnimation(ringProgress);
-        ringProgress.value = withTiming(0, { duration: UNWIND_MS }); // release early → unwinds, nothing logged
-        runOnJS(onHoldCancel)();
-      }
-    });
+  // Haptic pulses over the hold, evenly spaced; the last lands with the seal.
+  const pulses = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const stopPulses = () => {
+    pulses.current.forEach(clearTimeout);
+    pulses.current = [];
+  };
+  useEffect(() => stopPulses, []);
 
-  const composed = Gesture.Simultaneous(hold, Gesture.Native());
+  const composed = useHoldGesture(
+    ringProgress,
+    { holdMs: tokens.seal.holdMs, maxDriftPx: tokens.seal.maxDriftPx, releaseMs: UNWIND_MS, enabled: canSeal },
+    {
+      onPressIn: () => {
+        onScrollLock(true);
+        stopPulses();
+        for (let i = 1; i < PULSES; i++) pulses.current.push(setTimeout(triggerPulse, (tokens.seal.holdMs / PULSES) * i));
+      },
+      onCommit: () => {
+        stopPulses();
+        triggerSuccess();
+      },
+      onCancel: () => {
+        stopPulses();
+        onHoldCancel(); // released early: the line unwinds, and only hold_cancel is logged
+      },
+      onPressOut: () => {
+        stopPulses();
+        onScrollLock(false);
+      },
+    },
+  );
 
   // react-native-svg has no getTotalLength, so the dash length comes from the
   // generated polyline at its slackest — guessing high would make the pass
