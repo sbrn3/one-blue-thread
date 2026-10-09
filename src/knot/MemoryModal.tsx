@@ -604,8 +604,7 @@ const styles = StyleSheet.create({
     backgroundColor: tokens.color.thread,
   },
   passageText: {
-    fontFamily: tokens.font.scripture,
-    fontStyle: 'italic',
+    fontFamily: tokens.font.scriptureItalic,
     fontSize: 18,
     lineHeight: 27,
     color: tokens.color.ink,

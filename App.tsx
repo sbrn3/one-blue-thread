@@ -31,6 +31,8 @@ export default function App() {
     'Schibsted Grotesk': require('./assets/fonts/SchibstedGrotesk.ttf'),
     Newsreader: require('./assets/fonts/Newsreader.ttf'),
     'JetBrains Mono': require('./assets/fonts/JetBrainsMono.ttf'),
+    'SchibstedGrotesk-Italic': require('./assets/fonts/SchibstedGrotesk-Italic.ttf'),
+    'Newsreader-Italic': require('./assets/fonts/Newsreader-Italic.ttf'),
   });
 
   return (

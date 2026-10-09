@@ -180,8 +180,7 @@ const styles = StyleSheet.create({
     color: tokens.color.ink,
   },
   farewell: {
-    fontFamily: tokens.font.scripture,
-    fontStyle: 'italic',
+    fontFamily: tokens.font.scriptureItalic,
     fontSize: 18,
     lineHeight: 28,
     color: tokens.color.ink,
