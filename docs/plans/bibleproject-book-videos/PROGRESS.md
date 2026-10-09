@@ -18,3 +18,11 @@ Device checklist (2026-10-09, dev app com.sngugi.thread.dev, Metro from main da4
 - PASS: kill and reopen. The session moved to sitting 6, and the headnote still shows James 4:11, the sealed passage.
 - FOUND and FIXED: a short sitting that fits on screen never scrolls, so the seal stayed locked on "Read to the end to seal" (an existing bug, exposed after dismissing the What's new card). Also: the field's madder rule painted all four sides on Android.
 - NOT RUN (stopped: the owner was using the phone with a picture-in-picture video over the controls): edit and blank-save, close without saving, encrypted export, unravel and restore, the pre-V14 backup restore, the airplane-mode overview link. All are covered by unit tests (headnote, backup, reset), and the final audit fixed the reopen bug.
+
+Device checklist, round 2 (2026-10-09, same dev app, Metro on 8095 from feat/headnotes; the dev DB was restored byte-identical afterwards):
+- PASS: editing a headnote, blank text (Keep it is disabled), Close without saving, Delete with its confirmation.
+- PASS: narrowing with Choose verses, and the reference following the range; Use the whole passage.
+- PASS: finishing James shows the contents block and the tailpiece. Reading history shows Contents for the book, and the chapter viewer (headnote above the chapter, highlight, edit, delete, back stepping).
+- PASS: the next book's first sitting shows the headpiece and "Before you begin: BibleProject's overview".
+- FOUND and FIXED: the verse picker list went blank after a tap (FlatList `initialScrollIndex`), so it now scrolls once after load. Deleting or editing a headnote in Reading history left the reading screen showing the old one, so a `headnoteEpoch` signal now makes Flow re-read it. Both were re-checked on the device.
+- NOT RUN: the encrypted export, unravel and restore round trip, the pre-V14 backup restore, and the airplane-mode overview link. The owner picked up the phone just before Export, and the tap never landed, so no backup file was created. Covered by unit tests: backup and reset include `headnotes`, and headnote.test covers "a backup made before headnotes existed restores to none".

@@ -50,6 +50,10 @@ export function PassagePicker({ mode, text, initial, message, onConfirm, onCance
   const [loadError, setLoadError] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const listRef = useRef<FlatList<Verse>>(null);
+  // Opening on a range scrolls to it once the verses arrive. Not via
+  // initialScrollIndex: with varying row heights, a re-render after a tap
+  // (extraData) could leave that list blank until it was scrolled.
+  const scrolledToInitial = useRef(false);
 
   const books = useMemo(() => filterBooks(query).filter((b) => bundledChapterCount(b.id) > 0), [query]);
 
@@ -72,6 +76,14 @@ export function PassagePicker({ mode, text, initial, message, onConfirm, onCance
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [versesKey, attempt, text]);
+
+  useEffect(() => {
+    if (!initial || !verses || scrolledToInitial.current) return;
+    scrolledToInitial.current = true;
+    const index = Math.max(0, Math.min(initial.start - 2, verses.length - 1));
+    if (index > 0) setTimeout(() => listRef.current?.scrollToIndex({ index, animated: false }), 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [verses]);
 
   const back = useCallback(() => {
     if (step.kind === 'verses' && !initial) {
@@ -184,7 +196,6 @@ export function PassagePicker({ mode, text, initial, message, onConfirm, onCance
               style={styles.list}
               extraData={sel}
               initialNumToRender={initial ? Math.min(verses.length, initial.end + 10) : 20}
-              initialScrollIndex={initial ? Math.max(0, Math.min(initial.start - 2, verses.length - 1)) : undefined}
               onScrollToIndexFailed={({ index, averageItemLength }) => {
                 listRef.current?.scrollToOffset({ offset: index * averageItemLength, animated: false });
                 setTimeout(() => listRef.current?.scrollToIndex({ index, animated: false }), 50);

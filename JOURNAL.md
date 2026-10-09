@@ -5,6 +5,22 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## 2026-10-09 — book bookends shipped as v0.11.0
+
+The device checklist ran on the dev client in two rounds, and the dev DB was restored byte-identical afterwards. Passed:
+- the v13 → v14 upgrade, with every event kept;
+- writing, editing, narrowing and deleting a headnote, and its keyboard behaviour;
+- a kill and reopen;
+- the contents at the end of a book and in Reading history;
+- the first-sitting headpiece.
+
+Fixed along the way:
+- **#66:** a short sitting never unlocked the seal (an existing bug), and the field's rule was drawn on all four sides.
+- **The release PR:** the verse picker list went blank (FlatList `initialScrollIndex`), and a headnote deleted in history stayed on the reading screen. `src/state/headnoteEpoch.ts` now signals Flow to re-read.
+
+**Handoff:** the encrypted export, unravel and restore round trip, and a pre-V14 restore, were not run on a device, because the owner picked up the phone. Unit tests cover both. Worth a quick check on the release app after installing v0.11.0.
+**Branch:** fix/headnotes-device-round2
+
 ## 2026-10-08 — book bookends built: BibleProject overviews and headnotes (C4)
 
 Merged in slice order as PRs #57–#64, with no release tagged yet.

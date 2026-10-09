@@ -15,6 +15,14 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    id: 'v0.11.0',
+    lines: [
+      "A new book opens with a link to BibleProject's video overview, and it comes back when you finish.",
+      "After you seal, you can keep one line about the day — a headnote. It's optional.",
+      'Finishing a book shows its contents, your headnotes in chapter order. Reading history keeps them.',
+    ],
+  },
+  {
     id: 'v0.10.0',
     lines: [
       'After an update, a short note like this one says what changed.',

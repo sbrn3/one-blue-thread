@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScriptureZone } from '../flow/ScriptureZone';
 import { getHeadnote, headnoteRange, removeHeadnote, saveHeadnote, sealById, type Headnote, type SealRef } from '../headnote';
 import type { SqlDb } from '../log/db';
+import { useHeadnoteEpoch } from '../state/headnoteEpoch';
 import type { HistoryEntry } from './history';
 import type { TextProvider, Verse } from '../text/provider';
 import { bookName } from '../text/canon';
@@ -37,6 +38,7 @@ export function ChapterViewer({ entry, text, db, reducedMotion, onClose }: Chapt
   // above the text the way a printed Bible sets a chapter's headnote. Editing
   // is a screen inside this viewer, never a second Modal.
   const [headnote, setHeadnote] = useState<Headnote | null>(null);
+  const bumpHeadnotes = useHeadnoteEpoch((st) => st.bump);
   const [editing, setEditing] = useState(false);
   // Choosing verses swaps the editor for the picker (its lists can't nest in a
   // ScrollView); the words typed so far are kept here across the swap.
@@ -66,6 +68,7 @@ export function ChapterViewer({ entry, text, db, reducedMotion, onClose }: Chapt
     if (!headnote) return;
     const range = narrowed === undefined ? undefined : narrowed === null ? null : { chapter: headnote.chapter, ...narrowed };
     setHeadnote(saveHeadnote(db, { seal: sealOf(headnote), text: words, narrowed: range }));
+    bumpHeadnotes();
     setEditing(false);
   };
   const isNarrowed = (h: Headnote) => {
@@ -87,6 +90,7 @@ export function ChapterViewer({ entry, text, db, reducedMotion, onClose }: Chapt
   const deleteHeadnote = () => {
     if (!headnote) return;
     removeHeadnote(db, headnote.localDate);
+    bumpHeadnotes();
     setHeadnote(null);
     setEditing(false);
   };

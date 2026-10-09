@@ -21,6 +21,7 @@ import { buildYearReview, isYearReviewDue, type YearReviewReport } from '../lab/
 import { contentsFor, getHeadnote, headnoteRange, latestSeal, removeHeadnote, saveHeadnote, type Headnote } from '../headnote';
 import { computeStreak, meta } from '../log/log';
 import type { Services } from '../services';
+import { useHeadnoteEpoch } from '../state/headnoteEpoch';
 import { useMemoryEpoch } from '../state/memoryEpoch';
 import { useSealRehearsal } from '../state/sealRehearsal';
 import { useSession } from '../state/session';
@@ -415,9 +416,12 @@ export function Flow({ services }: FlowProps) {
   );
   const [headnote, setHeadnote] = useState<Headnote | null>(null);
   const [headnoteOpen, setHeadnoteOpen] = useState(false);
+  // Bumped when the chapter viewer edits or deletes a headnote, so today's
+  // never goes stale here.
+  const headnoteEpoch = useHeadnoteEpoch((st) => st.epoch);
   useEffect(() => {
     setHeadnote(headnoteSeal ? getHeadnote(db, headnoteSeal.localDate) : null);
-  }, [headnoteSeal, db]);
+  }, [headnoteSeal, db, headnoteEpoch]);
   // The merged-forward chapter span is only known in the sealing session,
   // while the session still holds the sealed portion.
   const headnoteChapterEnd =
