@@ -1,6 +1,8 @@
 // Must be the first import — react-native-gesture-handler installs
 // its native event listeners at module load time (§05 seal risk).
 import 'react-native-gesture-handler';
+// Second: the first startup timing mark (src/startup/timing.ts).
+import './src/startup/begin';
 
 import { registerRootComponent } from 'expo';
 

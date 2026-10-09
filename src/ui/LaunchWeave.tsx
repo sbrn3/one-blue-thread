@@ -13,6 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { G, Path } from 'react-native-svg';
 import { clothSize, geometry, pointsToPath, polylineLength, ridesOver, warpPath, weftPoints } from './loom';
+import { mark } from '../startup/timing';
 import { tokens } from './tokens';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -86,6 +87,12 @@ export function LaunchWeave({ width, height, done, onDismissed, onRetry }: Launc
 
   const bandBottomPx = (j: number) => (tautGeom.pad + (j + 0.5) * tautGeom.sy) * SCALE;
   const fellY = useSharedValue(reducedMotion ? bandBottomPx(ROWS - 1) : 0);
+
+  useEffect(() => {
+    // Approximately the weave's first painted frame (startup timing).
+    const frame = requestAnimationFrame(() => mark('weaveFirstFrame'));
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
     if (reducedMotion) return;

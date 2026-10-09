@@ -46,6 +46,7 @@ import { ThreadRail } from './ThreadRail';
 import { deriveBolt, type Bolt } from './bolt';
 import { isDismissalReady } from './dismissalReadiness';
 import { scriptureFitsOnScreen } from './readingProgress';
+import { mark, summary } from '../startup/timing';
 import { ErrorState } from '../ui/FeedbackState';
 import { LaunchWeave } from '../ui/LaunchWeave';
 import { VerseContextSheet } from '../study/VerseContextSheet';
@@ -60,6 +61,7 @@ interface FlowProps {
 // is also reachable any time via the knot (W5), independent of
 // today's seal.
 export function Flow({ services }: FlowProps) {
+  mark('flowRender');
   const { db, log, text, study, memory, notifier, partner } = services;
   const session = useSession();
   const reducedMotion = useReducedMotion();
@@ -635,7 +637,16 @@ export function Flow({ services }: FlowProps) {
   // after status flips to 'ready', so it stays mounted one tick longer than
   // the loading state itself.
   const [showLaunch, setShowLaunch] = useState(true);
-  const dismissLaunch = useCallback(() => setShowLaunch(false), []);
+  const dismissLaunch = useCallback(() => {
+    mark('launchDismissed');
+    // Release-speed timing: start Metro with EXPO_PUBLIC_DEBUG_STARTUP=1 and
+    // read `adb logcat -s ReactNativeJS` (docs/plans/reading-screen-and-motion).
+    if (__DEV__ || process.env.EXPO_PUBLIC_DEBUG_STARTUP === '1') console.log('[startup]', JSON.stringify(summary()));
+    setShowLaunch(false);
+  }, []);
+  useEffect(() => {
+    if (session.status === 'ready') mark('sessionReady');
+  }, [session.status]);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   if (session.status === 'error') {
