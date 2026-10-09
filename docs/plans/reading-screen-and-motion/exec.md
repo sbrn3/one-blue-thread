@@ -66,7 +66,7 @@ node scripts/device/ui.mjs tap <label>
 - **Boundaries accepted by the owner, 2026-10-08.** All three are journaled by S10 with build SHAs.
   - **E1:** hold feedback and commit timing (S02). This covers `hold_cancel` and the signature's mechanic-friction rate (`src/lab/signature.ts` ~85–93).
   - **E9:** the probe's presentation changes (S06). It now sits inside the list, **shown open**, so neither firing nor answering changes.
-  - **E4/signature:** short sittings now fire `reading_start`/`scroll_end` without a scroll (S06).
+  - **E4/signature:** short sittings now fire `reading_start`/`scroll_end` without a scroll. This shipped on `main` in PR #66; S06 keeps it working.
 - **Probe.** It stays open by default in the list (owner, 2026-10-08). No new event type. The event-log schema is untouched.
 - **New dependency approved.** `expo-splash-screen` (first-party, SDK-pinned) for S01 only.
 - **Unverifiable steps.** Record a gap; never claim a pass.
@@ -92,7 +92,7 @@ node scripts/device/ui.mjs tap <label>
 | S02 | 1 | S05 | inline | `src/flow/SealZone.tsx`, `src/knot/ResetSection.tsx`, `src/ui/holdGesture.ts`, `src/state/sealRehearsal.ts`, `Flow.tsx` (scroll lock + ScrollView only) |
 | S03 | 1 | S01 | inline | `assets/fonts/Newsreader-Italic.ttf`, `THIRD_PARTY_NOTICES.md`, `App.tsx` (`useFonts` map), `tokens.font`, 7 italic sites (style blocks) |
 | S04 | 2 | wave 1 | inline | `WeaveZone.tsx` (sizing), modal files, `VerseContextSheet.tsx`, `src/study/index.ts` (prewarm), `Flow.tsx` (prewarm call) |
-| S06 | 3 | S04 | inline | `beforeYouRead.ts`, `BeforeYouRead.tsx`, `readingProgress.ts`, the arrival and before-reading zones, `Flow.tsx` |
+| S06 | 3 | S04 | inline | `beforeYouRead.ts`, `BeforeYouRead.tsx`, the arrival and before-reading zones, `Flow.tsx` |
 | S07 | 3 | S06 | inline | `ArrivalZone.tsx` (weft), `BeforeYouRead.tsx` (stitch) |
 | S08 | 4 | S07 | inline | `WeaveZone.tsx` (shuttle), `Flow.tsx` (`justSealed`), `sealRehearsal.ts` |
 | S09 | 4 | S08 | inline | `src/knot/Knot.tsx` |
@@ -325,7 +325,7 @@ Depends: S04. Mode: inline, **high-effort**, because it sits next to E9, E11/E12
 Budget: 12 files, 2 test files, ≤14 turns.
 Owns:
 
-- `src/flow/beforeYouRead.ts` (NEW), `src/flow/BeforeYouRead.tsx` (NEW), `src/flow/readingProgress.ts` (NEW);
+- `src/flow/beforeYouRead.ts` (NEW), `src/flow/BeforeYouRead.tsx` (NEW);
 - `ArrivalZone.tsx`, `ProbeZone.tsx`, `RecallZone.tsx`, `LapseZone.tsx`, `WhatsNewCard.tsx`, `StudyHint.tsx`;
 - `Flow.tsx` (~244–260 scroll handler, ~311–325 dismiss handlers, ~630–690 render);
 - `test/ui-contracts.test.ts`, `docs/brand-voice-inventory.json`.
@@ -367,12 +367,9 @@ Owns:
   - Logging, grading, skip and dismiss behaviour stay byte-identical.
   - `probe_fired` stays at load (`Flow.tsx` ~538–541).
 
-### Short sittings (Smart Review HIGH 1)
+### Short sittings (Smart Review HIGH 1): already fixed on main
 
-- The compact header can leave a 1–2 verse sitting shorter than the screen. Then `reading_start`/`scroll_end` never fire, and `canSeal` stays false.
-- `readingProgress.ts` — NEW, pure. `fitsWithoutScroll({ scriptureTop, scriptureBottom, viewportHeight, contentHeight })`.
-- After layout settles (both `onLayout` values > 0), Flow fires both events once, with fraction 1, when the scripture fits.
-- E4/signature boundary noted for S10.
+PR #66 (`af73832`, another session, 2026-10-09) added `src/flow/readingProgress.ts` `scriptureFitsOnScreen` and a layout check in Flow (`checkFitsOnScreen`) that fires `reading_start`/`scroll_end` when the Scripture fits. **Keep it working.** The compact header makes it fire more often. Re-run `test/readingProgress.test.ts`, and on the device check that a one-verse sitting seals without a scroll.
 
 ### Flow.tsx
 
@@ -387,7 +384,6 @@ Owns:
   - empty returns `[]`;
   - day-1 `probe = null`;
   - lapse plus everything.
-- `test/readingProgress.test.ts`: fits, overflows, and zero/unsettled layout returns false.
 
 ### Done when
 
@@ -459,7 +455,7 @@ Owns: `JOURNAL.md`, `docs/CONTEXT.md` ("Before you read"), `STATUS.md`, `docs/pl
 - **JOURNAL decision entry.** Direction A, plus the three boundaries with SHAs:
   - **E1** (S02): hold commit and feedback timing, `hold_cancel` and signature friction.
   - **E9** (S06): presentation only. The probe is still shown open and still logged at load.
-  - **E4/signature** (S06): short sittings fire `reading_start`/`scroll_end` without scrolling.
+  - **E4/signature**: short sittings fire `reading_start`/`scroll_end` without scrolling (PR #66). Check whether that session journaled it; if not, record it.
 - **What's new.** Wave 1's release ships its own entry. Drafts for the owner to edit (≤120 characters each):
   - Wave 1: "Holding to seal now shows the line pulling taut as soon as you touch it." / "The app opens on linen, without the white screen."
   - Final: "Scripture now starts on the first screen; anything due before reading is gathered above it." / "Sealing weaves today's row into the cloth."
