@@ -3,6 +3,7 @@ import { Component, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { tokens } from '../ui/tokens';
 import { getBootstrapDiagnostics, logBootstrapError } from './index';
+import { releaseSplash } from '../startup/splash';
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -32,6 +33,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   componentDidCatch(error: Error, info: { componentStack?: string | null }): void {
+    releaseSplash(); // never leave the splash over the error screen
     logBootstrapError(error.message, info.componentStack ?? error.stack ?? null);
   }
 

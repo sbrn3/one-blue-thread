@@ -13,6 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { G, Path } from 'react-native-svg';
 import { clothSize, geometry, pointsToPath, polylineLength, ridesOver, warpPath, weftPoints } from './loom';
+import { releaseSplash } from '../startup/splash';
 import { mark } from '../startup/timing';
 import { tokens } from './tokens';
 
@@ -90,7 +91,10 @@ export function LaunchWeave({ width, height, done, onDismissed, onRetry }: Launc
 
   useEffect(() => {
     // Approximately the weave's first painted frame (startup timing).
-    const frame = requestAnimationFrame(() => mark('weaveFirstFrame'));
+    const frame = requestAnimationFrame(() => {
+      mark('weaveFirstFrame');
+      releaseSplash();
+    });
     return () => cancelAnimationFrame(frame);
   }, []);
 
