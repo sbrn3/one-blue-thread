@@ -241,8 +241,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   revealed: {
-    fontFamily: tokens.font.scripture,
-    fontStyle: 'italic',
+    fontFamily: tokens.font.scriptureItalic,
     fontSize: 18,
     lineHeight: 27,
     color: tokens.color.ink,

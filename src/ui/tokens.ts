@@ -39,6 +39,11 @@ export const tokens = {
     display: 'Schibsted Grotesk', // the app's voice (400–900)
     scripture: 'Newsreader', // the text's voice — a different register
     mono: 'JetBrains Mono', // data, timestamps, reports
+    // The italics are separate files. On Android a custom family never gets an
+    // italic from the style prop, so those lines fell back to a system face.
+    // Use these families instead of an italic style (test/fonts.test.ts).
+    displayItalic: 'SchibstedGrotesk-Italic',
+    scriptureItalic: 'Newsreader-Italic',
   },
   // Erasing everything is a hold too, but a longer one: the seal is a daily
   // gesture, and muscle memory from it must not carry into an irreversible
