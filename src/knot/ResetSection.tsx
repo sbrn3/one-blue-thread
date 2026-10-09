@@ -1,14 +1,7 @@
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo, ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import {
-  cancelAnimation,
-  Easing,
-  runOnJS,
-  useReducedMotion,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { GestureDetector } from 'react-native-gesture-handler';
+import { useReducedMotion, useSharedValue } from 'react-native-reanimated';
 import { deriveBolt } from '../flow/bolt';
 import type { SqlDb } from '../log/db';
 import type { Log } from '../log/log';
@@ -17,6 +10,7 @@ import { nativeResetEnv } from '../reset/nativeEnv';
 import { performReset } from '../reset/perform';
 import { ActionButton } from '../ui/controls';
 import { dyeFor } from '../ui/dye';
+import { useHoldGesture } from '../ui/holdGesture';
 import { tokens } from '../ui/tokens';
 import { UnravelRing } from '../ui/UnravelRing';
 
@@ -40,6 +34,12 @@ interface ResetSectionProps {
    * almost before it starts.
    */
   onScrollLock: (locked: boolean) => void;
+  /**
+   * Dev builds only (MoreSection). Everything behaves as normal except the
+   * erase, which is a no-op, so the hold can be checked on a phone without
+   * wiping its data.
+   */
+  rehearsal?: boolean;
 }
 
 /**
@@ -56,7 +56,8 @@ interface ResetSectionProps {
  * falls back to a two-tap confirm rather than a single tap: the accessible path
  * keeps the same deliberation as the default one.
  */
-export function ResetSection({ db, log, onReset, onScrollLock }: ResetSectionProps) {
+export function ResetSection({ db, log, onReset, onScrollLock, rehearsal = false }: ResetSectionProps) {
+  const [rehearsed, setRehearsed] = useState(false);
   const reducedMotion = useReducedMotion();
   const [screenReaderEnabled, setScreenReaderEnabled] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -76,6 +77,11 @@ export function ResetSection({ db, log, onReset, onScrollLock }: ResetSectionPro
   const bolt = confirming ? deriveBolt(db, log, logicalToday()) : null;
 
   const run = async () => {
+    if (rehearsal) {
+      setRehearsed(true);
+      setConfirming(false);
+      return;
+    }
     setFailure(null);
     setBusy(true);
     let wiped = false;
@@ -99,28 +105,18 @@ export function ResetSection({ db, log, onReset, onScrollLock }: ResetSectionPro
     }
   };
 
-  const hold = Gesture.LongPress()
-    .minDuration(tokens.reset.holdMs)
-    .maxDistance(tokens.seal.maxDriftPx)
-    .onBegin(() => {
-      runOnJS(onScrollLock)(true);
-      progress.value = withTiming(1, { duration: tokens.reset.holdMs, easing: Easing.linear });
-    })
-    .onFinalize((_event, success) => {
-      runOnJS(onScrollLock)(false);
-      cancelAnimation(progress);
-      if (success) {
-        progress.value = 1;
-        runOnJS(run)();
-      } else {
-        progress.value = withTiming(0, { duration: RESTORE_MS }); // let go → it re-weaves
-      }
-    });
-
-  // Composed with Gesture.Native() so the hold and the enclosing ScrollView
-  // negotiate touch ownership through gesture-handler rather than the
-  // ScrollView's own responder silently winning — see SealZone.tsx.
-  const composed = Gesture.Simultaneous(hold, Gesture.Native());
+  // Composed with Gesture.Native() (inside useHoldGesture), so the hold and the
+  // enclosing ScrollView share the touch through gesture-handler rather than
+  // the ScrollView's own responder silently winning. See SealZone.tsx.
+  const composed = useHoldGesture(
+    progress,
+    { holdMs: tokens.reset.holdMs, maxDriftPx: tokens.seal.maxDriftPx, releaseMs: RESTORE_MS, enabled: true },
+    {
+      onPressIn: () => onScrollLock(true),
+      onCommit: () => void run(),
+      onPressOut: () => onScrollLock(false), // released early: it re-weaves
+    },
+  );
 
   if (stranded) {
     return (
@@ -136,7 +132,12 @@ export function ResetSection({ db, log, onReset, onScrollLock }: ResetSectionPro
 
   return (
     <View style={styles.zone}>
-      <Text style={styles.zoneLabel}>Starting over</Text>
+      <Text style={styles.zoneLabel}>{rehearsal ? 'Rehearse the unravel (dev)' : 'Starting over'}</Text>
+      {rehearsal && (
+        <Text style={styles.body}>
+          {rehearsed ? 'Unravelled. Nothing was erased.' : 'The same hold as Start over. Nothing is erased.'}
+        </Text>
+      )}
 
       {busy ? (
         <ActivityIndicator color={tokens.color.ink40} />
