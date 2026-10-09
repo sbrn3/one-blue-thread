@@ -54,5 +54,23 @@ export const tokens = {
   space: { 1: 4, 2: 8, 3: 12, 4: 16, 6: 24, 8: 32, 12: 48 },
   radius: { input: 10, panel: 12, sheet: 20, pill: 999 },
   control: { minTarget: 44 },
-  motion: { sheet: 'slide' as const },
+  // Motion is "tension and passage" (docs/plans/reading-screen-and-motion):
+  // threads draw, pull taut, pass and settle. No spring, no bounce, and text
+  // never fades in. Durations in ms; under reduce motion every one is 0 (see
+  // src/ui/motionTiming.ts). Values here are the ones the app already used.
+  motion: {
+    sheet: 'slide' as const,
+    railSweepMs: 600, // the rail's sweep down to the seal line once sealed
+    weftStartMs: 400, // launch: the first weft leaves after this
+    weftRowMs: 600, // launch: a new row starts this often
+    weftPassMs: 520, // one shuttle pass across the cloth
+    tensionMs: 240, // slack pulls taut; the fell line advances
+    accelerateMs: 180, // launch: finish quickly once the reading is ready
+    unwindMs: 220, // a seal hold released early unwinds
+    settleMs: 300, // the seal line pulled taut by any route
+    fadeMs: 200, // the seal pill gives way to the day label
+    restoreMs: 320, // an unravel released early re-weaves
+    stitchMs: 360, // a row opening in place
+    arrivalWeftMs: 600, // the weft drawn under the arrival header
+  },
 } as const;

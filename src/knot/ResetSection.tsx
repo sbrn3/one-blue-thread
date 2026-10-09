@@ -24,7 +24,7 @@ import { UnravelRing } from '../ui/UnravelRing';
 // reader feedback (issue #31) wanted this to read as "a normal circular
 // button" rather than the old wide cloth-strip bolt view.
 const UNRAVEL_RING_SIZE = 96;
-const RESTORE_MS = 320;
+const RESTORE_MS = tokens.motion.restoreMs;
 
 interface ResetSectionProps {
   db: SqlDb;
