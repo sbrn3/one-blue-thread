@@ -38,21 +38,26 @@ export function HeadnoteEditor({ heading, passageLabel, initialText, onSave, onD
       <Text style={styles.label} nativeID="headnoteLabel">
         As it will sit above the chapter
       </Text>
-      <TextInput
-        value={text}
-        onChangeText={(t) => {
-          setText(t);
-          onTextChange?.(t);
-        }}
-        maxLength={MAX_HEADNOTE}
-        multiline
-        autoFocus={initialText.length === 0}
-        placeholder="One line, in your own words"
-        placeholderTextColor={tokens.color.ink40}
-        accessibilityLabel={`Headnote for ${heading}`}
-        accessibilityLabelledBy="headnoteLabel"
-        style={styles.field}
-      />
+      {/* The madder rule is its own bar: Android paints a single-side border
+          colour onto every side when the side widths differ. */}
+      <View style={styles.fieldWrap}>
+        <View style={styles.rule} />
+        <TextInput
+          value={text}
+          onChangeText={(t) => {
+            setText(t);
+            onTextChange?.(t);
+          }}
+          maxLength={MAX_HEADNOTE}
+          multiline
+          autoFocus={initialText.length === 0}
+          placeholder="One line, in your own words"
+          placeholderTextColor={tokens.color.ink40}
+          accessibilityLabel={`Headnote for ${heading}`}
+          accessibilityLabelledBy="headnoteLabel"
+          style={styles.field}
+        />
+      </View>
       <Text style={styles.count} accessibilityLabel={`${text.length} of ${MAX_HEADNOTE} characters`}>
         {text.length} / {MAX_HEADNOTE}
       </Text>
@@ -97,13 +102,17 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     color: tokens.color.ink40,
   },
-  field: {
-    minHeight: 88,
+  fieldWrap: {
+    flexDirection: 'row',
     borderWidth: 1.5,
     borderColor: tokens.color.ink15,
-    borderLeftWidth: 2,
-    borderLeftColor: tokens.color.madder,
     borderRadius: tokens.radius.input,
+    overflow: 'hidden',
+  },
+  rule: { width: 2, backgroundColor: tokens.color.madder },
+  field: {
+    flex: 1,
+    minHeight: 88,
     paddingVertical: tokens.space[3],
     paddingHorizontal: tokens.space[3],
     fontFamily: tokens.font.display,

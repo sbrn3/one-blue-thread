@@ -10,3 +10,11 @@ S03 done | files 11 (headnote contentsFor, Contents.tsx, BookContents.tsx, Histo
 S04 done | files 3 (DismissalZone, Flow, PROGRESS) | covered by headnote 'finish-day' test (finished reading is [0]) · dismissalReadiness unchanged/green | suite 620 passed, 1 todo | types clean | gap: not seen on a device. What's new draft: "Finishing a book now shows its contents — your headnotes in chapter order."
 S05 done | files 6 (PassagePicker 'headnote' mode, HeadnoteEditor, HeadnoteSheet, Flow, ChapterViewer, headnote.test) | headnote 20 | suite 622 passed, 1 todo | types clean | gap: picker-in-sheet height and keyboard not seen on a device; no 'use the whole passage again' control in the UI (the API supports narrowed: null). What's new: folded into the headnote line.
 S06 done | files 5 (index.html zones 01/06, README, voice inventory, Contents.tsx number alignment, PROGRESS) | brand tests green | suite 622 passed, 1 todo | types clean | headless Edge 900px screenshot of zones 01 + 06; no overflow at 360/390. gap: not checked in a phone browser.
+
+Device checklist (2026-10-09, dev app com.sngugi.thread.dev, Metro from main da45a16 + fixes; the dev DB was restored byte-identical afterwards):
+- PASS: upgrade v13 → v14 on an existing install. All 282 events kept, headnotes table created.
+- PASS: seal, then Write a headnote, then Keep it. Dismissal shows the line, "James 4:11" and Edit. The DB row is keyed to seal event 292 with verses 11–11. Nothing logged.
+- PASS: the keyboard. The sheet lifts above it, and the field and Keep it stay visible.
+- PASS: kill and reopen. The session moved to sitting 6, and the headnote still shows James 4:11, the sealed passage.
+- FOUND and FIXED: a short sitting that fits on screen never scrolls, so the seal stayed locked on "Read to the end to seal" (an existing bug, exposed after dismissing the What's new card). Also: the field's madder rule painted all four sides on Android.
+- NOT RUN (stopped: the owner was using the phone with a picture-in-picture video over the controls): edit and blank-save, close without saving, encrypted export, unravel and restore, the pre-V14 backup restore, the airplane-mode overview link. All are covered by unit tests (headnote, backup, reset), and the final audit fixed the reopen bug.

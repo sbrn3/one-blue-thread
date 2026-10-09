@@ -45,6 +45,7 @@ import { HeadnoteSheet, type NarrowedRange } from './HeadnoteSheet';
 import { ThreadRail } from './ThreadRail';
 import { deriveBolt, type Bolt } from './bolt';
 import { isDismissalReady } from './dismissalReadiness';
+import { scriptureFitsOnScreen } from './readingProgress';
 import { ErrorState } from '../ui/FeedbackState';
 import { LaunchWeave } from '../ui/LaunchWeave';
 import { VerseContextSheet } from '../study/VerseContextSheet';
@@ -261,6 +262,26 @@ export function Flow({ services }: FlowProps) {
       runOnJS(logScrollEnd)(Math.min(1, event.contentOffset.y / scrollable));
     }
   });
+
+  // A sitting short enough to fit on screen never scrolls, so the scroll
+  // handler above would never mark it started or finished and the seal would
+  // stay locked. Judge it from layout instead (src/flow/readingProgress.ts).
+  // Plain mirrors of the two heights: a shared value read on the JS thread
+  // right after a JS-thread write can still return its previous value.
+  const viewportHeightRef = useRef(0);
+  const scriptureBottomRef = useRef(0);
+  const checkFitsOnScreen = useCallback(() => {
+    if (session.sealedToday || (session.sittings[session.sittingIndex]?.length ?? 0) === 0) return;
+    if (!scriptureFitsOnScreen(scriptureBottomRef.current, viewportHeightRef.current)) return;
+    if (!readingStartFired.value) {
+      readingStartFired.value = true;
+      logReadingStart();
+    }
+    if (!scrollEndFired.value) {
+      scrollEndFired.value = true;
+      logScrollEnd(1);
+    }
+  }, [session.sealedToday, session.sittings, session.sittingIndex, readingStartFired, scrollEndFired, logReadingStart, logScrollEnd]);
 
   const handleSeal = useCallback(() => {
     void session.seal(db, log, text, today).then(() => {
@@ -657,6 +678,8 @@ export function Flow({ services }: FlowProps) {
       onLayout={(e) => {
         layoutHeight.value = e.nativeEvent.layout.height;
         setRailHeight(e.nativeEvent.layout.height);
+        viewportHeightRef.current = e.nativeEvent.layout.height;
+        checkFitsOnScreen();
       }}
     >
       <ThreadRail
@@ -730,6 +753,8 @@ export function Flow({ services }: FlowProps) {
           onLayout={(y, height) => {
             scriptureTop.value = y;
             scriptureBottom.value = y + height;
+            scriptureBottomRef.current = y + height;
+            checkFitsOnScreen();
           }}
           onOpenVerse={handleOpenVerse}
           onOpenTerm={handleOpenTerm}
