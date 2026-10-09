@@ -112,7 +112,10 @@ node scripts/device/rec.mjs seal 4 --hold "Hold to seal" 1900 --crop 600:110:0:1
 the seal row. A recording stops early once the screen stops changing. A dev
 bundle's cold start includes about 8 s of bundle loading; time release-speed
 behaviour with `APP_VARIANT=development npx expo start --dev-client --no-dev --minify --lan`.
-Output goes to `.device/` (gitignored). Images of the dev app can show the
+**One session drives the phone at a time.** Before you relaunch or force-stop
+the dev app, run `adb reverse --list`. A tunnel to a port that isn't yours means
+another session is mid-test on it: message that session first. `ui.mjs open`
+refuses in that case unless you pass `--force`. Output goes to `.device/` (gitignored). Images of the dev app can show the
 owner's restored data, so keep them local; commit only synthetic-data images.
 
 ## Source layout (README "Repository shape", plan §05)

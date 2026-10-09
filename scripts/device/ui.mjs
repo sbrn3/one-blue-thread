@@ -6,6 +6,7 @@
 //   node scripts/device/ui.mjs hold <regex> <ms>     # press and hold (raw touch down/up)
 //   node scripts/device/ui.mjs shot <name>           # full-size screenshot → .device/<name>.png
 //   node scripts/device/ui.mjs open [--port 8081]    # adb reverse + open the dev app on that Metro
+//                                                    # (refuses if another port is reversed; --force overrides)
 //
 // Refuses to run on a locked phone (ask the owner to unlock it). The release
 // app is never opened; see adb.mjs.
@@ -61,6 +62,17 @@ switch (cmd) {
   }
   case 'open': {
     const port = String(flag('--port', 8081));
+    // One session drives the phone at a time. A tunnel to another port means
+    // another session is probably mid-test on the dev app, and relaunching it
+    // would reset that session's state (it happened on 2026-10-09).
+    const others = adb(['reverse', '--list'])
+      .split(/\r?\n/)
+      .map((l) => l.match(/tcp:(\d+)\s+tcp:\d+/)?.[1])
+      .filter((p) => p && p !== port);
+    if (others.length > 0 && !rest.includes('--force')) {
+      console.error(`Another session may be using the phone: adb reverse is set for port(s) ${others.join(', ')}. Ask it first, then rerun with --force.`);
+      process.exit(1);
+    }
     adb(['reverse', `tcp:${port}`, `tcp:${port}`]);
     const url = `exp+thread-dev://expo-development-client/?url=${encodeURIComponent(`http://127.0.0.1:${port}`)}`;
     adb(['shell', 'am', 'start', '-a', 'android.intent.action.VIEW', '-d', url, DEV_PACKAGE]);
