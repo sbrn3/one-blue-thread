@@ -28,9 +28,9 @@ const ROW_H = 84;
 const LINE_X0 = 13; // the rail's centre, so the line leaves the rail
 const SCROLL_PAD_LEFT = 30; // Flow's ScrollView paddingLeft; the row bleeds back over it
 const PULSES = 6; // haptic pulses over the hold, evenly spaced
-const UNWIND_MS = 220;
-const SETTLE_MS = 300;
-const FADE_MS = 200;
+const UNWIND_MS = tokens.motion.unwindMs;
+const SETTLE_MS = tokens.motion.settleMs;
+const FADE_MS = tokens.motion.fadeMs;
 
 interface SealZoneProps {
   sealed: boolean;

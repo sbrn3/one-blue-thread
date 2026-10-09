@@ -33,11 +33,11 @@ const SCALE = 1.625;
 // visible band so the warp never looks clipped at the top/bottom edge.
 const EXTRA_ROWS = 3;
 
-const START_MS = 400;
-const ROW_MS = 600;
-const WEFT_MS = 520;
-const TENSION_MS = 240;
-const ACCELERATE_MS = 180;
+const START_MS = tokens.motion.weftStartMs;
+const ROW_MS = tokens.motion.weftRowMs;
+const WEFT_MS = tokens.motion.weftPassMs;
+const TENSION_MS = tokens.motion.tensionMs;
+const ACCELERATE_MS = tokens.motion.accelerateMs;
 const STALL_MS = 14000;
 
 const weftStart = (j: number) => START_MS + j * ROW_MS;

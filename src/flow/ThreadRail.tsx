@@ -40,7 +40,7 @@ interface ThreadRailProps {
   reducedMotion: boolean;
 }
 
-const SWEEP_MS = 600;
+const SWEEP_MS = tokens.motion.railSweepMs;
 
 export function ThreadRail({
   scrollY,
