@@ -22,8 +22,8 @@ normalized; maps, pictures, charts, and supplemental textboxes were omitted.
 
 ## Bundled typefaces
 
-Three variable fonts are bundled in `assets/fonts/` and rendered throughout the
-app, each under the [SIL Open Font License 1.1](https://openfontlicense.org/):
+Three variable font families are bundled in `assets/fonts/` and rendered
+throughout the app (Schibsted Grotesk and Newsreader as roman and italic files), each under the [SIL Open Font License 1.1](https://openfontlicense.org/):
 
 - **Schibsted Grotesk** — Copyright (C) The Schibsted Grotesk Project Authors
   (https://github.com/schibsted/schibsted-grotesk)

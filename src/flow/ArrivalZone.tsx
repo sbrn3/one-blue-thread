@@ -80,8 +80,7 @@ const styles = StyleSheet.create({
     color: tokens.color.ink40,
   },
   echo: {
-    fontFamily: tokens.font.scripture,
-    fontStyle: 'italic',
+    fontFamily: tokens.font.scriptureItalic,
     fontSize: 19,
     lineHeight: 28,
     color: tokens.color.ink60,

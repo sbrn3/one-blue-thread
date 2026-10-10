@@ -88,6 +88,13 @@ all three bundled typefaces, and sat idle instead of pinning a core.
 
 ## Active plans
 
+- **reading-screen-and-motion**: 🔨 in progress (C4, approved 2026-10-09).
+  - The 2026-10-08 device audit found five problems: a 5 s white launch, a seal hold that shows nothing until release, sheet jumps, slow verse sheet, and the italic font fallback.
+  - Direction A "Open at the text": Scripture on the first screen, with a "Before you read" list.
+  - Woven motion: the seal weaves the day, and the knot comes off the beam.
+  - Wave 1 (device toolkit, motion tokens, launch, holds, italic) ships first as its own release.
+  - Branch `feat/reading-motion`, worktree `thread-reading-motion`.
+  - See `docs/plans/reading-screen-and-motion/`.
 - **bibleproject-book-videos** — ✅ shipped in `v0.11.0` (C4; PRs #57–#64 and #66, plus the release PR). BibleProject overview links at a book's start and end. Optional daily **headnotes**, read back as the book's **contents** at "You finished" and in Reading history. Hairline headpiece/tailpiece ornaments. The README and website are refreshed. The device check passed. The backup export/restore round trip on a device is still owed, and unit tests cover it. See `docs/plans/bibleproject-book-videos/OUTCOME.md`.
 - **whats-new** — 🔨 in progress (C2, approved 2026-10-07). After an update, a
   quiet What's new card above the reading, and every note under Knot › More ›

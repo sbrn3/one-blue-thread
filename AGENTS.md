@@ -90,6 +90,34 @@ Metro serves the working tree it starts in, uncommitted changes included. Start
 it from the checkout you mean to test, not from a worktree holding another
 session's work. One Metro per session; stop it when you are done.
 
+**Screen reviews.** Use `scripts/device/` to see what the phone shows, including
+motion that happens too fast for a single screenshot. The scripts need `adb` and
+`ffmpeg` (`winget install Gyan.FFmpeg.Essentials`); they find both on PATH or
+under winget. They work on the **dev app only**: any command that names the
+release app throws, because each launch of it writes an `app_open` row to the
+owner's real log. If the phone is locked they stop and say so; ask the owner to
+unlock it.
+
+```sh
+node scripts/device/ui.mjs open --port <port>         # adb reverse + open the dev app on your Metro
+node scripts/device/ui.mjs find "Hold to seal"        # x y label of on-screen elements, by text or accessibility label
+node scripts/device/ui.mjs tap "Open settings"        # tap by label; `hold <label> <ms>` presses and holds
+node scripts/device/rec.mjs knot 3 --fps 8 --tap "Open settings"
+                                                      # record a tap → .device/knot.png, frames tiled and numbered
+node scripts/device/rec.mjs seal 4 --hold "Hold to seal" 1900 --crop 600:110:0:1180
+                                                      # record a press-and-hold, zoomed on one row
+```
+
+`--crop w:h:x:y` (in 600×1334 recording pixels) zooms in on one area, such as
+the seal row. A recording stops early once the screen stops changing. A dev
+bundle's cold start includes about 8 s of bundle loading; time release-speed
+behaviour with `APP_VARIANT=development npx expo start --dev-client --no-dev --minify --lan`.
+**One session drives the phone at a time.** Before you relaunch or force-stop
+the dev app, run `adb reverse --list`. A tunnel to a port that isn't yours means
+another session is mid-test on it: message that session first. `ui.mjs open`
+refuses in that case unless you pass `--force`. Output goes to `.device/` (gitignored). Images of the dev app can show the
+owner's restored data, so keep them local; commit only synthetic-data images.
+
 ## Source layout (README "Repository shape", plan §05)
 
 `/src` — `onboarding` · `flow` (Arrival·Recall·Scripture·Seal·Weave·Dismissal) ·

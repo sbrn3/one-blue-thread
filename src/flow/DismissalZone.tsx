@@ -276,8 +276,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   close: {
-    fontFamily: tokens.font.scripture,
-    fontStyle: 'italic',
+    fontFamily: tokens.font.scriptureItalic,
     fontSize: 20,
     color: tokens.color.ink60,
   },

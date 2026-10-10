@@ -13,6 +13,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { G, Path } from 'react-native-svg';
 import { clothSize, geometry, pointsToPath, polylineLength, ridesOver, warpPath, weftPoints } from './loom';
+import { releaseSplash } from '../startup/splash';
+import { mark } from '../startup/timing';
 import { tokens } from './tokens';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -33,11 +35,11 @@ const SCALE = 1.625;
 // visible band so the warp never looks clipped at the top/bottom edge.
 const EXTRA_ROWS = 3;
 
-const START_MS = 400;
-const ROW_MS = 600;
-const WEFT_MS = 520;
-const TENSION_MS = 240;
-const ACCELERATE_MS = 180;
+const START_MS = tokens.motion.weftStartMs;
+const ROW_MS = tokens.motion.weftRowMs;
+const WEFT_MS = tokens.motion.weftPassMs;
+const TENSION_MS = tokens.motion.tensionMs;
+const ACCELERATE_MS = tokens.motion.accelerateMs;
 const STALL_MS = 14000;
 
 const weftStart = (j: number) => START_MS + j * ROW_MS;
@@ -86,6 +88,15 @@ export function LaunchWeave({ width, height, done, onDismissed, onRetry }: Launc
 
   const bandBottomPx = (j: number) => (tautGeom.pad + (j + 0.5) * tautGeom.sy) * SCALE;
   const fellY = useSharedValue(reducedMotion ? bandBottomPx(ROWS - 1) : 0);
+
+  useEffect(() => {
+    // Approximately the weave's first painted frame (startup timing).
+    const frame = requestAnimationFrame(() => {
+      mark('weaveFirstFrame');
+      releaseSplash();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   useEffect(() => {
     if (reducedMotion) return;

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { tokens } from '../src/ui/tokens';
@@ -10,6 +10,8 @@ const FILES: Record<string, string> = {
   'Schibsted Grotesk': 'SchibstedGrotesk.ttf',
   Newsreader: 'Newsreader.ttf',
   'JetBrains Mono': 'JetBrainsMono.ttf',
+  'SchibstedGrotesk-Italic': 'SchibstedGrotesk-Italic.ttf',
+  'Newsreader-Italic': 'Newsreader-Italic.ttf',
 };
 
 /**
@@ -32,6 +34,15 @@ describe('every token font family is actually bundled', () => {
     const registered =
       APP.includes(`'${family}':`) || APP.includes(`"${family}":`) || APP.includes(`${family}:`);
     expect(registered, `${family} is not a useFonts key in App.tsx`).toBe(true);
+  });
+
+  it('never asks Android for an italic it cannot draw', () => {
+    // fontStyle italic on a custom family falls back to a system face on
+    // Android. Italics use tokens.font.*Italic instead.
+    const offenders = (readdirSync(join(ROOT, 'src'), { recursive: true }) as string[])
+      .filter((f) => /\.(ts|tsx)$/.test(f))
+      .filter((f) => /fontStyle\s*:/.test(readFileSync(join(ROOT, 'src', f), 'utf8')));
+    expect(offenders).toEqual([]);
   });
 
   it('registers exactly the families the tokens declare', () => {

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reading Screen Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&display=swap" rel="stylesheet">
+<style>
+/* ── One Blue Thread identity — mirrors docs/index.html / src/ui/tokens.ts. Do not swap for generic styles ── */
+:root {
+  --bg:            #FBFAF7;
+  --surface:       #ffffff;
+  --card-bg:       #ffffff;
+  --border:        #E6E5E1;
+  --border-strong: #d8d7d2;
+  --text:          #16161A;
+  --text-2:        #5E5D66;
+  --text-muted:    #9C9BA3;
+  --primary:       #1F3FFF;
+  --primary-dark:  #1732cc;
+  --primary-tint:  #EEF0FF;
+  --success:       #155724;
+  --success-bg:    #d4edda;
+  --warning:       #856404;
+  --warning-bg:    #fff3cd;
+  --danger:        #c0392b;
+  --danger-bg:     #fde8e8;
+  --font-head:     'Newsreader', Georgia, serif;
+  --font-body:     'Schibsted Grotesk', system-ui, -apple-system, sans-serif;
+  --radius:        12px;
+  --shadow:        0 4px 6px rgba(0,0,0,0.08);
+  --shadow-lg:     0 8px 32px rgba(0,0,0,0.16);
+}
+* { box-sizing: border-box; }
+body {
+  font-family: var(--font-body);
+  background:
+    radial-gradient(600px 400px at 0% -5%, rgba(26,58,92,0.06), transparent 60%),
+    var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 2.2rem 1.6rem 4rem;
+}
+h1 { font-family: var(--font-head); font-size: 2rem; font-weight: 400; margin: 0 0 .3rem; letter-spacing: .01em; }
+h2 { font-family: var(--font-head); font-size: 1.25rem; font-weight: 400; color: var(--primary); margin: 1.8rem 0 .8rem; }
+h3 { font-size: .95rem; font-weight: 600; color: var(--text); margin: 1.3rem 0 .4rem; }
+a { color: var(--primary); }
+code { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: .85em; color: var(--primary-dark); background: var(--primary-tint); padding: .1em .4em; border-radius: 5px; }
+.meta { font-size: .82rem; color: var(--text-muted); margin-bottom: 1.6rem; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.badge { display: inline-block; padding: .25em .7em; border-radius: 999px; font-size: .74rem; font-weight: 600; border: 1px solid var(--border); background: var(--surface); }
+.badge.navy   { color: var(--primary); border-color: var(--primary); background: var(--primary-tint); }
+.badge.green  { color: var(--success); background: var(--success-bg); border-color: #c3e6cb; }
+.badge.yellow { color: var(--warning); background: var(--warning-bg); border-color: #ffeeba; }
+.badge.red    { color: var(--danger);  background: var(--danger-bg);  border-color: #f5c6cb; }
+/* Stat row */
+.stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap: .8rem; margin-bottom: 2rem; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: .9rem 1.1rem; box-shadow: var(--shadow); }
+.stat-value { font-family: var(--font-head); font-size: 1.7rem; color: var(--primary); font-variant-numeric: tabular-nums; }
+.stat-label { font-size: .72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; }
+/* Tabs */
+.tabs { display: flex; gap: .4rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); margin-bottom: 1.6rem; }
+.tab { padding: .5rem 1rem; border: none; background: none; cursor: pointer; font-family: var(--font-body); font-size: .87rem; color: var(--text-2); border-radius: 8px 8px 0 0; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tab:hover { color: var(--text); background: var(--primary-tint); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 600; background: var(--primary-tint); }
+.panel { display: none; animation: fade .25s ease; }
+.panel.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+/* Checklist */
+.checklist { list-style: none; padding: 0; margin: .5rem 0; }
+.checklist li { display: flex; align-items: flex-start; gap: .6rem; padding: .4rem 0; font-size: .9rem; border-bottom: 1px solid var(--border); }
+.checklist li:last-child { border-bottom: none; }
+.checklist input { margin-top: .3rem; flex-shrink: 0; accent-color: var(--primary); width: 16px; height: 16px; }
+.checklist input:checked + span { color: var(--text-muted); text-decoration: line-through; }
+/* Notes / callouts */
+.note { background: var(--warning-bg); border: 1px solid #ffeeba; border-radius: var(--radius); padding: .7rem 1rem; font-size: .86rem; margin: .8rem 0; color: var(--text); }
+.mockup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: .9rem; margin: 1rem 0; }
+.mockup-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); }
+.mockup-card.chosen { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary), var(--shadow-lg); }
+.mockup-card h3 { margin-top: 0; }
+.requirements { font-size: .92rem; line-height: 2; padding-left: 1.3rem; }
+.evidence-table { width: 100%; border-collapse: collapse; margin: .8rem 0 1.2rem; font-size: .84rem; }
+.evidence-table th, .evidence-table td { border: 1px solid var(--border); padding: .55rem .65rem; text-align: left; vertical-align: top; }
+.evidence-table th { background: var(--primary-tint); color: var(--primary); }
+</style>
+</head>
+<body>
+
+<h1>Reading screen and motion</h1>
+<div class="meta">
+  2026-10-08
+  <span class="badge navy">C4 Programme</span>
+  <span class="badge navy">~28 files</span>
+  <span class="badge navy">~11 commits</span>
+  <span class="badge yellow">~8–10 sessions</span>
+  <span class="badge yellow">Smart Review: done, 14 findings resolved</span>
+  <span class="badge green">Aesthetics: Direction A chosen</span>
+</div>
+
+<div class="stat-row">
+  <div class="stat"><div class="stat-value">~28</div><div class="stat-label">Files</div></div>
+  <div class="stat"><div class="stat-value">~11</div><div class="stat-label">Commits</div></div>
+  <div class="stat"><div class="stat-value">~5</div><div class="stat-label">Test files</div></div>
+  <div class="stat"><div class="stat-value">~9</div><div class="stat-label">Sessions</div></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" data-tab="intent" onclick="show('intent')">Intent</button>
+  <button class="tab" data-tab="audit" onclick="show('audit')">Device audit</button>
+  <button class="tab" data-tab="requirements" onclick="show('requirements')">Requirements</button>
+  <button class="tab" data-tab="aesthetics" onclick="show('aesthetics')">Aesthetics</button>
+  <button class="tab" data-tab="execution" onclick="show('execution')">Execution</button>
+  <button class="tab" data-tab="review" onclick="show('review')">Smart Review</button>
+  <button class="tab" data-tab="verify" onclick="show('verify')">Verification</button>
+</div>
+
+<div id="intent" class="panel active">
+  <h2>Problem &amp; Intent</h2>
+  <h3>Status, owner &amp; next action</h3>
+  <p><strong>Approved</strong> by the owner on 2026-10-09 ("cont"). In progress on <code>feat/reading-motion</code>. The owner asked on 2026-10-08 for four things: check that every animation works; make the app "more thematic, artistic and animated"; rethink the cluttered opening screen ("date, then the phrase, then verse, then the memory thing"); and add automated on-phone screen reviews for debugging. The owner chose Direction A, accepted the E9 and E1 boundaries, authorized the Smart Review, and approved committing the device toolkit with ffmpeg. The Smart Review has run and its findings are resolved (see that tab). Next action: the owner approves. Then S00 starts in the worktree <code>thread-reading-motion</code>.</p>
+
+  <h3>Outcome and constraints</h3>
+  <p>Opening the app gets the reader to Scripture with less to read past first. The app moves like the Loom it already claims to be: threads draw, pull taut, pass and settle. Every existing animation works on a real phone, and the broken ones are fixed: the 5-second white launch screen, the seal hold that shows nothing until release, and layout jumps in the sheets.</p>
+  <p>Constraints:</p>
+  <ul>
+    <li>Scripture-first voice.</li>
+    <li>One visual register: <code>src/ui/tokens.ts</code>, the Loom.</li>
+    <li>Motion intent is "tension and passage": no bounce, no spring, no fade-and-rise on everything, nothing performing (from the <code>aesthetic-thread-textile/level-up.md</code> motion intent).</li>
+    <li>Every animation honours the OS reduce-motion setting and runs on the UI thread with Reanimated.</li>
+    <li>No new dependency except <code>expo-splash-screen</code>, which the owner approved on 2026-10-08 (first-party and SDK-pinned). No new typeface. The italic face of the bundled Newsreader is the same family and is not a new typeface.</li>
+    <li>Synthetic data only in mockups, fixtures and committed screenshots. The owner's real data lives in the release app; on-device checks use only the dev app (<code>com.sngugi.thread.dev</code>).</li>
+  </ul>
+
+  <h3>Scope and non-goals</h3>
+  <p><strong>In scope:</strong></p>
+  <ul>
+    <li><strong>Launch:</strong> a linen splash, no white gap, and the slow start-up work measured and moved off the first-frame path.</li>
+    <li><strong>Hold gestures:</strong> the seal and the unravel show their progress from the moment a finger touches down.</li>
+    <li><strong>Italic:</strong> the Newsreader italic is bundled and used at all 6 italic sites.</li>
+    <li><strong>Sheet polish:</strong> the knot no longer jumps when it opens, the history and verse sheets slide consistently, and the verse sheet opens faster.</li>
+    <li><strong>Motion foundations:</strong> motion tokens plus one reduced-motion hook.</li>
+    <li><strong>The reading screen:</strong> the chosen direction's layout, order and arrival motion.</li>
+    <li><strong>Seal:</strong> today's row woven by the shuttle on seal. The spec described this, but it was never built.</li>
+    <li><strong>The knot:</strong> its opening becomes cloth.</li>
+    <li><strong>Device review toolkit:</strong> committed scripts that record and tile phone frames, so any session can review the screen automatically.</li>
+  </ul>
+  <p><strong>Not in scope:</strong></p>
+  <ul>
+    <li>Onboarding visuals.</li>
+    <li>The shelf of finished bolts.</li>
+    <li>Changing what the lab measures. Sitting length is also excluded: James 4 is split into 11 sittings in the owner's data, which is worth a separate look.</li>
+    <li>Themes and dark mode.</li>
+    <li>Sound.</li>
+  </ul>
+
+  <h3>Dependencies and unresolved gates</h3>
+  <ol>
+    <li><strong>Direction: decided, A.</strong> The options were A "Open at the text", B "The threshold" or C "The margin".</li>
+    <li><strong>E9: resolved.</strong> The Smart Review found that folding the probe would bias E9 and E10. The owner chose to have <strong>the probe row start open</strong>, so only its presentation changes. That change is journaled as a boundary.</li>
+    <li><strong>E1 boundary: accepted by the owner.</strong> fixing the seal hold changes what a hold feels like, and so what <code>hold_cancel</code> ("the annoyance signal") measures. Gate: the owner accepts a recorded E1 boundary at the fix's build. The fix itself is not optional, because the seal is the core gesture.</li>
+    <li><strong>Smart Review: authorized and running.</strong></li>
+    <li><strong>Tooling: approved with ffmpeg.</strong> the device review toolkit uses <code>adb</code> plus <code>ffmpeg</code>, both machine tools installed with winget and not npm dependencies. If ffmpeg is unwanted, the fallback is screencap bursts, which are about 2 fps and too slow for sub-second motion.</li>
+    <li><strong>New APK:</strong> the splash config is native, so it needs a new dev-client build and a release build. Everything else is JS-only. If prebuild needs <code>expo-splash-screen</code> for the splash, S01 stops and asks, because that is a new dependency.</li>
+    <li><strong>Commit, push, PR and merge</strong> each need explicit authorization (AGENTS.md).</li>
+  </ol>
+
+  <h3>Evidence and decisions</h3>
+  <ul>
+    <li><strong>Flow order:</strong> <code>src/flow/Flow.tsx</code> renders ArrivalZone → LapseZone → RecallZone → ProbeZone → WhatsNewCard/StudyHint → ScriptureZone → SealZone → (sealed) WeaveZone, SrbaiZone, YearReviewZone, DismissalZone. The spec (§05) fixes "arrival → recall → scripture → seal → weave → dismissal", and the probe "at arrival" (E9).</li>
+    <li><strong>Arrival zone:</strong> <code>ArrivalZone.tsx</code> has <code>minHeight: 400</code> with content centred, which leaves the empty gap the owner saw. Its day and sitting lines are lab-controlled through <code>dayCountVisible</code>/<code>sittingCountVisible</code> (E11/E12, <code>src/lab/arrivalVisibility.ts</code>).</li>
+    <li><strong>Animation code:</strong> Reanimated is used in <code>LaunchWeave</code>, <code>ThreadRail</code>, <code>SealZone</code>, <code>ResetSection</code>/<code>UnravelRing</code> and the <code>Flow</code> scroll. The six sheets use RN <code>Modal animationType='slide'</code>. <code>WeaveZone</code> has no animation.</li>
+    <li><strong>Splash:</strong> <code>app.json</code> has no splash config, so Android uses its default white one.</li>
+    <li><strong>Italic:</strong> only <code>Newsreader.ttf</code> (roman) is bundled, but <code>fontStyle: 'italic'</code> appears in ArrivalZone, DismissalZone, LapseZone, ProbeZone, RecallZone and MemoryModal.</li>
+    <li><strong>Prior launch freeze:</strong> STATUS "The app opens again" records heavy synchronous work on the render path. The new white gap is the same class of problem, but earlier: it comes before the weave can paint.</li>
+    <li><strong>Seal gesture:</strong> the seal and the unravel both use <code>Gesture.Simultaneous(LongPress, Native)</code>, and progress starts in <code>onBegin</code>.</li>
+    <li><strong>Owner's words (2026-10-08) override stale labels:</strong> "way too much going on", "the order of things feels off", "a rethink about what really needs to be shown and in what order".</li>
+  </ul>
+
+  <h3>Documentation effects</h3>
+  <ul>
+    <li><code>JOURNAL.md</code>: the decision entry, including the E9 and E1 boundaries.</li>
+    <li><code>docs/CONTEXT.md</code>: new terms from the chosen direction (for example "Before you read", or "the knot on the rail").</li>
+    <li><code>AGENTS.md</code>: the device review toolkit sits under "The owner's phone".</li>
+    <li><code>STATUS.md</code> and <code>docs/plans/README.md</code>, on approval.</li>
+    <li>A What's new entry in <code>src/whatsNew/index.ts</code> at release.</li>
+    <li><code>docs/brand-voice-inventory.json</code> and the <code>test/ui-contracts.test.ts</code> allowlist for new components.</li>
+  </ul>
+</div>
+
+<div id="audit" class="panel">
+  <h2>Device audit, 2026-10-08</h2>
+  <p><strong>How it was tested:</strong>
+  Motorola edge 50 neo over USB. The dev app (<code>com.sngugi.thread.dev</code>) ran from a fresh Metro on 8081. The release app was opened once, with no taps, for the launch timing only. Screen recordings were taken at 600×1334 and tiled at 4–10 fps. The seal was exercised through the dev-only "Replay the seal" rehearsal, so nothing was logged.</p>
+  <p><strong>Side effect:</strong> two release-app launches wrote two <code>app_open</code> events to the owner's real log. They are append-only and can't be removed. No other writes happened.</p>
+  <table class="evidence-table">
+    <thead><tr><th>#</th><th>Moment</th><th>Result</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td>F1</td><td>Cold launch (release)</td><td><strong>Broken.</strong> The splash icon fades to plain white for about 5 s, then the weave plays for about 0.5 s and hands over to the reading screen. The weave itself works.</td><td>A 6 fps recording showed white in frames 7–38. <code>app.json</code> has no splash config.</td></tr>
+      <tr><td>F2</td><td>Seal hold</td><td><strong>Broken (confirm with a finger).</strong> Nothing changes during the hold: no line drawing and no blue pill. The seal lands only when the finger lifts, not at 1.2 s.</td><td>Two runs: <code>input swipe</code> for 1.7 s, and a raw <code>motionevent DOWN</code>/<code>UP</code> 1.9 s apart.</td></tr>
+      <tr><td>F3</td><td>Unravel (start over)</td><td><strong>Not exercised.</strong> It uses the same gesture composition as the seal, so it's presumed to share F2. It wasn't tried, because a misfire would erase the dev app's data.</td><td>From the code (<code>ResetSection.tsx</code>).</td></tr>
+      <tr><td>F4</td><td>Knot opens</td><td><strong>Works, with a jump.</strong> The sheet slides up in about 0.3 s, but the cloth picture appears about 0.2 s later and pushes every row down.</td><td>Recording frames 7→9.</td></tr>
+      <tr><td>F5</td><td>Reading history sheet</td><td><strong>Works, no visible slide.</strong> It appears within one frame, and the list fills in a frame later.</td><td>Recording frames 6→8.</td></tr>
+      <tr><td>F6</td><td>Verse sheet (tap a verse)</td><td><strong>Slow.</strong> It opens about 0.6 s after the tap, with no visible slide.</td><td>Recording frames 5→10.</td></tr>
+      <tr><td>F7</td><td>Thread rail on scroll</td><td><strong>Works.</strong> It weaves as you scroll, and the pill changes from "Read to the end to seal" to "Hold to seal" at the end.</td><td>The scroll recording.</td></tr>
+      <tr><td>F8</td><td>Weave after seal</td><td><strong>Missing.</strong> The spec says "today's thread animates in", but <code>WeaveZone</code> is static.</td><td>From the code.</td></tr>
+      <tr><td>F9</td><td>Italic text</td><td><strong>Wrong face.</strong> The cue line renders in a system sans italic, not Newsreader.</td><td>Screenshot. No italic font file is bundled.</td></tr>
+      <tr><td>F10</td><td>Opening screen</td><td><strong>Cluttered.</strong> In order: date, cue, a 34 pt title, the day count, a large empty gap, the probe with Reveal/Skip, the What's new card. Scripture only starts at the very bottom of the first screen.</td><td>Screenshot. <code>ArrivalZone minHeight: 400</code>.</td></tr>
+      <tr><td>F11</td><td>Reduced motion</td><td><strong>Not exercised.</strong> It would mean changing a phone-wide setting. The code paths exist in the launch weave, the rail, the seal, the reset and the sheets.</td><td>Recorded as a gap. It's checked in the final verification.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div id="requirements" class="panel">
+  <h2>Requirements (draft, finalised after the direction gate)</h2>
+  <h3>User stories</h3>
+  <ol class="requirements">
+    <li>As the reader, I want the app to open onto linen and the weave with no white screen, so that opening it feels like arriving, not like loading. (F1)</li>
+    <li>As the reader, I want the weave to cover whatever loading remains, and to step aside as soon as the reading is ready, so that a fast phone isn't slowed by it.</li>
+    <li>As the reader, I want the seal line to start pulling taut the moment my finger touches, and the seal to land at 1.2 s without waiting for me to let go, so that I can feel the hold working. (F2)</li>
+    <li>As the reader, I want releasing early to unwind the line visibly, with nothing logged except the existing <code>hold_cancel</code>, so that a cancelled hold reads as cancelled.</li>
+    <li>As the reader, I want the unravel ring to come apart while held and re-weave if I let go early, with the same touch-down timing as the seal. (F3)</li>
+    <li>As the reader, I want italic lines (my cue, prompts, notes) set in Newsreader italic, so that the scripture voice stays one typeface. (F9)</li>
+    <li>As the reader, I want the knot to open without its contents jumping, so that it feels like one piece of cloth. (F4)</li>
+    <li>As the reader, I want every sheet (history, memory, chapter, verse, dictionary) to enter and leave the same way, and a tapped verse to answer within about 150 ms. (F5, F6)</li>
+    <li>As the reader on a busy day, I want much less to read past before Scripture, with the order the direction sets, so that the text comes first in spirit and in layout. (F10)</li>
+    <li>As the reader on a quiet day, I want only the date, the chapter and Scripture, with no empty gap. (F10)</li>
+    <li>As the reader, I want yesterday's probe offered before I read, still skippable in one tap, and for it to disappear once answered or skipped.</li>
+    <li>As the reader, I want the memory passages due today offered before reading, capped by the daily cap as now.</li>
+    <li>As the reader, I want What's new and the study hint to take one quiet line, or one card, for one day only, and never to sit between me and the text as a big box.</li>
+    <li>As the reader, I want my cue echoed on arrival in the place the direction gives it, because the cue is what the product is built around.</li>
+    <li>As the reader, I want to see today's row woven by the shuttle when I seal, and the fell line move down one row. (F8)</li>
+    <li>As the reader, I want the knot's opening to look like cloth coming off the beam, at the same speed as today's slide.</li>
+    <li>As a reader with reduce motion on, I want every one of these to appear in its end state at once, with no movement, and every hold to keep its tap fallback.</li>
+    <li>As a reader with a large font size, I want the reorganised top of the screen to wrap without clipping, and every control to stay at least 44 pt.</li>
+    <li>As a TalkBack user, I want the "before you read" items announced in order with their state (due, done), and the arrival to read date → chapter → cue.</li>
+    <li>As the lab (silent actor), I want E11/E12 to keep hiding the day and sitting lines, E9 to keep its p=0.6 schedule and span, and E1's hold-or-tap arm to keep working, with any change in presentation recorded as a dated boundary.</li>
+    <li>As the reader on a missed day or after a lapse, I want the lapse zone to keep its place before reading, inside the direction's "before you read" pattern.</li>
+    <li>As a reader with no network, I want everything here to work offline, which it does: nothing in this plan touches the network.</li>
+    <li>As a developer or agent, I want one command that records the phone during an action and tiles the frames into a single image, and one that taps elements by their label, so that screen reviews don't need hand-made coordinates.</li>
+  </ol>
+  <h3>Out of Scope</h3>
+  <ul class="requirements">
+    <li>Onboarding restyle: it's a separate surface, and it's rarely seen.</li>
+    <li>The finished-bolt shelf: Loom handoff item 3, a product change that needs its own plan.</li>
+    <li>Changes to what any experiment measures, its arms or its schedule. Only the presentation changes, and that is recorded as a boundary.</li>
+    <li>Sitting length (James 4 in 11 sittings): the owner should look at this separately.</li>
+    <li>Sound, themes, dark mode and haptics changes beyond the existing seal pulses.</li>
+  </ul>
+  <h3>Testing Decisions</h3>
+  <ul class="requirements">
+    <li>Vitest stays logic-only (AGENTS.md). New pure modules get tests:
+      <ul>
+        <li>a "before you read" item list builder (inputs: lapse, due passages, probe, what's new, study hint; output: ordered items). This follows <code>test/whatsNew.test.ts</code> and <code>test/dismissalReadiness</code>-style tests.</li>
+        <li>motion tokens: every duration is positive, and a reduced-motion map returns 0.</li>
+        <li>a startup timing helper.</li>
+      </ul>
+    </li>
+    <li><code>test/ui-contracts.test.ts</code> and <code>test/boundaries.test.ts</code> stay green. New Pressables go on the allowlist, and <code>/src/lab</code> still never imports <code>/src/ui</code>.</li>
+    <li>Gesture timing, animation feel, sheet entry and launch timing can't be tested in Vitest. They're verified on the dev app with the device review toolkit, which records each moment and attaches a tiled frame image to <code>PROGRESS.md</code> as the slice's evidence. The images are synthetic-data screens only, from a dev app holding synthetic data.</li>
+  </ul>
+</div>
+
+<div id="aesthetics" class="panel">
+  <h2>Aesthetics</h2>
+  <h3>Current-surface extraction</h3>
+  <table class="evidence-table">
+    <thead><tr><th>Layer</th><th>Current measured values/patterns</th><th>Source</th><th>Keep/change and why</th></tr></thead>
+    <tbody>
+      <tr><td>Tokens</td><td>paper #F4F1E9, ink #1A1A17, thread #2E3A8C, warp #8F8779, madder #B5482F, dyeSoft, ink60/40/15, six book dyes. space 4–48, radius input 10 / panel 12 / sheet 20 / pill 999, minTarget 44, <code>motion.sheet: 'slide'</code></td><td><code>src/ui/tokens.ts</code></td><td>Keep the colours. <strong>Add</strong> motion durations and easings (weft pass 520, tension 240, sheet 300, unwind 220), so the timings live in one place instead of 9 scattered constants.</td></tr>
+      <tr><td>Typography</td><td>Display: Schibsted Grotesk 900/34 (title), mono 12 caps (date, counts), Newsreader 19/30 (verses), Newsreader italic 19/28 (cue). In practice the italic falls back to a system face.</td><td><code>ArrivalZone</code>, <code>ScriptureZone</code></td><td>Keep the families. Bundle the Newsreader italic. Shrink the title and the cue according to the direction.</td></tr>
+      <tr><td>Spacing and layout</td><td>Arrival <code>minHeight 400</code>, centred, padding 32/48, gap 12. Zones use padding 32/24. Scroll <code>paddingLeft 30</code> for the rail.</td><td><code>ArrivalZone</code>, <code>Flow</code> styles</td><td>Change: remove the 400 minimum. B replaces it with a deliberate full-screen threshold; A and C go compact.</td></tr>
+      <tr><td>Color and semantics</td><td>Thread means progress and sealed; madder means a mark you made or a destructive action; ink15 card backgrounds for hints.</td><td>tokens, <code>WhatsNewCard</code>, <code>StudyHint</code></td><td>Keep. The knots and flags in A and C use madder for "yours to recall" and thread for "keep", which follows the existing semantics.</td></tr>
+      <tr><td>Components and states</td><td>The ProbeZone, RecallZone, WhatsNewCard and StudyHint are full-width stacked blocks with their own buttons.</td><td><code>src/flow/*Zone.tsx</code></td><td>Change: one "before you read" pattern holds them all, per the direction.</td></tr>
+      <tr><td>Atmosphere and depth</td><td>No shadows, no gradients. Depth only from over/under occlusion in the cloth.</td><td>tokens.ts header</td><td>Keep. B makes the cloth the face of the arrival.</td></tr>
+      <tr><td>Motion and interaction</td><td>LaunchWeave (row 600, weft 520, tension 240). Rail sweep 600 inOut cubic. Seal hold 1200 linear, unwind 220, settle 300. Unravel hold 2500. Sheets use RN slide. Knot cloth and weave zone are static.</td><td>Files above. Device audit F1–F11</td><td>Fix F1–F6. Add the shuttle pass on seal, the cloth-off-the-beam knot, and the direction's arrival signature. All of it is UI-thread, has reduced-motion end states, and has no spring or bounce.</td></tr>
+    </tbody>
+  </table>
+  <p><strong>Intent:</strong> extend the Loom; this isn't a new pattern. The page should feel like a working loom you sit down at: calm, taut, and slightly irregular.</p>
+  <p><strong>Hygiene:</strong> only the token values above, plus the motion tokens. No new colours.</p>
+  <p><strong>Details:</strong></p>
+  <ul>
+    <li>Pressed states keep the 0.7 opacity.</li>
+    <li>There's no loading spinner; the weave covers loading.</li>
+    <li>Empty means the zone is absent, per the spec.</li>
+    <li>Entry and exit use a weft pass or a slide.</li>
+    <li>Errors keep the existing <code>ErrorState</code>.</li>
+    <li>Focus order is date → chapter → cue → before-you-read → Scripture.</li>
+    <li>Large fonts wrap without clipping.</li>
+    <li>Reduced motion shows the end state.</li>
+  </ul>
+  <h3>Mockups</h3>
+  <div class="mockup-grid">
+    <div class="mockup-card chosen"><h3>A · Open at the text (chosen)</h3><p>A three-line header, then one folded "Before you read" list. Each row opens in place. Scripture is on the first screen every day. Signature: one weft draws under the title.</p><a href="mockup.html#a">Open option ↗</a></div>
+    <div class="mockup-card"><h3>B · The threshold</h3><p>A full-screen arrival with the book's cloth, today's row ghosted and the cue large. Items due come one card at a time, then Scripture. Signature: the warp drops and the shuttle passes.</p><a href="mockup.html#b">Open option ↗</a></div>
+    <div class="mockup-card"><h3>C · The margin</h3><p>The rail widens into a margin holding the date and counts as notes. Items due are knots tied on the rail that open drawers. The text column is clean. Signature: the rail is alive.</p><a href="mockup.html#c">Open option ↗</a></div>
+  </div>
+  <p class="note">Chosen direction: <strong>A · Open at the text</strong> (owner, 2026-10-08). Having Scripture on the first screen every day decided it. B and C stay in mockup.html as the record until the feature ships. The shared moments in the mockup (shuttle on seal, knot off the beam, linen launch) apply whichever direction is chosen.</p>
+</div>
+
+<div id="execution" class="panel">
+  <h2>Execution</h2>
+  <p><strong>Grade C4.</strong> About 30 files and 11 slices, across three layers: native launch config, gestures, and UI/motion. The gesture's root cause is still uncertain, and the work sits next to running experiments (E1, E9, E4/signature).</p>
+  <p>The recipes, budgets, ownership, waves and rollbacks are in <a href="exec.md">exec.md</a>. Live status is only in <a href="PROGRESS.md">PROGRESS.md</a>.</p>
+  <table class="evidence-table">
+    <thead><tr><th>Wave</th><th>Slices (in order)</th><th>Ships as</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><ul>
+        <li>S00: device review toolkit</li>
+        <li>S05: motion tokens</li>
+        <li>S01: launch, splash and measurement</li>
+        <li>S02: holds respond from touch-down, plus an unravel rehearsal</li>
+        <li>S03: Newsreader italic</li>
+      </ul></td><td><strong>Its own PR and release, first</strong>, because the core gesture is broken today. Needs a new dev-client APK for the splash.</td></tr>
+      <tr><td>2</td><td>S04: sheets without jumps, plus prewarming the verse sheet</td><td>PR 2</td></tr>
+      <tr><td>3</td><td><ul>
+        <li>S06: reading screen in Direction A, plus reading events for short sittings</li>
+        <li>S07: arrival weft and row stitch</li>
+      </ul></td><td>PR 3</td></tr>
+      <tr><td>4</td><td><ul>
+        <li>S08: sealing weaves today's row</li>
+        <li>S09: the knot comes off the beam</li>
+      </ul></td><td>PR 4</td></tr>
+      <tr><td>5</td><td>S10: journal boundaries, What's new, device re-review, final audit, OUTCOME.md</td><td>Release</td></tr>
+    </tbody>
+  </table>
+  <p>Everything runs serially in the worktree <code>thread-reading-motion</code> on <code>feat/reading-motion</code>. Each commit, push, PR, merge and tag still needs the owner's go-ahead.</p>
+</div>
+
+<div id="review" class="panel">
+  <h2>Smart Review</h2>
+  <p>A read-only review agent ran on 2026-10-08, with the owner's authorization. It was given the draft plan, the mockup and the code; it did not see this conversation.</p>
+  <p><strong>Verdict:</strong> the direction and the slicing are sound, and C4 is proportionate. Three gates needed resolving before exec.md, plus a reorder of the slices.</p>
+  <p>All findings are resolved below.</p>
+  <table class="evidence-table">
+    <thead><tr><th>Finding</th><th>Resolution</th></tr></thead>
+    <tbody>
+      <tr><td><strong>HIGH 1:</strong> on a 1–2 verse sitting the compact header may leave the screen with nothing to scroll. Then <code>reading_start</code>/<code>scroll_end</code> never fire (<code>Flow.tsx</code> 244–260) and the seal can't unlock.</td><td><strong>Fixed on <code>main</code> by PR #66</strong> (another session, 2026-10-09, <code>scriptureFitsOnScreen</code>). S06 keeps it working.</td></tr>
+      <tr><td><strong>HIGH 2:</strong> the splash fix needs <code>expo-splash-screen</code>, which is a new dependency.</td><td><strong>Owner approved</strong> (2026-10-08). S01 installs it, SDK-pinned, and the dev variant inherits the plugin.</td></tr>
+      <tr><td><strong>HIGH 3:</strong> verifying the launch on a release APK would touch the owner's real data and add more <code>app_open</code> rows.</td><td>All device checks use the dev app. Release-speed timing uses a <code>--no-dev --minify</code> bundle. The scripts refuse the release package.</td></tr>
+      <tr><td><strong>HIGH 4:</strong> folding the probe behind a tap would bias E9's friction outcome and E10's dose score, which counts only graded probes.</td><td><strong>Owner chose: the probe row starts open.</strong> No new event, and no schema change. E9 changes presentation only.</td></tr>
+      <tr><td><strong>MED 5:</strong> F2's cause is visible in the code. The commit runs in <code>onFinalize</code> (on finger lift), the gestures aren't memoised, and the scroll lock goes through React state.</td><td>S02 starts there: commit in <code>onStart</code>, a memoised <code>useHoldGesture</code>, and gesture-handler's ScrollView. The E1 boundary covers the signature's friction rate.</td></tr>
+      <tr><td><strong>MED 6:</strong> testing the unravel would erase the dev app's data.</td><td>S02 builds a dev "Rehearse the unravel" first, through the existing <code>onReset</code> injection.</td></tr>
+      <tr><td><strong>MED 7:</strong> the likely causes of F1 are the 4.4 MB <code>web.json</code> require, a synchronous <code>openDb</code> in render, and the boot effects.</td><td>S01 measures each one with marks before changing anything. If the text require or the DB open dominates, it stops and records that.</td></tr>
+      <tr><td><strong>MED 8:</strong> the causes of F4 and F6 are visible. WeaveZone starts with width 0, and the first verse tap decodes the whole study pack.</td><td>S04 reserves the cloth's height, and prewarms the current book's study pack once the reading has loaded.</td></tr>
+      <tr><td><strong>MED 9:</strong> the shuttle would replay every time an already-sealed day is reopened, and the rehearsal can't show WeaveZone.</td><td>S08 uses a <code>justSealed</code> flag, set only by <code>handleSeal</code> or the rehearsal, and extends the rehearsal to render the real bolt.</td></tr>
+      <tr><td><strong>MED 10:</strong> file-ownership collisions on <code>Flow.tsx</code>, <code>Knot.tsx</code> and the motion constants.</td><td>S05 moves to the start of wave 1, and everything runs in sequence. Wave 1 (F1, F2, F9) ships as its own release first.</td></tr>
+      <tr><td><strong>LOW 11:</strong> seven files use italic, not six (<code>ResourceText.tsx</code> was missed), and Android needs a separately registered family.</td><td>S03 covers all 7, registers <code>'Newsreader-Italic'</code>, and drops <code>fontStyle</code>.</td></tr>
+      <tr><td><strong>LOW 12:</strong> gaps in mockup A. The title fades in. The "Recall" label clashes with memory review. There's no lapse row. The study hint belongs beside the text. What's new is wrongly shown as "today only".</td><td>The mockup and S06/S07 are updated. There's no title rise. The row is titled "Yesterday's reading", the lapse row starts open, the study hint stays above the Scripture, and What's new stays until dismissed.</td></tr>
+      <tr><td><strong>LOW 13:</strong> "irregular" motion must not use <code>Math.random</code>.</td><td>This is a standing rule in exec.md: irregularity comes from deterministic functions.</td></tr>
+      <tr><td><strong>LOW 14:</strong> accessibility details for the folded rows.</td><td>S06: <code>expanded</code> state, rows at least 48 pt, the allowlist entry, and action labels that wrap.</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div id="verify" class="panel">
+  <h2>Verification</h2>
+  <p>The automated gate is <code>npm test</code> plus <code>npm run typecheck</code>, plus CI's APK build. No event-log schema, PRNG, notification, crypto or partner code changes, so no itemised manual checklist is required.</p>
+  <p>Motion and layout carry real weight here, so each slice records a tiled device recording from the <strong>dev app</strong> in <code>PROGRESS.md</code>. The release app is never used for testing.</p>
+  <ul class="checklist">
+    <li><input type=checkbox><span>Cold launch, dev app with a release-mode bundle: splash → weave → reading, with no white frame.</span></li>
+    <li><input type=checkbox><span>Owner's finger on the seal (rehearsal): the line moves from touch-down, and the seal lands at about 1.2 s while still held. An early release unwinds it.</span></li>
+    <li><input type=checkbox><span>Reduced motion: only with the owner's OK, and the setting is restored afterwards. Every moment shows its end state, and the holds keep their tap fallback.</span></li>
+  </ul>
+</div>
+
+<script>
+function show(id){
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === id));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
+}
+// Persist checklist state per plan file
+const KEY = 'plan-checks-' + location.pathname;
+document.querySelectorAll('.checklist input[type=checkbox]').forEach((cb, i) => {
+  cb.checked = localStorage.getItem(KEY + i) === '1';
+  cb.addEventListener('change', () => localStorage.setItem(KEY + i, cb.checked ? '1' : '0'));
+});
+</script>
+</body>
+</html>

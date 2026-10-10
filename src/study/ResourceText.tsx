@@ -31,10 +31,10 @@ const styles = StyleSheet.create({
   wrap:{ gap:12 },
   body:{ fontFamily:tokens.font.display, fontSize:16, lineHeight:24, color:tokens.color.ink },
   heading:{ fontSize:17, fontWeight:'800' },
-  em:{ fontStyle:'italic' },
+  em:{ fontFamily:tokens.font.displayItalic },
   reference:{ color:tokens.color.ink60 },
   link:{ color:tokens.color.thread, textDecorationLine:'underline' },
-  omit:{ fontFamily:tokens.font.display, fontSize:13, lineHeight:20, fontStyle:'italic', color:tokens.color.ink40 },
+  omit:{ fontFamily:tokens.font.displayItalic, fontSize:13, lineHeight:20, color:tokens.color.ink40 },
   listItem:{ flexDirection:'row', paddingRight:12 },
   bullet:{ fontFamily:tokens.font.display, fontSize:16, lineHeight:24, color:tokens.color.ink, marginRight:8 },
 });

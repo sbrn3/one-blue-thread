@@ -14,11 +14,13 @@ import { BUILD_SHA } from './src/log/buildSha';
 import { meta } from './src/log/log';
 import { OnboardingFlow } from './src/onboarding';
 import { createServices, openDb } from './src/services';
+import { mark } from './src/startup/timing';
 import { tokens } from './src/ui/tokens';
 
 // Once, at module load — before any db exists, so it's armed for
 // whatever happens during openDb() itself.
 installGlobalErrorHandler();
+mark('modulesLoaded');
 
 export default function App() {
   // Bundled, so this resolves in milliseconds — but it is deliberately NOT a
@@ -29,6 +31,8 @@ export default function App() {
     'Schibsted Grotesk': require('./assets/fonts/SchibstedGrotesk.ttf'),
     Newsreader: require('./assets/fonts/Newsreader.ttf'),
     'JetBrains Mono': require('./assets/fonts/JetBrainsMono.ttf'),
+    'SchibstedGrotesk-Italic': require('./assets/fonts/SchibstedGrotesk-Italic.ttf'),
+    'Newsreader-Italic': require('./assets/fonts/Newsreader-Italic.ttf'),
   });
 
   return (
@@ -47,7 +51,12 @@ export default function App() {
 }
 
 function AppRuntime() {
-  const db = useMemo(() => openDb(), []);
+  const db = useMemo(() => {
+    mark('openDb');
+    const opened = openDb();
+    mark('dbOpen');
+    return opened;
+  }, []);
   useEffect(() => registerErrorDb(db), [db]);
 
   const [onboarded, setOnboarded] = useState(() => meta.get(db, 'onboarded') === '1');
@@ -56,7 +65,11 @@ function AppRuntime() {
   // Flow's session-load effect keys on `text`'s identity, so a new services
   // object is enough to reload today's portion in the new translation.
   const [serviceEpoch, setServiceEpoch] = useState(0);
-  const services = useMemo(() => createServices(db), [db, onboarded, serviceEpoch]);
+  const services = useMemo(() => {
+    const created = createServices(db);
+    mark('servicesReady');
+    return created;
+  }, [db, onboarded, serviceEpoch]);
   const handleTranslationChanged = useCallback(() => setServiceEpoch((e) => e + 1), []);
 
   // The boot effect below must fire once per real launch / onboarding-complete
@@ -75,6 +88,7 @@ function AppRuntime() {
     // §13.4 — everything the app "does at 4 AM" happens here instead,
     // lazily, on foreground. Runs before app_open is logged so the
     // reconciled state reflects days up to (not including) today.
+    mark('bootWork');
     reconcile({ db, log: services.log }, RECONCILE_STEPS);
     maybeGenerateReports(db);
     // fix/marked-list — drop repeated marks (the July re-tap bug) and marks of
@@ -90,6 +104,7 @@ function AppRuntime() {
     meta.set(db, 'last_seen_build_sha', BUILD_SHA);
 
     services.log.write({ type: 'app_open' });
+    mark('bootWorkDone');
 
     // §19 "Weekly (auto): encrypted export. Silent unless it fails" —
     // fire-and-forget, never blocks app open.
