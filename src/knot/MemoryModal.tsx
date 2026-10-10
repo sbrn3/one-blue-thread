@@ -319,7 +319,9 @@ export function MemoryModal({ visible, memory, text, today, onClose }: MemoryMod
                       <Text style={styles.fact}>
                         Step {ladderStep(effectiveRung(current.rung, current.box))} of 4 — {STEP_WORDS[ladderStep(effectiveRung(current.rung, current.box))]}
                       </Text>
-                      <Text style={styles.fact}>Next due {dueLabel(today, current.due_date)}</Text>
+                      <Text style={styles.fact}>
+                        {daysUntil(today, current.due_date) <= 0 ? 'Due today' : `Next due ${dueLabel(today, current.due_date)}`}
+                      </Text>
                     </>
                   ) : (
                     <Text style={styles.fact}>Marked, not learning yet</Text>

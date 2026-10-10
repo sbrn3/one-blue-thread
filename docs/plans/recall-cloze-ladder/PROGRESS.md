@@ -7,3 +7,4 @@ S02 done | files 7 | cloze.ts, ladder.ts, grade() writes rung | tests+typecheck 
 S03 done | files 2 | seal records verse_first/last | tests+typecheck green | 03053f3 | gap: none
 S04 done | files 5 | probe span + dose guard + golden arm test | tests+typecheck green | 52caa22 | gap: none
 S05 done | files 5 | RecallZone cloze card, ProbeZone span, Flow wiring, contracts | tests+typecheck green | f0d7ce0 | gap: owner device check of cloze card + narrowed probe vs `mockup.html#chosen` (underscore gaps/stubs wrap differently from the mockup; TalkBack/VoiceOver)
+Device sweep 2026-10-10 (dev client, v0.11.0, Moto edge 50 neo): PASS letter stubs, gaps wrap cleanly with punctuation outside, four step bars; TalkBack label reads "blank, starts with …" (checked in the accessibility tree, not spoken). GAP: plain-gap steps (need later rungs, days away); no probe fired; TalkBack not run (owner skipped).
