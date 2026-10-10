@@ -26,3 +26,9 @@ Device checklist, round 2 (2026-10-09, same dev app, Metro on 8095 from feat/hea
 - PASS: the next book's first sitting shows the headpiece and "Before you begin: BibleProject's overview".
 - FOUND and FIXED: the verse picker list went blank after a tap (FlatList `initialScrollIndex`), so it now scrolls once after load. Deleting or editing a headnote in Reading history left the reading screen showing the old one, so a `headnoteEpoch` signal now makes Flow re-read it. Both were re-checked on the device.
 - NOT RUN: the encrypted export, unravel and restore round trip, the pre-V14 backup restore, and the airplane-mode overview link. The owner picked up the phone just before Export, and the tap never landed, so no backup file was created. Covered by unit tests: backup and reset include `headnotes`, and headnote.test covers "a backup made before headnotes existed restores to none".
+
+Device checklist, round 3 (2026-10-10, dev app; the dev DB was restored byte-identical afterwards):
+- PASS: export. The backup file held all 15 tables, including the headnote. It wasn't encrypted, because the dev install has no passphrase set.
+- PASS: unravel. Events and headnotes both went to 0, and the app returned to onboarding.
+- PASS: the v0.11.0 What's new card showed all three lines.
+- NOT RUN: restore from file (the owner called it off: unit tests cover it), the pre-V14 restore, and the airplane-mode overview link.

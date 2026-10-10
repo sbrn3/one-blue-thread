@@ -95,7 +95,7 @@ all three bundled typefaces, and sat idle instead of pinning a core.
   - Wave 1 (device toolkit, motion tokens, launch, holds, italic) ships first as its own release.
   - Branch `feat/reading-motion`, worktree `thread-reading-motion`.
   - See `docs/plans/reading-screen-and-motion/`.
-- **bibleproject-book-videos** — ✅ shipped in `v0.11.0` (C4; PRs #57–#64 and #66, plus the release PR). BibleProject overview links at a book's start and end. Optional daily **headnotes**, read back as the book's **contents** at "You finished" and in Reading history. Hairline headpiece/tailpiece ornaments. The README and website are refreshed. The device check passed. The backup export/restore round trip on a device is still owed, and unit tests cover it. See `docs/plans/bibleproject-book-videos/OUTCOME.md`.
+- **bibleproject-book-videos** — ✅ shipped in `v0.11.0` (C4; PRs #57–#64 and #66, plus the release PR). BibleProject overview links at a book's start and end. Optional daily **headnotes**, read back as the book's **contents** at "You finished" and in Reading history. Hairline headpiece/tailpiece ornaments. The README and website are refreshed. The device check passed. Export and unravel passed on the device. Restoring from file wasn't run there, and unit tests cover it. See `docs/plans/bibleproject-book-videos/OUTCOME.md`.
 - **whats-new** — 🔨 in progress (C2, approved 2026-10-07). After an update, a
   quiet What's new card above the reading, and every note under Knot › More ›
   About. Notes are bundled per release tag in `src/whatsNew/`, and new readers
