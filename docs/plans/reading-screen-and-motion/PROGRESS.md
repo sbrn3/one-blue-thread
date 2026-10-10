@@ -40,3 +40,7 @@ S07 code done (device check pending) | files 2 | suite 661 ✓ | types ✓
   - The arrival weft draws under the header once per mount over arrivalWeftMs (outCubic). It uses the seal line's own wave (fellLine), so the day opens and closes on one thread. Under reduce motion it is drawn at once. The title doesn't rise.
   - Rows stitch open: an SVG dashed line runs down the body over stitchMs, and closing unpicks it before the body goes. LinearTransition moves the rows below. Rows that start open don't animate on first paint. An SVG line is used because Android draws a one-sided dashed border solid.
   - Gap (device): recordings of the weft and of a memory row stitching open.
+S08 code done (device check pending) | files 3 | suite 661 ✓ | types ✓
+  - Sealing weaves today's row (Cloth weaveLastRow). Rows alternate direction by parity. The weft draws over weftPassMs (linear) with a walnut shuttle at its leading end, on one shared clock, then the row beats up into place over tensionMs. Under reduce motion it is drawn in place.
+  - Flow sets justSealedOn in handleSeal, keyed by date, never from loaded state, and the knot's WeaveZone never gets it. The dev rehearsal shows the real bolt with today woven and logs nothing.
+  - Gap (device): a recording of the rehearsal's weave.

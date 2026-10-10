@@ -30,6 +30,8 @@ interface WeaveZoneProps {
    * instead of after onLayout, which made the knot sheet jump (S04, F4).
    */
   insetX?: number;
+  /** Weave today's row in (S08). Flow sets it only for a seal that just happened. */
+  animateTodayRow?: boolean;
 }
 
 /**
@@ -44,7 +46,7 @@ interface WeaveZoneProps {
  * Replaces the calendar-month grid: the zone now answers "how is this book
  * going" rather than "how was this month".
  */
-export function WeaveZone({ book, chapterCount, sealed, streak, compact = false, insetX = 0 }: WeaveZoneProps) {
+export function WeaveZone({ book, chapterCount, sealed, streak, compact = false, insetX = 0, animateTodayRow = false }: WeaveZoneProps) {
   const { width: windowWidth } = useWindowDimensions();
   const [measured, setMeasured] = useState<number | null>(null);
   const zoneWidth = measured ?? seedZoneWidth(windowWidth, insetX);
@@ -72,6 +74,7 @@ export function WeaveZone({ book, chapterCount, sealed, streak, compact = false,
             chapterCount={chapterCount}
             sealed={sealed}
             dye={dyeFor(book)}
+            weaveLastRow={animateTodayRow}
           />
         )}
       </View>

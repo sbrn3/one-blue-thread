@@ -1,16 +1,25 @@
-import { useMemo } from 'react';
-import Svg, { G, Path } from 'react-native-svg';
+import { useEffect, useMemo } from 'react';
+import Animated, { useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
+import Svg, { Ellipse, G, Path } from 'react-native-svg';
 import {
+  type ClothGeom,
   clothSize,
   detailLevel,
   geometry,
+  polylineLength,
   ridesOver,
   warpPath,
   warpSpans,
   weftPath,
+  weftPoints,
   type Span,
 } from './loom';
+import { easing, useMotion } from './motion';
 import { tokens } from './tokens';
+
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+const AnimatedEllipse = Animated.createAnimatedComponent(Ellipse);
+const WALNUT = tokens.dye[2];
 
 interface ClothProps {
   /** Space the cloth may occupy. Both drive the sett and the row pitch. */
@@ -22,6 +31,12 @@ interface ClothProps {
   sealed: boolean[];
   /** This book's natural dye (see dye.ts). */
   dye: string;
+  /**
+   * Weave the last row (today) in: a shuttle carries the weft across, then the
+   * row beats up into place (reading-screen-and-motion S08). Only for a seal
+   * that just happened; a reopened, already-sealed day is drawn still.
+   */
+  weaveLastRow?: boolean;
 }
 
 /**
@@ -31,7 +46,7 @@ interface ClothProps {
  * texture: all warp, then the weft over it, then the warp segments that ride
  * over at alternating crossings.
  */
-export function Cloth({ width, maxHeight, chapterCount, sealed, dye }: ClothProps) {
+export function Cloth({ width, maxHeight, chapterCount, sealed, dye, weaveLastRow = false }: ClothProps) {
   const { g, spans, size, woven } = useMemo(() => {
     const geo = geometry(width, maxHeight, chapterCount, sealed);
     return {
@@ -41,6 +56,9 @@ export function Cloth({ width, maxHeight, chapterCount, sealed, dye }: ClothProp
       woven: sealed.map((s, j) => (s ? j : -1)).filter((j) => j >= 0),
     };
   }, [width, maxHeight, chapterCount, sealed]);
+
+  const last = sealed.length - 1;
+  const weaving = weaveLastRow && last >= 0 && sealed[last] === true;
 
   if (sealed.length === 0 || width <= 0) return null;
 
@@ -74,7 +92,7 @@ export function Cloth({ width, maxHeight, chapterCount, sealed, dye }: ClothProp
         )}
       </G>
       <G>
-        {woven.map((j) => (
+        {woven.filter((j) => !(weaving && j === last)).map((j) => (
           <Path
             key={`f${j}`}
             d={weftPath(g, j)}
@@ -110,6 +128,74 @@ export function Cloth({ width, maxHeight, chapterCount, sealed, dye }: ClothProp
           )}
         </G>
       )}
+      {weaving && <WeavingRow g={g} row={last} dye={dye} />}
     </Svg>
+  );
+}
+
+/**
+ * Today's row, boustrophedon: even rows run left to right, odd rows back.
+ * The pass draws by dash offset over motion.weftPassMs (linear, like a thrown
+ * shuttle), then the row beats up into place over motion.tensionMs. Reduce
+ * motion: drawn in place.
+ */
+function useWeave() {
+  const { reduced, ms } = useMotion();
+  const pass = useSharedValue(reduced ? 1 : 0);
+  const beat = useSharedValue(reduced ? 1 : 0);
+  useEffect(() => {
+    if (reduced) return;
+    const tension = ms('tensionMs');
+    pass.value = withTiming(1, { duration: ms('weftPassMs'), easing: easing('linear') }, (done) => {
+      if (done) beat.value = withTiming(1, { duration: tension, easing: easing('outCubic') });
+    });
+    // Once per mount: the parent mounts this only for a seal that just happened.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return { pass, beat };
+}
+
+function rowPoints(g: ClothGeom, row: number) {
+  const pts = weftPoints(g, row).map(([x, y]) => [x, y] as [number, number]);
+  return row % 2 === 0 ? pts : pts.reverse();
+}
+
+/** The row and the walnut shuttle riding its leading end, on one clock. */
+function WeavingRow({ g, row, dye }: { g: ClothGeom; row: number; dye: string }) {
+  const { pass, beat } = useWeave();
+  const pts = useMemo(() => rowPoints(g, row), [g, row]);
+  const length = useMemo(() => Math.ceil(polylineLength(pts)) + 1, [pts]);
+  // Before the beat the row sits low in the open shed.
+  const drop = g.sy * 0.6;
+  const props = useAnimatedProps(() => {
+    const dy = drop * (1 - beat.value);
+    let d = '';
+    for (let i = 0; i < pts.length; i++) d += (i === 0 ? 'M' : 'L') + pts[i][0] + ' ' + (pts[i][1] + dy);
+    return { d, strokeDashoffset: length * (1 - pass.value) };
+  });
+  const shuttle = useAnimatedProps(() => {
+    const at = pass.value * (pts.length - 1);
+    const i = Math.max(0, Math.min(pts.length - 2, Math.floor(at)));
+    const t = at - i;
+    return {
+      cx: pts[i][0] + (pts[i + 1][0] - pts[i][0]) * t,
+      cy: pts[i][1] + (pts[i + 1][1] - pts[i][1]) * t + drop,
+      opacity: pass.value > 0 && pass.value < 1 ? 1 : 0,
+    };
+  });
+  if (pts.length < 2) return null;
+  return (
+    <>
+      <AnimatedPath
+        stroke={dye}
+        strokeWidth={3.2}
+        strokeOpacity={0.92}
+        strokeLinecap="round"
+        fill="none"
+        strokeDasharray={length}
+        animatedProps={props}
+      />
+      <AnimatedEllipse rx={7} ry={2.5} fill={WALNUT} animatedProps={shuttle} />
+    </>
   );
 }

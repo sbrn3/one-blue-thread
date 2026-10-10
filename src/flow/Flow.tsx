@@ -288,7 +288,11 @@ export function Flow({ services }: FlowProps) {
     }
   }, [session.sealedToday, session.sittings, session.sittingIndex, readingStartFired, scrollEndFired, logReadingStart, logScrollEnd]);
 
+  // S08: today's row weaves in only after a seal made just now, never for a
+  // day that loaded already sealed. Keyed by date so midnight clears it.
+  const [justSealedOn, setJustSealedOn] = useState<string | null>(null);
   const handleSeal = useCallback(() => {
+    setJustSealedOn(today);
     void session.seal(db, log, text, today).then(() => {
       // The session advances to a new sitting/chapter in place (no
       // remount) — rearm the once-per-reading log guards for it.
@@ -860,6 +864,17 @@ export function Flow({ services }: FlowProps) {
             sealLineY.value = y;
           }}
         />
+        {/* Dev rehearsal: the real bolt with today woven, so the weave can be
+            watched without sealing. Nothing is logged or saved. */}
+        {rehearsing && rehearsal === 'sealed' && !session.sealedToday && (
+          <WeaveZone
+            book={bolt.book}
+            chapterCount={bundledChapterCount(bolt.book)}
+            sealed={bolt.sealed.map((s, i) => s || i === bolt.sealed.length - 1)}
+            insetX={SCROLL_PAD_LEFT}
+            animateTodayRow
+          />
+        )}
         {session.sealedToday && (
           <>
             <WeaveZone
@@ -868,6 +883,7 @@ export function Flow({ services }: FlowProps) {
               sealed={bolt.sealed}
               streak={streak}
               insetX={SCROLL_PAD_LEFT}
+              animateTodayRow={justSealedOn === today || (rehearsing && rehearsal === 'sealed')}
             />
             {srbaiDue && <SrbaiZone eyeballDates={eyeballDates(db, today)} onSave={handleSaveSrbai} />}
             {yearReview && <YearReviewZone report={yearReview} onDismiss={handleDismissYearReview} />}
