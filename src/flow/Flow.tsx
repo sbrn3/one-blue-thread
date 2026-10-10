@@ -32,6 +32,7 @@ import { bookName } from '../text/canon';
 import { RELEASES, WHATS_NEW_SEEN_KEY, latestReleaseId, unseenReleases } from '../whatsNew';
 import { ArrivalZone } from './ArrivalZone';
 import { LapseZone } from './LapseZone';
+import { BeforeYouRead } from './BeforeYouRead';
 import { ProbeZone } from './ProbeZone';
 import { RecallZone } from './RecallZone';
 import { ScriptureZone, type ScriptureZoneHandle } from './ScriptureZone';
@@ -703,6 +704,9 @@ export function Flow({ services }: FlowProps) {
   const streak = getProfile(db, 'streakVisible') === '1' && session.sealedToday ? computeStreak(db, today) : null;
   const showDayCount = dayCountVisible(db, today);
   const showSittingCount = sittingCountVisible(db, today);
+  const lapseAction = pendingLapse?.response.action;
+  const lapseKind =
+    lapseAction === 'one_question' || lapseAction === 'offramp' || lapseAction === 'dormant' ? lapseAction : null;
 
   return (
     <View
@@ -745,42 +749,85 @@ export function Flow({ services }: FlowProps) {
           daysInBook={session.daysInBook}
           showDayCount={showDayCount}
           showSittingCount={showSittingCount}
+          verseStart={sittingVerses[0]?.verse ?? null}
+          verseEnd={sittingVerses[sittingVerses.length - 1]?.verse ?? null}
         />
-        {pendingLapse && (
-          <LapseZone
-            response={pendingLapse.response}
-            partnerName={partnerName}
-            cue={cueState}
-            currentBookId={session.book}
-            onSaveCue={handleSaveCue}
-            onExitBook={handleExitBook}
-            onPause={handlePause}
-            onKeepNudging={handleKeepNudging}
-            onHandoff={handleHandoff}
-            onDismiss={handleDismissLapse}
-          />
+        {/* S06, Direction A: the lapse, yesterday's probe, memory and what's new
+            fold into one list. Each zone's logging, grading, skip and dismiss
+            are unchanged; probe_fired is still logged at load (above). */}
+        <BeforeYouRead
+          key={today}
+          input={{
+            lapse: lapseKind,
+            probe,
+            due: dueToday,
+            whatsNewLines: sittingVerses.length > 0 ? whatsNew.reduce((n, r) => n + r.lines.length, 0) : 0,
+          }}
+          renderBody={(kind, finish) => {
+            switch (kind) {
+              case 'lapse':
+                return pendingLapse ? (
+                  <LapseZone
+                    embedded
+                    response={pendingLapse.response}
+                    partnerName={partnerName}
+                    cue={cueState}
+                    currentBookId={session.book}
+                    onSaveCue={handleSaveCue}
+                    onExitBook={handleExitBook}
+                    onPause={handlePause}
+                    onKeepNudging={handleKeepNudging}
+                    onHandoff={handleHandoff}
+                    onDismiss={() => {
+                      finish();
+                      handleDismissLapse();
+                    }}
+                  />
+                ) : null;
+              case 'probe':
+                return probe ? (
+                  <ProbeZone
+                    embedded
+                    book={probe.book}
+                    chapter={probe.chapter}
+                    verseStart={probe.verseStart}
+                    verseEnd={probe.verseEnd}
+                    getSpanText={getProbeSpanText}
+                    onGrade={(g) => {
+                      handleGradeProbe(g);
+                      finish();
+                    }}
+                  />
+                ) : null;
+              case 'memory':
+                return (
+                  <RecallZone
+                    flush
+                    passages={dueToday}
+                    getVerseText={getVerseText}
+                    onGrade={handleGradeRecall}
+                    onSkip={handleSkipRecall}
+                    onFinished={finish}
+                  />
+                );
+              case 'whatsNew':
+                return (
+                  <WhatsNewCard
+                    embedded
+                    releases={whatsNew}
+                    onDismiss={() => {
+                      finish();
+                      handleDismissWhatsNew();
+                    }}
+                  />
+                );
+            }
+          }}
+        />
+        {/* About tapping verses, so it sits right above them. What's new wins. */}
+        {sittingVerses.length > 0 && whatsNew.length === 0 && !studyHintSeen && (
+          <StudyHint onDismiss={handleDismissStudyHint} />
         )}
-        {dueToday.length > 0 && (
-          <RecallZone
-            passages={dueToday}
-            getVerseText={getVerseText}
-            onGrade={handleGradeRecall}
-            onSkip={handleSkipRecall}
-          />
-        )}
-        {probe && (
-          <ProbeZone
-            book={probe.book}
-            chapter={probe.chapter}
-            verseStart={probe.verseStart}
-            verseEnd={probe.verseEnd}
-            getSpanText={getProbeSpanText}
-            onGrade={handleGradeProbe}
-          />
-        )}
-        {sittingVerses.length > 0 && (whatsNew.length > 0
-          ? <WhatsNewCard releases={whatsNew} onDismiss={handleDismissWhatsNew} />
-          : !studyHintSeen && <StudyHint onDismiss={handleDismissStudyHint} />)}
         <ScriptureZone
           ref={scriptureRef}
           verses={sittingVerses}

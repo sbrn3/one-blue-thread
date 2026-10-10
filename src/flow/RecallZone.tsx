@@ -17,6 +17,8 @@ interface RecallZoneProps {
   doneLabel?: string;
   /** Drop the zone's own side padding when it sits inside a padded sheet (the memory library). */
   flush?: boolean;
+  /** Every card graded, or recall skipped. The "Before you read" list folds its row (S06). */
+  onFinished?: () => void;
 }
 
 function reference(p: Passage): string {
@@ -52,7 +54,7 @@ function paragraphLabel(clozeTokens: ClozeToken[], style: 'stub' | 'gap' | 'none
  * zone at all when nothing is due — there is deliberately no empty state.
  * (docs/plans/recall-cloze-ladder)
  */
-export function RecallZone({ passages, getVerseText, onGrade, onSkip, doneLabel = 'Recall done for today.', flush = false }: RecallZoneProps) {
+export function RecallZone({ passages, getVerseText, onGrade, onSkip, doneLabel = 'Recall done for today.', flush = false, onFinished }: RecallZoneProps) {
   const [texts, setTexts] = useState<Record<string, string>>({});
   const [revealedIds, setRevealedIds] = useState<Set<number>>(new Set());
   const [done, setDone] = useState<Set<number>>(new Set());
@@ -60,6 +62,12 @@ export function RecallZone({ passages, getVerseText, onGrade, onSkip, doneLabel 
   const loading = useRef<Set<string>>(new Set());
 
   const remaining = passages.filter((p) => !done.has(p.id));
+  const finished = skipped || (passages.length > 0 && remaining.length === 0);
+  const finishedRef = useRef(onFinished);
+  finishedRef.current = onFinished;
+  useEffect(() => {
+    if (finished) finishedRef.current?.();
+  }, [finished]);
 
   // Load each passage's text up front so the cloze card can be drawn;
   // a failed load just leaves the plain reference-only card.

@@ -42,6 +42,7 @@ function toRepoPath(file: string): string {
  */
 const INTERACTIVE_CALLER_ALLOWLIST = new Set<string>([
   'src/errors/ErrorBoundary.tsx',
+  'src/flow/BeforeYouRead.tsx', // each row is 48pt tall (minHeight 48), hitSlop 8
   'src/flow/DismissalZone.tsx',
   'src/flow/HeadnoteSheet.tsx', // Close sits at tokens.control.minTarget
   'src/flow/ScriptureZone.tsx',

@@ -5,6 +5,8 @@ import { tokens } from '../ui/tokens';
 interface WhatsNewCardProps {
   releases: Release[];
   onDismiss: () => void;
+  /** Inside the "Before you read" list (S06): no outer padding or box; the row supplies them. */
+  embedded?: boolean;
 }
 
 /**
@@ -12,10 +14,10 @@ interface WhatsNewCardProps {
  * an update. Never a modal, no animation, no event — dismissed once for good.
  * Every note stays readable in the knot (More › About › What's new).
  */
-export function WhatsNewCard({ releases, onDismiss }: WhatsNewCardProps) {
+export function WhatsNewCard({ releases, onDismiss, embedded = false }: WhatsNewCardProps) {
   return (
-    <View style={styles.wrap} accessibilityLiveRegion="polite">
-      <Text style={styles.heading}>New in this update</Text>
+    <View style={[styles.wrap, embedded && styles.embedded]} accessibilityLiveRegion="polite">
+      {!embedded && <Text style={styles.heading}>New in this update</Text>}
       {releases.flatMap((release) =>
         release.lines.map((line, i) => (
           <Text key={`${release.id}-${i}`} style={styles.line}>
@@ -45,6 +47,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 10,
     backgroundColor: tokens.color.ink15,
+  },
+  embedded: {
+    marginHorizontal: 0,
+    marginBottom: 0,
+    paddingTop: 4,
+    paddingHorizontal: 0,
+    backgroundColor: 'transparent',
   },
   heading: {
     fontFamily: tokens.font.display,

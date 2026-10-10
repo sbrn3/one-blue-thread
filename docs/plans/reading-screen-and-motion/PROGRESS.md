@@ -30,3 +30,9 @@ S04 code done (device check pending) | files 14 | weaveLayout 6 ✓ | suite 653 
   - F6: Flow prewarms today's book's study pack on idle after the launch weave. Logs `[study] prewarm` and `[study] verse lookup` in dev, or with EXPO_PUBLIC_DEBUG_STARTUP=1.
   - Also: two contract-test regexes held a literal backspace where `\b` was meant, so they checked less than they said. Both fixed, plus one in the videos exec.md.
   - Gap: device check. The phone was in use by another session (port 8098), so no recordings yet.
+S06 code done (device check pending) | files 13 | beforeList 8 ✓ | suite 661 ✓ | types ✓
+  - Arrival: three lines and the cue (date · day N; Book N; verses a–b · sitting i of n; cue in Newsreader italic 16/22). No minHeight 400. The first sitting's ornament and overview link stay above the title.
+  - "Before you read" (BeforeYouRead.tsx, pure builder src/flow/beforeList.ts) replaces the stacked lapse/recall/probe/what's-new blocks. The lapse and probe start open, memory and what's new start folded, and finished rows fold to a done line for the day. StudyHint sits alone above Scripture; what's new still wins.
+  - Logging is unchanged: probe_fired at load, and grade, skip and dismiss go through the same handlers. Note: recall_shown is still logged when passages are due, but memory now starts folded, so it means "listed" rather than "on screen". Nothing reads it yet. Journal it with the E9 boundary in S10.
+  - The plan's file names beforeYouRead.ts and BeforeYouRead.tsx collide on a case-insensitive file system, so the pure module is beforeList.ts.
+  - Gap (device): busy and quiet day arrival recordings, sealing a one-verse sitting without a scroll, the TalkBack order, and the lapse CueEditor above the keyboard.
