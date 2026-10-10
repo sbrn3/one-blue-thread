@@ -5,6 +5,28 @@ changed, why, and anything the next session needs to know.
 
 ---
 
+## 2026-10-10 — reading screen and motion built (C4); waves 1–2 shipped in v0.12.0
+
+Merged in wave order:
+- **#68 (wave 1):** the device toolkit (`scripts/device/`) and the motion tokens.
+  - Launch fix: the reading screen paints in 2.5 s instead of 13 s. `cueTerms` had been re-normalising 7,943 dictionary aliases during the first render.
+  - A linen splash.
+  - Seal and unravel holds that show progress from touch-down.
+  - Bundled italics.
+- **#69 (wave 2):** the knot opens without a jump, full-screen sheets slide (`ui/Sheet.tsx`), and verse taps are fast (the study pack is prewarmed).
+- **#72 (wave 3):** Direction A. A short arrival header and one "Before you read" list; the arrival weft; rows that stitch open.
+- **#74 (wave 4):** sealing weaves today's row into the cloth, and the knot's selvedge and heading wefts.
+- **Audit:** a folded "Before you read" row unmounted its zone, so a graded recall card could be graded again. Fixed in the wave-5 PR.
+
+v0.12.0 (tagged by another session, release PR #73) carries waves 1–2 and the device-sweep fixes (#70).
+
+## Decision 2026-10-10 — Direction A and three measurement boundaries
+
+The owner chose Direction A, "Open at the text", on 2026-10-08. Scripture starts on the first screen, under one "Before you read" list. Three boundaries were accepted, so analyses that span them should split there:
+- **E1** (hold vs tap): the seal hold now shows progress from touch-down and commits while the finger is down (S02, `7f4b11d`, follow-up `cb00f1a`). `hold_cancel` and the signature's mechanic-friction rate now come from a hold that gives feedback. Before cb00f1a, a committed hold could also log a spurious `hold_cancel` on finger-up. That bug never shipped in a release.
+- **E9** (probe): presentation only (S06, `127e00c`). The probe sits inside the list, open by default, and is still logged at load. `recall_shown` is still logged when passages are due, but memory now starts folded, so the event means "listed" rather than "on screen".
+- **E4/signature:** short sittings fire `reading_start`/`scroll_end` without a scroll (PR #66, `af73832`). That entry recorded it as a bug fix, not a boundary, so it is recorded here.
+
 ## 2026-10-09 — book bookends shipped as v0.11.0
 
 The device checklist ran on the dev client in two rounds, and the dev DB was restored byte-identical afterwards. Passed:
