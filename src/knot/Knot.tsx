@@ -12,7 +12,14 @@ import {
   View,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { useReducedMotion } from 'react-native-reanimated';
+import Animated, {
+  useAnimatedProps,
+  useReducedMotion,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
+import Svg, { Line, Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Cue } from '../cue';
 import { useCue } from '../cue/useCue';
@@ -27,6 +34,8 @@ import type { Services } from '../services';
 import { useMemoryEpoch } from '../state/memoryEpoch';
 import { useSealRehearsal } from '../state/sealRehearsal';
 import { ActionButton } from '../ui/controls';
+import { fellLinePath, fellLinePoints } from '../ui/fellLine';
+import { easing, useMotion } from '../ui/motion';
 import { tokens } from '../ui/tokens';
 import { ChapterStrip } from './ChapterStrip';
 import { ChapterViewer } from './ChapterViewer';
@@ -234,6 +243,7 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
               ResetSection's long-press never fires. */}
           <GestureHandlerRootView style={styles.gestureRoot}>
           <View style={[styles.sheet, { paddingBottom: insets.bottom }]} accessibilityViewIsModal>
+            <Selvedge />
             <Pressable
               ref={closeRef}
               style={styles.closeRow}
@@ -273,10 +283,13 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
               >
                 <CueEditor cue={cueState} onSave={handleCueSave} />
               </DisclosureSection>
+              <HeadingWeft index={0} />
 
               <MemoryStrip due={memoryCounts.due} total={memoryCounts.total} onOpen={() => setMemoryOpen(true)} />
+              <HeadingWeft index={1} />
 
               <ChapterStrip hasHistory={hasHistory} onOpen={() => setHistoryOpen(true)} />
+              <HeadingWeft index={2} />
 
               <DisclosureSection
                 summary="More"
@@ -297,6 +310,7 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
                   onScrollLock={(locked) => setScrollEnabled(!locked)}
                 />
               </DisclosureSection>
+              <HeadingWeft index={3} />
 
               {/* Dev builds only: re-watch the seal's hold, animation and art
                   without sealing anything (src/state/sealRehearsal.ts). */}
@@ -358,6 +372,96 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
 
 const KNOT_PAD_X = 24;
 
+// S09 (docs/plans/reading-screen-and-motion): the knot comes off the beam.
+// The sheet's top edge is a selvedge (warp ticks over one dyed thread), and as
+// it opens a light weft draws under each everyday-tier row, 45 ms apart. The
+// rows themselves never fade. Reduce motion: drawn still.
+const SELVEDGE_H = 12;
+const SELVEDGE_TICK = 8;
+const HEADING_WEFT_H = 6;
+const HEADING_WEFT_STAGGER_MS = 45;
+// fellLine stops 16 px short of the width it is given.
+const FELL_END_INSET = 16;
+
+function Selvedge() {
+  const [width, setWidth] = useState(0);
+  const ticks = Math.max(0, Math.floor(width / SELVEDGE_TICK));
+  return (
+    <View
+      style={styles.selvedge}
+      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+      accessible={false}
+      importantForAccessibility="no-hide-descendants"
+    >
+      {width > 0 && (
+        <Svg width={width} height={SELVEDGE_H}>
+          {Array.from({ length: ticks }, (_, i) => (
+            <Line
+              key={i}
+              x1={i * SELVEDGE_TICK + SELVEDGE_TICK / 2}
+              y1={0}
+              x2={i * SELVEDGE_TICK + SELVEDGE_TICK / 2}
+              y2={SELVEDGE_H - 4}
+              stroke={tokens.color.warp}
+              strokeWidth={1}
+              strokeOpacity={0.55}
+            />
+          ))}
+          <Line x1={0} y1={SELVEDGE_H - 2.5} x2={width} y2={SELVEDGE_H - 2.5} stroke={tokens.color.thread} strokeWidth={3} />
+        </Svg>
+      )}
+    </View>
+  );
+}
+
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+
+function HeadingWeft({ index }: { index: number }) {
+  const { reduced, ms } = useMotion();
+  const [width, setWidth] = useState(0);
+  const d = useMemo(() => fellLinePath(width + FELL_END_INSET, 0, 0.9, HEADING_WEFT_H / 2), [width]);
+  const length = useMemo(() => {
+    const pts = fellLinePoints(width + FELL_END_INSET, 0, 0.9, HEADING_WEFT_H / 2);
+    let len = 0;
+    for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+    return Math.ceil(len) + 1;
+  }, [width]);
+  const drawn = useSharedValue(reduced ? 1 : 0);
+  useEffect(() => {
+    if (width <= 0 || reduced) return;
+    drawn.value = withDelay(
+      index * HEADING_WEFT_STAGGER_MS,
+      withTiming(1, { duration: ms('stitchMs'), easing: easing('outCubic') }),
+    );
+    // Once per open: the sheet's contents mount each time it opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [width > 0]);
+  const props = useAnimatedProps(() => ({ strokeDashoffset: length * (1 - drawn.value) }));
+  return (
+    <View
+      style={styles.headingWeft}
+      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+      accessible={false}
+      importantForAccessibility="no-hide-descendants"
+    >
+      {width > 0 && (
+        <Svg width={width} height={HEADING_WEFT_H}>
+          <AnimatedPath
+            d={d}
+            stroke={tokens.color.thread}
+            strokeWidth={1.5}
+            strokeOpacity={0.5}
+            strokeLinecap="round"
+            fill="none"
+            strokeDasharray={length}
+            animatedProps={props}
+          />
+        </Svg>
+      )}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   devRow: {
     borderTopWidth: 1,
@@ -408,6 +512,14 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     maxHeight: '85%',
     paddingTop: 12,
+  },
+  selvedge: {
+    height: SELVEDGE_H,
+    marginHorizontal: 20, // clear of the sheet's rounded corners
+  },
+  headingWeft: {
+    height: HEADING_WEFT_H,
+    marginVertical: 2,
   },
   sheetContent: {
     paddingHorizontal: KNOT_PAD_X,
