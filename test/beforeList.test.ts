@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildBeforeYouRead, withFinished, type BeforeInput } from '../src/flow/beforeList';
+import { bodyMount, buildBeforeYouRead, withFinished, type BeforeInput } from '../src/flow/beforeList';
 
 const NONE: BeforeInput = { lapse: null, probe: null, due: [], whatsNewLines: 0 };
 const PROBE = { book: 'romans', chapter: 7, verseStart: 24, verseEnd: 25 };
@@ -45,6 +45,13 @@ describe('Before you read (S06)', () => {
   it('keeps what is new until it is dismissed, not for one day', () => {
     expect(buildBeforeYouRead({ ...NONE, whatsNewLines: 3 })[0].detail).toBe('3 notes · until you dismiss them');
     expect(buildBeforeYouRead({ ...NONE, whatsNewLines: 0 })).toEqual([]);
+  });
+
+  it('never unmounts a body that has been open, so a graded card cannot be graded twice', () => {
+    expect(bodyMount(false, false, false)).toBe('none'); // folded, never opened
+    expect(bodyMount(true, false, false)).toBe('shown'); // starts open
+    expect(bodyMount(false, true, true)).toBe('shown'); // unpicking its stitch
+    expect(bodyMount(false, false, true)).toBe('hidden'); // folded after opening: still mounted
   });
 
   it('keeps finished items in place as done rows, even once they leave the input', () => {

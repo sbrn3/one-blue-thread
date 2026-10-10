@@ -100,3 +100,14 @@ export function withFinished(current: BeforeItem[], finished: Partial<Record<Bef
     return item ? [item] : [];
   });
 }
+
+/**
+ * Whether an unfinished row's body is drawn, hidden, or not mounted yet.
+ * Once a body has been open it stays mounted when folded, only hidden, so the
+ * zone keeps its own state: a recall card graded before folding is never
+ * offered for grading again on reopening.
+ */
+export function bodyMount(open: boolean, closing: boolean, everToggled: boolean): 'shown' | 'hidden' | 'none' {
+  if (open || closing) return 'shown';
+  return everToggled ? 'hidden' : 'none';
+}
