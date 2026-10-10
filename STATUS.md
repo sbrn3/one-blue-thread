@@ -197,3 +197,16 @@ all three bundled typefaces, and sat idle instead of pinning a core.
       14s/rejected), and an on-device exercise of the real `expo-file-system`
       recovery-snapshot move/rotation calls (PR #14 is fake-IO tested only).
 - [ ] Smoke-test `src/text/esv.ts` and `src/text/apiBible.ts` against real keys by pasting each into the knot's Translation row.
+- [ ] reading-screen-and-motion device review, waves 1 to 4, on the dev app. Every check is listed in `docs/plans/reading-screen-and-motion/OUTCOME.md` → "Remaining gaps". It includes:
+      - the cb00f1a held-seal recheck;
+      - the knot reflow;
+      - the sheet slides;
+      - a verse tap in ≤150 ms;
+      - the Direction A busy and quiet days;
+      - a one-verse seal with no scroll;
+      - the TalkBack order;
+      - the weft, the stitch, the weave and the selvedge;
+      - reduce motion (ask the owner before toggling it).
+- [ ] Tag the next release (waves 3 and 4: Direction A and the woven motion) once that review passes. The What's new lines are drafted in that OUTCOME.md. Owner's yes required.
+- [ ] Build a fresh dev-client APK (workflow_dispatch `dev-client.yml`) so the dev app shows the v0.12.0 linen splash.
+- [ ] Delete the stale `feat/reading-motion` branch on origin (95b2873). It was superseded by the `-wave1` to `-wave5` branches, which are all merged.
