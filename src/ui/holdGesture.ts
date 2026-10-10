@@ -11,7 +11,7 @@
 // re-renders don't touch it.
 import { useCallback, useMemo, useRef } from 'react';
 import { Gesture } from 'react-native-gesture-handler';
-import { cancelAnimation, Easing, runOnJS, type SharedValue, withTiming } from 'react-native-reanimated';
+import { cancelAnimation, Easing, runOnJS, type SharedValue, useSharedValue, withTiming } from 'react-native-reanimated';
 
 export interface HoldCallbacks {
   /** Touch down: lock the scroll, start any haptics. */
@@ -44,6 +44,11 @@ export function useHoldGesture(progress: SharedValue<number>, options: HoldOptio
     latest.current[kind]?.();
   }, []);
 
+  // Once committed, the finger-up must not unwind or cancel. The seal swaps its
+  // pill to pointerEvents none as soon as it lands, so lifting the finger after a
+  // commit arrives as a failed gesture, which unwound the line and would have
+  // logged a hold_cancel for a hold that sealed.
+  const committed = useSharedValue(false);
   const { holdMs, maxDriftPx, releaseMs, enabled } = options;
   return useMemo(() => {
     const hold = Gesture.LongPress()
@@ -51,22 +56,24 @@ export function useHoldGesture(progress: SharedValue<number>, options: HoldOptio
       .maxDistance(maxDriftPx)
       .enabled(enabled)
       .onBegin(() => {
+        committed.value = false;
         progress.value = withTiming(1, { duration: holdMs, easing: Easing.linear });
         runOnJS(fire)('onPressIn');
       })
       .onStart(() => {
+        committed.value = true;
         cancelAnimation(progress);
         progress.value = 1;
         runOnJS(fire)('onCommit');
       })
       .onFinalize((_event, success) => {
         runOnJS(fire)('onPressOut');
-        if (!success) {
+        if (!success && !committed.value) {
           cancelAnimation(progress);
           progress.value = withTiming(0, { duration: releaseMs });
           runOnJS(fire)('onCancel');
         }
       });
     return Gesture.Simultaneous(hold, Gesture.Native());
-  }, [progress, holdMs, maxDriftPx, releaseMs, enabled, fire]);
+  }, [progress, committed, holdMs, maxDriftPx, releaseMs, enabled, fire]);
 }

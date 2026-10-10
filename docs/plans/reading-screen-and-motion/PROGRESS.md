@@ -17,4 +17,10 @@ S01 done (device splash pending APK) | files 12 | startupTiming, cueTermsFastPat
   - Dev app on a no-dev bundle, jsStart → weave first frame: 13.0 s → 2.1–2.6 s. Reading shown: 13.7 s → 2.6–2.9 s.
   - Linen splash via expo-splash-screen. Gap: needs a new dev-client APK to see on the device.
 S03 done (device check pending) | files 13 | fonts ✓ (with a guard against fontStyle) | suite 644 ✓ | types ✓ | Schibsted Grotesk italic was also bundled for the study-note emphasis
-S02 code done, uncommitted | files 4 | suite 644 ✓ | types ✓ | gap: device check (rehearsal) plus the owner's finger. Paused while another session runs its checklist on the phone.
+S02 done, device ✓ (2026-10-10, by session -76 on 7f4b11d) | files 4 | suite 644 ✓ | types ✓
+  - On the device: a 3.0 s hold seals while still held (SEALED about 1.3 s in), and a 600 ms hold unwinds. The unravel rehearsal works both ways (3.2 s and 1 s). Italics ✓. No-dev cold start: weave first frame 2552 ms. The owner's finger ✓.
+  - Three oddities, fixed in the follow-up commit:
+    - After a commit, finger-up arrived as a failed gesture, because the sealed pill drops to pointerEvents none. That unwound the line and would have logged a false hold_cancel. useHoldGesture now ignores the finalize after a commit.
+    - The Sealing row summary didn't follow the switch.
+    - The rehearsal's "Unravelled" note survived a re-arm.
+  - Gap: recheck the follow-up on the device.

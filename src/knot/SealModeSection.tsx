@@ -7,6 +7,8 @@ import { tokens } from '../ui/tokens';
 
 interface SealModeSectionProps {
   db: SqlDb;
+  /** Lets the Sealing row's summary follow a switch made here. */
+  onChanged?: (mode: 'hold' | 'tap') => void;
 }
 
 /**
@@ -15,13 +17,14 @@ interface SealModeSectionProps {
  * by design, no confirmation asked. It never switches back on its own;
  * this is the only way back short of a full reset.
  */
-export function SealModeSection({ db }: SealModeSectionProps) {
+export function SealModeSection({ db, onChanged }: SealModeSectionProps) {
   const [mode, setMode] = useState<'hold' | 'tap'>(() => (getProfile(db, 'seal') === 'tap' ? 'tap' : 'hold'));
 
   const flip = () => {
     const next = mode === 'tap' ? 'hold' : 'tap';
     setProfile(db, 'seal', next);
     setMode(next);
+    onChanged?.(next);
   };
 
   return (

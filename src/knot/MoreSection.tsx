@@ -77,6 +77,7 @@ export function MoreSection({
 }: MoreSectionProps) {
   const { backup, partner, study, translation } = services;
   const [issueLinkFailed, setIssueLinkFailed] = useState(false);
+  const [sealTap, setSealTap] = useState(() => getProfile(db, 'seal') === 'tap');
 
   const reportProblem = () => {
     setIssueLinkFailed(false);
@@ -99,12 +100,12 @@ export function MoreSection({
 
       <DisclosureSection
         summary="Sealing"
-        status={getProfile(db, 'seal') === 'tap' ? 'Switched to tap' : undefined}
+        status={sealTap ? 'Switched to tap' : undefined}
         expanded={openSections.seal}
         onToggle={() => onToggle('seal')}
         nested
       >
-        <SealModeSection db={db} />
+        <SealModeSection db={db} onChanged={(mode) => setSealTap(mode === 'tap')} />
       </DisclosureSection>
 
       <DisclosureSection summary="Partner" expanded={openSections.partner} onToggle={() => onToggle('partner')} nested>

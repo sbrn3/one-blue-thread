@@ -147,7 +147,15 @@ export function ResetSection({ db, log, onReset, onScrollLock, rehearsal = false
           {failure && (
             <Text style={styles.failure}>Couldn&apos;t start over — nothing was erased. {failure}</Text>
           )}
-          <ActionButton label="Start over" variant="secondary" onPress={() => setConfirming(true)} style={styles.btn} />
+          <ActionButton
+            label="Start over"
+            variant="secondary"
+            onPress={() => {
+              setRehearsed(false);
+              setConfirming(true);
+            }}
+            style={styles.btn}
+          />
         </>
       ) : (
         <>
