@@ -87,7 +87,15 @@ export function SealZone({
     if (sealed) setTwoTapArmed(false);
   }, [sealed]);
 
-  const helperText = canSeal ? 'Hold to seal' : floor === 'one_verse' ? 'Start reading to seal' : 'Read to the end to seal';
+  // A plain tap seals whenever the pill is a button, so "Hold" would be wrong there.
+  const interactive = sealMode === 'tap' || screenReaderEnabled || reducedMotion;
+  const helperText = canSeal
+    ? interactive
+      ? 'Tap to seal'
+      : 'Hold to seal'
+    : floor === 'one_verse'
+      ? 'Start reading to seal'
+      : 'Read to the end to seal';
 
   useEffect(() => {
     AccessibilityInfo.isScreenReaderEnabled().then(setScreenReaderEnabled);
@@ -187,8 +195,6 @@ export function SealZone({
   const reportLine = () => {
     if (zoneY.current !== null && rowY.current !== null) onLineLayout?.(zoneY.current + rowY.current + ROW_H / 2);
   };
-
-  const interactive = sealMode === 'tap' || screenReaderEnabled || reducedMotion;
 
   const pillBody = <Animated.Text style={[styles.pillLabel, pillLabelStyle]}>{helperText}</Animated.Text>;
 
