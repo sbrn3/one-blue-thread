@@ -15,6 +15,14 @@ export interface Release {
 
 export const RELEASES: readonly Release[] = [
   {
+    id: 'v0.12.0',
+    lines: [
+      "The app opens on linen, without the white screen, and today's reading is ready in about two seconds.",
+      'Holding to seal pulls the line taut as soon as you touch it, and seals before you let go.',
+      'Sheets slide in and out, and tapping a verse opens its notes straight away.',
+    ],
+  },
+  {
     id: 'v0.11.0',
     lines: [
       "A new book opens with a link to BibleProject's video overview, and it comes back when you finish.",
