@@ -73,21 +73,22 @@ export const nativeBackupIo: BackupIO = {
     tmp.create();
     tmp.write(content);
 
-    const current = new File(dir, SLOT_FILE.current);
-    const currentMeta = new File(dir, SLOT_META_FILE.current);
-    const previous = new File(dir, SLOT_FILE.previous);
-    const previousMeta = new File(dir, SLOT_META_FILE.previous);
+    // moveSync re-points the File it's called on at the destination, so each
+    // step builds fresh Files by name. Reusing `current` after moving it to
+    // "previous" made every second snapshot throw, leaving no current slot.
+    const at = (name: string) => new File(dir, name);
 
-    if (current.exists) {
-      if (previous.exists) previous.delete();
-      current.moveSync(previous);
-      if (currentMeta.exists) {
-        if (previousMeta.exists) previousMeta.delete();
-        currentMeta.moveSync(previousMeta);
+    if (at(SLOT_FILE.current).exists) {
+      if (at(SLOT_FILE.previous).exists) at(SLOT_FILE.previous).delete();
+      at(SLOT_FILE.current).moveSync(at(SLOT_FILE.previous));
+      if (at(SLOT_META_FILE.current).exists) {
+        if (at(SLOT_META_FILE.previous).exists) at(SLOT_META_FILE.previous).delete();
+        at(SLOT_META_FILE.current).moveSync(at(SLOT_META_FILE.previous));
       }
     }
 
-    tmp.moveSync(current);
+    tmp.moveSync(at(SLOT_FILE.current));
+    const currentMeta = at(SLOT_META_FILE.current);
     if (currentMeta.exists) currentMeta.delete();
     currentMeta.create();
     currentMeta.write(JSON.stringify({ exportedAt: info.exportedAt, encrypted: info.encrypted } satisfies SnapshotMeta));
