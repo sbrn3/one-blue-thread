@@ -67,8 +67,9 @@ node scripts/device/ui.mjs tap <label>
   - **The build runs continuously through to S10 (owner, 2026-10-10).** Never pause between slices or waves.
     - Each wave branches from the one before (`feat/reading-motion-wave<N>`), and its PR is opened as soon as it is committed.
     - Work moves straight on to the next wave while that PR waits.
-    - Commits, pushes and PRs are authorized for every slice and wave of this plan.
-    - Only a merge or a tag waits for the owner's yes. Ask for it in passing and keep building.
+    - Commits, pushes, PRs and merges are authorized for every slice and wave of this plan.
+    - Each wave's PR is merged in order once its tests pass, and the next wave is rebased onto main.
+    - Only a tag (a release) waits for the owner's yes. Ask for it in passing and keep building.
     - A gap that needs the phone (it is busy, locked, or unplugged) is recorded and carried forward. It never stops the build.
 - **Boundaries accepted by the owner, 2026-10-08.** All three are journaled by S10 with build SHAs.
   - **E1:** hold feedback and commit timing (S02). This covers `hold_cancel` and the signature's mechanic-friction rate (`src/lab/signature.ts` ~85–93).
