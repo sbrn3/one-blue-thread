@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, ActivityIndicator, findNodeHandle, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Sheet } from '../ui/Sheet';
+import { AccessibilityInfo, ActivityIndicator, findNodeHandle, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScriptureZone } from '../flow/ScriptureZone';
 import { getHeadnote, headnoteRange, removeHeadnote, saveHeadnote, sealById, type Headnote, type SealRef } from '../headnote';
@@ -19,7 +20,6 @@ interface ChapterViewerProps {
   text: TextProvider;
   /** For the day's headnote, shown above the chapter (docs/plans/bibleproject-book-videos). */
   db: SqlDb;
-  reducedMotion: boolean;
   onClose: () => void;
 }
 
@@ -30,7 +30,7 @@ type LoadState = { status: 'loading' } | { status: 'ready'; verses: Verse[] } | 
  * chapter fetch, same reduced-motion/safe-area/modal-isolation/focus
  * pattern as the knot itself.
  */
-export function ChapterViewer({ entry, text, db, reducedMotion, onClose }: ChapterViewerProps) {
+export function ChapterViewer({ entry, text, db, onClose }: ChapterViewerProps) {
   const insets = useSafeAreaInsets();
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   const closeRef = useRef<View>(null);
@@ -115,7 +115,7 @@ export function ChapterViewer({ entry, text, db, reducedMotion, onClose }: Chapt
   }, []);
 
   return (
-    <Modal visible={entry !== null} animationType={reducedMotion ? 'none' : 'slide'} onRequestClose={back} onShow={focusClose}>
+    <Sheet visible={entry !== null} onRequestClose={back} onShow={focusClose}>
       <View style={[styles.wrap, { paddingTop: insets.top, paddingBottom: insets.bottom }]} accessibilityViewIsModal>
         <Pressable ref={closeRef} style={styles.closeRow} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
           <Text style={styles.close}>Close</Text>
@@ -188,7 +188,7 @@ export function ChapterViewer({ entry, text, db, reducedMotion, onClose }: Chapt
           </>
         )}
       </View>
-    </Modal>
+    </Sheet>
   );
 }
 

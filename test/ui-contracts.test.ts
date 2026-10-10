@@ -139,11 +139,17 @@ describe('ui-contracts (docs/plans/app-quality-foundations, Slice 7)', () => {
   // is a source-walking approximation of "no modal-opening child renders
   // outside its parent's own modal tree", not a render test — the suite has
   // no component renderer (AGENTS.md) to prove presentation directly.
+  //
+  // ui/Sheet.tsx is a <Modal> too (reading-screen-and-motion S04), so a <Sheet>
+  // counts exactly as a <Modal> does here.
+  const OPENS_A_MODAL = /<(Modal|Sheet)[\s>]/;
+  const lastModalClose = (code: string) => Math.max(code.lastIndexOf('</Modal>'), code.lastIndexOf('</Sheet>'));
+
   function componentsThatRenderAModal(): Set<string> {
     const names = new Set<string>();
     for (const f of walk(SRC)) {
       const code = codeOf(f);
-      if (!/<Modal[\s>]/.test(code)) continue;
+      if (!OPENS_A_MODAL.test(code)) continue;
       const match = code.match(/export function (\w+)/);
       if (match) names.add(match[1]);
     }
@@ -163,7 +169,7 @@ describe('ui-contracts (docs/plans/app-quality-foundations, Slice 7)', () => {
   it('the knot promotes nothing and its opener has no "Knot" word label', () => {
     const knot = codeOf(join(SRC, 'knot', 'Knot.tsx'));
     const more = codeOf(join(SRC, 'knot', 'MoreSection.tsx'));
-    const promotion = /setPromoted|promoteds*(===|!==|=|:)/;
+    const promotion = /setPromoted|\bpromoted\s*(===|!==|=|:)/;
     expect(knot).not.toMatch(promotion);
     expect(more).not.toMatch(promotion);
     expect(knot).not.toMatch(/>\s*Knot\s*</);
@@ -187,7 +193,7 @@ describe('ui-contracts (docs/plans/app-quality-foundations, Slice 7)', () => {
     const modalComponents = componentsThatRenderAModal();
     for (const f of walk(SRC)) {
       const code = codeOf(f);
-      const lastClose = code.lastIndexOf('</Modal>');
+      const lastClose = lastModalClose(code);
       if (lastClose === -1) continue;
       const after = code.slice(lastClose + '</Modal>'.length);
       for (const name of modalComponents) {
@@ -208,11 +214,11 @@ describe('recall cloze ladder contracts', () => {
   const flow = (name: string) => codeOf(join(SRC, 'flow', name));
 
   it('the memory library is exactly one Modal; its screens never open another', () => {
-    expect(flow('../knot/MemoryModal.tsx').match(/<Modal[\s>]/g)).toHaveLength(1);
+    expect(flow('../knot/MemoryModal.tsx').match(/<(Modal|Sheet)[\s>]/g)).toHaveLength(1);
   });
 
   it('PassagePicker is a screen inside the memory library, never its own Modal', () => {
-    expect(flow('../knot/PassagePicker.tsx')).not.toMatch(/<Modal/);
+    expect(flow('../knot/PassagePicker.tsx')).not.toMatch(/<(Modal|Sheet)\b/);
   });
 
   it('ProbeZone shows the whole span, never truncated', () => {

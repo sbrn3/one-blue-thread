@@ -1,9 +1,9 @@
 import { Easing, useReducedMotion } from 'react-native-reanimated';
 import { motionMs, type MotionKey } from './motionTiming';
 
-export type EasingName = 'linear' | 'inOutCubic' | 'outCubic';
+export type EasingName = 'linear' | 'inOutCubic' | 'outCubic' | 'inCubic';
 
-/** The app's three easings. No spring and no bounce: see tokens.motion. */
+/** The app's four easings. No spring and no bounce: see tokens.motion. */
 export function easing(name: EasingName) {
   switch (name) {
     case 'linear':
@@ -12,6 +12,8 @@ export function easing(name: EasingName) {
       return Easing.inOut(Easing.cubic);
     case 'outCubic':
       return Easing.out(Easing.cubic);
+    case 'inCubic':
+      return Easing.in(Easing.cubic);
   }
 }
 

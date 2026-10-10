@@ -263,6 +263,7 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
                 sealed={bolt.sealed}
                 streak={getProfile(db, 'streakVisible') === '1' ? computeStreak(db, today) : null}
                 compact
+                insetX={KNOT_PAD_X * 2}
               />
 
               <DisclosureSection
@@ -325,7 +326,6 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
             <HistoryModal
               visible={historyOpen}
               db={db}
-              reducedMotion={reducedMotion}
               onClose={() => setHistoryOpen(false)}
               onSelectEntry={handleSelectHistoryEntry}
               refreshKey={historyEpoch}
@@ -336,7 +336,6 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
               memory={services.memory}
               text={text}
               today={today}
-              reducedMotion={reducedMotion}
               onClose={() => setMemoryOpen(false)}
             />
 
@@ -344,7 +343,6 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
               entry={viewingEntry}
               text={text}
               db={db}
-              reducedMotion={reducedMotion}
               onClose={() => {
                 setViewingEntry(null);
                 setHistoryEpoch((n) => n + 1);
@@ -357,6 +355,8 @@ export function Knot({ services, onTranslationChanged }: KnotProps) {
     </>
   );
 }
+
+const KNOT_PAD_X = 24;
 
 const styles = StyleSheet.create({
   devRow: {
@@ -410,7 +410,7 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   sheetContent: {
-    paddingHorizontal: 24,
+    paddingHorizontal: KNOT_PAD_X,
     paddingBottom: 40,
     gap: 4,
   },

@@ -146,7 +146,7 @@ Build a feature list from the code before writing any copy. Read only names, hea
 ### Done when
 
 - Every inventory row is either shown on the site or listed in README, or a recorded reason explains why not.
-- No stale name, token, claim or "streak" remains (`grep -n "Thread|streak|1F3FFF"` shows only intended hits).
+- No stale name, token, claim or "streak" remains (`grep -n "Thread\b|streak|1F3FFF"` shows only intended hits).
 - Rollback: revert the commit. If it was already merged, revert on main, which republishes the previous site.
 
 ---

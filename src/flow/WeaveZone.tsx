@@ -1,9 +1,17 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { Cloth } from '../ui/Cloth';
 import { dyeFor } from '../ui/dye';
 import { bookName } from '../text/canon';
 import { tokens } from '../ui/tokens';
+import {
+  boltHeight,
+  CLOTH_MAX_HEIGHT,
+  CLOTH_MAX_HEIGHT_COMPACT,
+  clothWidthFor,
+  seedZoneWidth,
+  WEAVE_PAD_X,
+} from './weaveLayout';
 
 interface WeaveZoneProps {
   /** Book id — names the cloth and picks its dye. */
@@ -16,6 +24,12 @@ interface WeaveZoneProps {
   streak?: number | null;
   /** Used only by the knot's compact "today's weave" summary — lower max height/padding, identical bolt semantics and labels. Flow's own caller always renders full size. */
   compact?: boolean;
+  /**
+   * How much of the window's width the caller takes before this zone (its own
+   * padding, the rail). Seeds the width so the cloth draws on the first frame
+   * instead of after onLayout, which made the knot sheet jump (S04, F4).
+   */
+  insetX?: number;
 }
 
 /**
@@ -30,13 +44,16 @@ interface WeaveZoneProps {
  * Replaces the calendar-month grid: the zone now answers "how is this book
  * going" rather than "how was this month".
  */
-export function WeaveZone({ book, chapterCount, sealed, streak, compact = false }: WeaveZoneProps) {
-  const [width, setWidth] = useState(0);
+export function WeaveZone({ book, chapterCount, sealed, streak, compact = false, insetX = 0 }: WeaveZoneProps) {
+  const { width: windowWidth } = useWindowDimensions();
+  const [measured, setMeasured] = useState<number | null>(null);
+  const zoneWidth = measured ?? seedZoneWidth(windowWidth, insetX);
+  const width = clothWidthFor(zoneWidth, compact);
   const days = sealed.length;
   const read = sealed.filter(Boolean).length;
 
   return (
-    <View style={[styles.zone, compact && styles.zoneCompact]} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+    <View style={[styles.zone, compact && styles.zoneCompact]} onLayout={(e) => setMeasured(e.nativeEvent.layout.width)}>
       <View style={styles.headerRow}>
         <Text style={styles.label}>
           {bookName(book)} · {chapterCount} {chapterCount === 1 ? 'chapter' : 'chapters'}
@@ -47,15 +64,17 @@ export function WeaveZone({ book, chapterCount, sealed, streak, compact = false 
           </Text>
         )}
       </View>
-      {width > 0 && (
-        <Cloth
-          width={width}
-          maxHeight={compact ? CLOTH_MAX_HEIGHT_COMPACT : CLOTH_MAX_HEIGHT}
-          chapterCount={chapterCount}
-          sealed={sealed}
-          dye={dyeFor(book)}
-        />
-      )}
+      <View style={{ height: boltHeight(zoneWidth, compact, chapterCount, sealed) }}>
+        {width > 0 && (
+          <Cloth
+            width={width}
+            maxHeight={compact ? CLOTH_MAX_HEIGHT_COMPACT : CLOTH_MAX_HEIGHT}
+            chapterCount={chapterCount}
+            sealed={sealed}
+            dye={dyeFor(book)}
+          />
+        )}
+      </View>
       <Text style={styles.caption}>
         {read} of {days} day{days === 1 ? '' : 's'} woven
       </Text>
@@ -63,12 +82,9 @@ export function WeaveZone({ book, chapterCount, sealed, streak, compact = false 
   );
 }
 
-const CLOTH_MAX_HEIGHT = 520;
-const CLOTH_MAX_HEIGHT_COMPACT = 220;
-
 const styles = StyleSheet.create({
   zone: {
-    paddingHorizontal: 32,
+    paddingHorizontal: WEAVE_PAD_X,
     paddingVertical: 40,
     gap: 20,
   },

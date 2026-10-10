@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
   findNodeHandle,
-  Modal,
   Pressable,
   SectionList,
   StyleSheet,
@@ -10,6 +9,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { Sheet } from '../ui/Sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { SqlDb } from '../log/db';
 import { bookName } from '../text/canon';
@@ -24,7 +24,6 @@ const PAGE_SIZE = 40;
 interface HistoryModalProps {
   visible: boolean;
   db: SqlDb;
-  reducedMotion: boolean;
   onClose: () => void;
   onSelectEntry: (entry: HistoryEntry) => void;
   /** Bumped by the knot after the chapter viewer closes, so a book's contents re-read edited headnotes. */
@@ -53,7 +52,7 @@ function toSections(entries: HistoryEntry[]): Section[] {
  * portion; a merge-forward day (§21.2) may have folded in more than one
  * chapter, so this never claims "every chapter read".
  */
-export function HistoryModal({ visible, db, reducedMotion, onClose, onSelectEntry, refreshKey = 0 }: HistoryModalProps) {
+export function HistoryModal({ visible, db, onClose, onSelectEntry, refreshKey = 0 }: HistoryModalProps) {
   const insets = useSafeAreaInsets();
   // docs/plans/bibleproject-book-videos — a book's contents, as a screen in
   // this same modal (never a second Modal).
@@ -121,7 +120,7 @@ export function HistoryModal({ visible, db, reducedMotion, onClose, onSelectEntr
   }, []);
 
   return (
-    <Modal visible={visible} animationType={reducedMotion ? 'none' : 'slide'} onRequestClose={bookScreen ? () => setBookScreen(null) : onClose} onShow={focusClose}>
+    <Sheet visible={visible} onRequestClose={bookScreen ? () => setBookScreen(null) : onClose} onShow={focusClose}>
       <View style={[styles.wrap, { paddingTop: insets.top, paddingBottom: insets.bottom }]} accessibilityViewIsModal>
         <View style={styles.headerRow}>
           <Text style={styles.title}>Reading history</Text>
@@ -196,7 +195,7 @@ export function HistoryModal({ visible, db, reducedMotion, onClose, onSelectEntr
         </>
         )}
       </View>
-    </Modal>
+    </Sheet>
   );
 }
 

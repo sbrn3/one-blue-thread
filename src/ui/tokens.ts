@@ -65,6 +65,8 @@ export const tokens = {
   // src/ui/motionTiming.ts). Values here are the ones the app already used.
   motion: {
     sheet: 'slide' as const,
+    sheetInMs: 300, // a full-screen sheet rises (ui/Sheet.tsx)
+    sheetOutMs: 240, // and falls away
     railSweepMs: 600, // the rail's sweep down to the seal line once sealed
     weftStartMs: 400, // launch: the first weft leaves after this
     weftRowMs: 600, // launch: a new row starts this often
