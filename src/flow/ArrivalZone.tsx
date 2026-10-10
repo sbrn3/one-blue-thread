@@ -1,9 +1,68 @@
+import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, { useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
+import Svg, { Path } from 'react-native-svg';
 import type { Cue } from '../cue';
 import { bookName } from '../text/canon';
 import { Ornament } from '../ui/Ornament';
 import { OverviewLink } from '../ui/OverviewLink';
+import { fellLinePath, fellLinePoints } from '../ui/fellLine';
+import { easing, useMotion } from '../ui/motion';
 import { tokens } from '../ui/tokens';
+
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+const WEFT_H = 10;
+const WEFT_AMP = 1.4;
+// fellLine stops 16 px short of the width it is given (room for the seal's pill).
+const FELL_END_INSET = 16;
+
+/**
+ * Direction A's arrival signature (S07): one weft drawn under the header as
+ * the page opens, once per mount. The same deterministic wave as the seal
+ * line, so the day opens and closes on one thread. Reduce motion: drawn.
+ */
+function ArrivalWeft() {
+  const { reduced, ms } = useMotion();
+  const [width, setWidth] = useState(0);
+  const d = useMemo(() => fellLinePath(width + FELL_END_INSET, 0, WEFT_AMP, WEFT_H / 2), [width]);
+  const length = useMemo(() => {
+    const pts = fellLinePoints(width + FELL_END_INSET, 0, WEFT_AMP, WEFT_H / 2);
+    let len = 0;
+    for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+    return Math.ceil(len) + 1;
+  }, [width]);
+  const drawn = useSharedValue(0);
+  useEffect(() => {
+    if (width <= 0 || drawn.value > 0) return;
+    drawn.value = reduced ? 1 : withTiming(1, { duration: ms('arrivalWeftMs'), easing: easing('outCubic') });
+    // Once per mount: a later width change redraws the path but doesn't replay it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [width]);
+  const props = useAnimatedProps(() => ({ strokeDashoffset: length * (1 - drawn.value) }));
+
+  return (
+    <View
+      style={styles.weft}
+      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+      accessible={false}
+      importantForAccessibility="no-hide-descendants"
+    >
+      {width > 0 && (
+        <Svg width={width} height={WEFT_H}>
+          <AnimatedPath
+            d={d}
+            stroke={tokens.color.thread}
+            strokeWidth={2}
+            strokeLinecap="round"
+            fill="none"
+            strokeDasharray={length}
+            animatedProps={props}
+          />
+        </Svg>
+      )}
+    </View>
+  );
+}
 
 interface ArrivalZoneProps {
   today: string; // 'YYYY-MM-DD'
@@ -72,6 +131,7 @@ export function ArrivalZone({
       <Text style={styles.echo}>
         {cue ? `After ${cue.anchor}, in ${cue.place}.` : 'No cue set yet — read when it suits you.'}
       </Text>
+      <ArrivalWeft />
     </View>
   );
 }
@@ -80,7 +140,6 @@ const styles = StyleSheet.create({
   zone: {
     paddingHorizontal: 32,
     paddingTop: 30,
-    paddingBottom: 18,
   },
   day: {
     fontFamily: tokens.font.mono,
@@ -109,5 +168,10 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     color: tokens.color.ink60,
     marginTop: 10,
+  },
+  weft: {
+    height: WEFT_H,
+    marginTop: 14,
+    marginBottom: 18,
   },
 });

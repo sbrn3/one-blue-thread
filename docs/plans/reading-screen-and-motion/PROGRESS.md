@@ -36,3 +36,7 @@ S06 code done (device check pending) | files 13 | beforeList 8 ✓ | suite 661 �
   - Logging is unchanged: probe_fired at load, and grade, skip and dismiss go through the same handlers. Note: recall_shown is still logged when passages are due, but memory now starts folded, so it means "listed" rather than "on screen". Nothing reads it yet. Journal it with the E9 boundary in S10.
   - The plan's file names beforeYouRead.ts and BeforeYouRead.tsx collide on a case-insensitive file system, so the pure module is beforeList.ts.
   - Gap (device): busy and quiet day arrival recordings, sealing a one-verse sitting without a scroll, the TalkBack order, and the lapse CueEditor above the keyboard.
+S07 code done (device check pending) | files 2 | suite 661 ✓ | types ✓
+  - The arrival weft draws under the header once per mount over arrivalWeftMs (outCubic). It uses the seal line's own wave (fellLine), so the day opens and closes on one thread. Under reduce motion it is drawn at once. The title doesn't rise.
+  - Rows stitch open: an SVG dashed line runs down the body over stitchMs, and closing unpicks it before the body goes. LinearTransition moves the rows below. Rows that start open don't animate on first paint. An SVG line is used because Android draws a one-sided dashed border solid.
+  - Gap (device): recordings of the weft and of a memory row stitching open.
