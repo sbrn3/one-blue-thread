@@ -20,12 +20,14 @@ Built in seven slices (S00–S06) and merged as PRs #57–#64. Fixes from the de
 - The verse picker list went blank.
 - A headnote deleted in history still showed on the reading screen.
 
+**Also verified on the device** (2026-10-10): the export includes the headnote, and the unravel clears it.
+
 **Not verified on the device:**
-- the encrypted export, unravel and restore round trip;
+- restoring a backup from file;
 - a pre-V14 backup restore;
 - the overview link with no network.
 
-The owner picked up the phone before the export ran. Unit tests cover the first two (backup, reset and headnote tests). Screen-reader order and the largest font scale were not checked either.
+The owner called off the restore check. Unit tests cover the first two (backup, reset and headnote tests). Screen-reader order and the largest font scale were not checked either.
 
 **Deviations:**
 - The headnote field's madder rule is a separate 2px bar, not a border.

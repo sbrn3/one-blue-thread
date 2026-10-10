@@ -18,7 +18,7 @@ Fixed along the way:
 - **#66:** a short sitting never unlocked the seal (an existing bug), and the field's rule was drawn on all four sides.
 - **The release PR:** the verse picker list went blank (FlatList `initialScrollIndex`), and a headnote deleted in history stayed on the reading screen. `src/state/headnoteEpoch.ts` now signals Flow to re-read.
 
-**Handoff:** the encrypted export, unravel and restore round trip, and a pre-V14 restore, were not run on a device, because the owner picked up the phone. Unit tests cover both. Worth a quick check on the release app after installing v0.11.0.
+**Handoff:** export and unravel passed on the device on 2026-10-10. Restoring from file and a pre-V14 restore were not run on a device, and unit tests cover both.
 **Branch:** fix/headnotes-device-round2
 
 ## 2026-10-08 — book bookends built: BibleProject overviews and headnotes (C4)
