@@ -12,6 +12,8 @@ interface ProbeZoneProps {
   verseEnd: number;
   getSpanText: () => Promise<string>;
   onGrade: (grade: ProbeGrade) => void;
+  /** Inside the "Before you read" list (S06): no outer padding or box; the row supplies them. */
+  embedded?: boolean;
 }
 
 /**
@@ -20,7 +22,7 @@ interface ProbeZoneProps {
  * reveal, one of four self-grades. Consequence-free, same guarantee as
  * ordinary recall: grading never touches seal, streak, weave, or dose.
  */
-export function ProbeZone({ book, chapter, verseStart, verseEnd, getSpanText, onGrade }: ProbeZoneProps) {
+export function ProbeZone({ book, chapter, verseStart, verseEnd, getSpanText, onGrade, embedded = false }: ProbeZoneProps) {
   const [revealed, setRevealed] = useState<string | null>(null);
   const [graded, setGraded] = useState(false);
 
@@ -42,14 +44,14 @@ export function ProbeZone({ book, chapter, verseStart, verseEnd, getSpanText, on
 
   if (graded) {
     return (
-      <View style={styles.zone}>
+      <View style={[styles.zone, embedded && styles.embedded]}>
         <Text style={styles.done}>Probe done for today.</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.zone}>
+    <View style={[styles.zone, embedded && styles.embedded]}>
       <Text style={styles.prompt}>
         Yesterday you read {bookName(book)} {chapter}.{' '}
         {single ? `Do you remember verse ${verseStart}?` : `What do you remember of verses ${range}?`}
@@ -85,6 +87,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingVertical: 24,
     gap: 16,
+  },
+  embedded: {
+    paddingHorizontal: 0,
+    paddingVertical: 4,
   },
   prompt: {
     fontFamily: tokens.font.display,

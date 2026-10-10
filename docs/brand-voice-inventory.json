@@ -3,6 +3,7 @@
   "src/brand/BrandOrigin.tsx": ["scripture", "marketing"],
   "src/errors/ErrorBoundary.tsx": ["operation-consent-error"],
   "src/flow/ArrivalZone.tsx": ["reader-owned", "behavioural-fact", "attributed-human-commentary"],
+  "src/flow/BeforeYouRead.tsx": ["operation-consent-error", "behavioural-fact"],
   "src/flow/DismissalZone.tsx": ["operation-consent-error", "behavioural-fact", "attributed-human-commentary", "reader-owned"],
   "src/flow/HeadnoteSheet.tsx": ["reader-owned", "operation-consent-error"],
   "src/flow/LapseZone.tsx": ["reader-owned", "operation-consent-error", "behavioural-fact"],

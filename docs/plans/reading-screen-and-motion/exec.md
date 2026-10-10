@@ -22,7 +22,9 @@ Use one fresh session per slice. Read only:
 
 Do not read `plan.html`, other slices, project status/history, or the full
 product spec unless the slice names that dependency. Append one bounded
-`PROGRESS.md` entry, return at most 150 tokens, and stop.
+`PROGRESS.md` entry and return at most 150 tokens. A delegated worker stops
+there. The session running the build goes straight on to the next slice (see
+Standing decisions).
 
 Budgets:
 
@@ -62,7 +64,13 @@ node scripts/device/ui.mjs tap <label>
   - Work in the sibling worktree `thread-reading-motion` on `feat/reading-motion`.
   - **Wave 1 ships first as its own PR and release.** It fixes the broken launch, seal hold and italic.
   - Later waves follow as one PR each, merged in order.
-  - Commit, push, PR, merge and tag each need explicit owner authorization. Without it, a slice stops at "verified, uncommitted".
+  - **The build runs continuously through to S10 (owner, 2026-10-10).** Never pause between slices or waves.
+    - Each wave branches from the one before (`feat/reading-motion-wave<N>`), and its PR is opened as soon as it is committed.
+    - Work moves straight on to the next wave while that PR waits.
+    - Commits, pushes, PRs and merges are authorized for every slice and wave of this plan.
+    - Each wave's PR is merged in order once its tests pass, and the next wave is rebased onto main.
+    - Only a tag (a release) waits for the owner's yes. Ask for it in passing and keep building.
+    - A gap that needs the phone (it is busy, locked, or unplugged) is recorded and carried forward. It never stops the build.
 - **Boundaries accepted by the owner, 2026-10-08.** All three are journaled by S10 with build SHAs.
   - **E1:** hold feedback and commit timing (S02). This covers `hold_cancel` and the signature's mechanic-friction rate (`src/lab/signature.ts` ~85–93).
   - **E9:** the probe's presentation changes (S06). It now sits inside the list, **shown open**, so neither firing nor answering changes.

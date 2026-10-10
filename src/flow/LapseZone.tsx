@@ -18,6 +18,8 @@ interface LapseZoneProps {
   onKeepNudging: () => void;
   onHandoff: () => void;
   onDismiss: () => void;
+  /** Inside the "Before you read" list (S06): no outer padding or box; the row supplies them. */
+  embedded?: boolean;
 }
 
 const ONE_QUESTION_COPY: Partial<Record<Signature, string>> = {
@@ -46,14 +48,16 @@ export function LapseZone({
   onKeepNudging,
   onHandoff,
   onDismiss,
+  embedded = false,
 }: LapseZoneProps) {
+  const zone = [styles.zone, embedded && styles.embedded];
   const [renegotiatingCue, setRenegotiatingCue] = useState(false);
   const [pickingBook, setPickingBook] = useState<string | null>(null);
 
   if (response.action === 'one_question') {
     if (response.route === 'cue_collapse') {
       return (
-        <View style={styles.zone}>
+        <View style={zone}>
           <Text style={styles.prompt}>{ONE_QUESTION_COPY.cue_collapse}</Text>
           {renegotiatingCue ? (
             <View style={styles.pickerBlock}>
@@ -72,7 +76,7 @@ export function LapseZone({
 
     if (response.route === 'book_fatigue') {
       return (
-        <View style={styles.zone}>
+        <View style={zone}>
           <Text style={styles.prompt}>{ONE_QUESTION_COPY.book_fatigue}</Text>
           {pickingBook !== null ? (
             <View style={styles.pickerBlock}>
@@ -99,7 +103,7 @@ export function LapseZone({
     }
 
     return (
-      <View style={styles.zone}>
+      <View style={zone}>
         <Text style={styles.prompt}>{ONE_QUESTION_COPY[response.route] ?? ONE_QUESTION_COPY.drift}</Text>
         <ActionButton label="OK" variant="secondary" onPress={onDismiss} style={styles.inlineBtn} />
       </View>
@@ -108,7 +112,7 @@ export function LapseZone({
 
   if (response.action === 'offramp') {
     return (
-      <View style={styles.zone}>
+      <View style={zone}>
         <Text style={styles.prompt}>It&apos;s been a couple of weeks. What would help?</Text>
         <View style={styles.row}>
           <ActionButton
@@ -148,7 +152,7 @@ export function LapseZone({
   if (response.action !== 'dormant') return null; // 'none'/'reduce_dose' never reach this component — see lapse.ts
 
   return (
-    <View style={styles.zone}>
+    <View style={zone}>
       <Text style={styles.farewell}>
         I&apos;ll be here.
         {response.farewell === 'handoff' && partnerName
@@ -172,6 +176,11 @@ const styles = StyleSheet.create({
     gap: 16,
     borderBottomWidth: 1,
     borderBottomColor: tokens.color.ink15,
+  },
+  embedded: {
+    paddingHorizontal: 0,
+    paddingVertical: 4,
+    borderBottomWidth: 0,
   },
   prompt: {
     fontFamily: tokens.font.scripture,
