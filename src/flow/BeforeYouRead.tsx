@@ -4,7 +4,7 @@ import Animated, { LinearTransition, runOnJS, useAnimatedStyle, useSharedValue, 
 import Svg, { Line } from 'react-native-svg';
 import { easing, useMotion } from '../ui/motion';
 import { tokens } from '../ui/tokens';
-import { type BeforeInput, type BeforeItem, type BeforeKind, buildBeforeYouRead, withFinished } from './beforeList';
+import { type BeforeInput, type BeforeItem, type BeforeKind, bodyMount, buildBeforeYouRead, withFinished } from './beforeList';
 
 interface BeforeYouReadProps {
   input: BeforeInput;
@@ -32,18 +32,25 @@ const SEAM: Record<BeforeKind, string> = {
 
 /**
  * S07: an opened row's body is stitched down its left edge, top to bottom,
- * over motion.stitchMs; closing unpicks it before the body goes. A row that
+ * over motion.stitchMs; closing unpicks it before the body hides. A row that
  * starts open (lapse, probe) is simply there on first paint. The text itself
  * never fades. Reduce motion: open and closed at once.
+ *
+ * A folded body stays mounted, only hidden: the zones keep their own state
+ * (which recall cards are graded, a revealed probe, a half-edited cue), so
+ * folding and reopening can never offer a graded card for grading again.
  */
 function StitchedBody({
   open,
+  hidden,
   animateIn,
   seam,
   onClosed,
   children,
 }: {
   open: boolean;
+  /** Folded and fully unpicked. */
+  hidden: boolean;
   animateIn: boolean;
   seam: string;
   onClosed: () => void;
@@ -64,7 +71,7 @@ function StitchedBody({
   const clip = useAnimatedStyle(() => ({ height: height * sewn.value }));
 
   return (
-    <View style={styles.body} onLayout={(e) => setHeight(e.nativeEvent.layout.height)}>
+    <View style={[styles.body, hidden && styles.hidden]} onLayout={(e) => setHeight(e.nativeEvent.layout.height)}>
       <Animated.View style={[styles.stitchClip, clip]} pointerEvents="none">
         {height > 0 && (
           <Svg width={2} height={height}>
@@ -115,6 +122,7 @@ export function BeforeYouRead({ input, renderBody }: BeforeYouReadProps) {
           );
         }
         const open = opened[item.kind] ?? item.startsOpen;
+        const mount = bodyMount(open, closing[item.kind] === true, opened[item.kind] !== undefined);
         const toggle = () => {
           if (open) setClosing((prev) => ({ ...prev, [item.kind]: true }));
           setOpened((prev) => ({ ...prev, [item.kind]: !open }));
@@ -136,9 +144,10 @@ export function BeforeYouRead({ input, renderBody }: BeforeYouReadProps) {
               </View>
               <Text style={[styles.go, open && styles.goOpen]}>{open ? 'Hide' : item.action}</Text>
             </Pressable>
-            {(open || closing[item.kind]) && (
+            {mount !== 'none' && (
               <StitchedBody
                 open={open}
+                hidden={mount === 'hidden'}
                 animateIn={opened[item.kind] !== undefined}
                 seam={SEAM[item.kind]}
                 onClosed={() => setClosing((prev) => ({ ...prev, [item.kind]: false }))}
@@ -197,6 +206,7 @@ const styles = StyleSheet.create({
     color: tokens.color.thread,
   },
   goOpen: { color: tokens.color.ink40 },
+  hidden: { display: 'none' },
   body: {
     marginLeft: 3,
     paddingLeft: 18,

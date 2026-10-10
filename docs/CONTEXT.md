@@ -53,6 +53,18 @@ and a translation the reader may choose outright: it is named, not hidden.
 api.esv.org) that the reader unlocks with their own free, non-commercial API key
 from the publisher. Its source is the **licensed provider**.
 
+## The reading screen
+
+**The arrival** — the reading screen's short header: the date, the chapter, today's
+verses, and the cue. A weft draws under it as the page opens. Kept short so the
+first verse is on the first screen.
+
+**Before you read** — the one list between the arrival and Scripture holding
+everything due before the reading: a lapse check-in, yesterday's probe
+("Yesterday's reading"), memory passages, and what's new. The lapse and the probe
+start open; memory and what's new start folded. A finished item folds to a quiet
+done row for the rest of the day. Nothing due, no list.
+
 ## Actions
 
 **The seal** — the press-and-hold that commits a day's reading. Drawn as the fell

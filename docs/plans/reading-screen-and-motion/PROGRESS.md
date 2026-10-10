@@ -48,3 +48,5 @@ S09 code done (device check pending) | files 1 | suite 661 ✓ | types ✓
   - The knot sheet's top edge is a static selvedge: warp ticks over a 3 px thread.
   - As it opens, a light weft draws under each everyday-tier row (Practice, Memory, Reading history, More), 45 ms apart, over stitchMs. Under reduce motion it is drawn still. The Modal slide, tiers and order are unchanged.
   - Gap (device): a knot recording, and open-to-usable ≤ ~300 ms.
+S10 done (device review open) | files 7 | suite 662 ✓ | types ✓
+  - The audit's HIGH finding was fixed (3790314). JOURNAL has the build entry and the Direction A and boundaries decision (E1, E9 with recall_shown, E4 from #66). CONTEXT gains "The arrival" and "Before you read". STATUS and the plans index are updated. OUTCOME.md lists the device gaps and the next release's What's new drafts.
