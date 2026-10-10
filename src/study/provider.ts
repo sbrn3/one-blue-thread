@@ -235,6 +235,15 @@ export class BundledStudyProvider {
       .map((result) => result.entry);
   }
 
+  /**
+   * Decodes a book's study pack (base64, gunzip, JSON) ahead of need. The first
+   * verse tap used to pay for this on the JS thread before its sheet could show
+   * (docs/plans/reading-screen-and-motion, S04: F6). The loader caches it.
+   */
+  prewarm(book: string): void {
+    this.cfg.studyLoader(book);
+  }
+
   article(id: string): DictionaryArticle | null {
     const entry = this.cfg.index.find((candidate) => candidate.id === id);
     if (!entry) return null;

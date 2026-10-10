@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AccessibilityInfo, findNodeHandle, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useReducedMotion } from 'react-native-reanimated';
+import { AccessibilityInfo, findNodeHandle, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Sheet } from '../ui/Sheet';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { StudyProvider } from '.';
 import { bookName } from '../text/canon';
@@ -8,7 +8,6 @@ import { tokens } from '../ui/tokens';
 import { ResourceText } from './ResourceText';
 
 export function DictionaryLibrary({ study, book }: { study: StudyProvider; book: string }) {
-  const reducedMotion = useReducedMotion();
   const insets = useSafeAreaInsets();
   const openerRef = useRef<View>(null);
   const modalRef = useRef<View>(null);
@@ -57,7 +56,7 @@ export function DictionaryLibrary({ study, book }: { study: StudyProvider; book:
         <Text style={styles.muted}>Search 6,000+ Tyndale dictionary articles offline</Text>
       </Pressable>
 
-      <Modal visible={open} animationType={reducedMotion ? 'none' : 'slide'} onShow={focusModalHeader} onRequestClose={close}>
+      <Sheet visible={open} onShow={focusModalHeader} onRequestClose={close}>
         <View style={[styles.modal, { paddingTop: insets.top }]} accessibilityViewIsModal>
           <View ref={modalRef} accessible accessibilityRole="header" accessibilityLabel="Study library" />
           <View style={styles.head}>
@@ -178,7 +177,7 @@ export function DictionaryLibrary({ study, book }: { study: StudyProvider; book:
             </View>
           )}
         </View>
-      </Modal>
+      </Sheet>
     </>
   );
 }

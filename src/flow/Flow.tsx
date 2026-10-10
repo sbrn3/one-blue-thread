@@ -355,7 +355,13 @@ export function Flow({ services }: FlowProps) {
     ? null
     : { book: session.book, chapter: session.chapter, verse: contextVerse };
   const contextResources = useMemo(
-    () => contextTarget ? study.resourcesForVerse(contextTarget) : [],
+    () => {
+      if (!contextTarget) return [];
+      const t0 = performance.now();
+      const found = study.resourcesForVerse(contextTarget);
+      if (DEBUG_TIMING) console.log('[study] verse lookup', Math.round(performance.now() - t0), 'ms');
+      return found;
+    },
     [contextTarget?.book, contextTarget?.chapter, contextTarget?.verse, study],
   );
   const contextBookResources = useMemo(
@@ -646,9 +652,21 @@ export function Flow({ services }: FlowProps) {
     mark('launchDismissed');
     // Release-speed timing: start Metro with EXPO_PUBLIC_DEBUG_STARTUP=1 and
     // read `adb logcat -s ReactNativeJS` (docs/plans/reading-screen-and-motion).
-    if (__DEV__ || process.env.EXPO_PUBLIC_DEBUG_STARTUP === '1') console.log('[startup]', JSON.stringify(summary()));
+    if (DEBUG_TIMING) console.log('[startup]', JSON.stringify(summary()));
     setShowLaunch(false);
   }, []);
+  // S04 (F6): decode today's book's study pack once the reading is on screen and
+  // the JS thread is idle, so the first verse tap opens its sheet straight away.
+  useEffect(() => {
+    if (showLaunch || session.status !== 'ready') return;
+    const book = session.book;
+    const id = requestIdleCallback(() => {
+      const t0 = performance.now();
+      study.prewarm(book);
+      if (DEBUG_TIMING) console.log('[study] prewarm', book, Math.round(performance.now() - t0), 'ms');
+    });
+    return () => cancelIdleCallback(id);
+  }, [showLaunch, session.status, session.book, study]);
   useEffect(() => {
     if (session.status === 'ready') mark('sessionReady');
     if (session.status === 'error') releaseSplash(); // the error screen replaces the weave
@@ -802,6 +820,7 @@ export function Flow({ services }: FlowProps) {
               chapterCount={bundledChapterCount(bolt.book)}
               sealed={bolt.sealed}
               streak={streak}
+              insetX={SCROLL_PAD_LEFT}
             />
             {srbaiDue && <SrbaiZone eyeballDates={eyeballDates(db, today)} onSave={handleSaveSrbai} />}
             {yearReview && <YearReviewZone report={yearReview} onDismiss={handleDismissYearReview} />}
@@ -884,7 +903,14 @@ export function Flow({ services }: FlowProps) {
   );
 }
 
+// Timing logs for device checks: on in dev, or in a release-speed bundle served
+// with EXPO_PUBLIC_DEBUG_STARTUP=1 (docs/plans/reading-screen-and-motion).
+const DEBUG_TIMING = __DEV__ || process.env.EXPO_PUBLIC_DEBUG_STARTUP === '1';
+
+// The gutter the thread rail sits in.
+const SCROLL_PAD_LEFT = 30;
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  scroll: { flex: 1, paddingLeft: 30 },
+  scroll: { flex: 1, paddingLeft: SCROLL_PAD_LEFT },
 });

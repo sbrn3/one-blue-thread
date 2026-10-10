@@ -24,3 +24,9 @@ S02 done, device ✓ (2026-10-10, by session -76 on 7f4b11d) | files 4 | suite 6
     - The Sealing row summary didn't follow the switch.
     - The rehearsal's "Unravelled" note survived a re-arm.
   - Gap: recheck the follow-up on the device.
+S04 code done (device check pending) | files 14 | weaveLayout 6 ✓ | suite 653 ✓ | types ✓
+  - F4: WeaveZone seeds its width from the window and the caller's inset, and reserves the cloth's exact height, so the knot sheet no longer jumps. The cloth now also stays inside the zone's 32 px padding; it used to be given the padded width.
+  - F5: history, memory, a past chapter and the dictionary use ui/Sheet.tsx: a transparent Modal with Reanimated slide-in (300 ms) and slide-out (240 ms); reduce motion shows at once. The knot, verse and headnote sheets keep the Modal's own slide, which the audit saw working.
+  - F6: Flow prewarms today's book's study pack on idle after the launch weave. Logs `[study] prewarm` and `[study] verse lookup` in dev, or with EXPO_PUBLIC_DEBUG_STARTUP=1.
+  - Also: two contract-test regexes held a literal backspace where `\b` was meant, so they checked less than they said. Both fixed, plus one in the videos exec.md.
+  - Gap: device check. The phone was in use by another session (port 8098), so no recordings yet.

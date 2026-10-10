@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AccessibilityInfo, findNodeHandle, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Sheet } from '../ui/Sheet';
+import { AccessibilityInfo, findNodeHandle, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RecallZone } from '../flow/RecallZone';
 import type { Grade, Passage } from '../log/types';
@@ -19,7 +20,6 @@ interface MemoryModalProps {
   memory: Memory;
   text: TextProvider;
   today: string;
-  reducedMotion: boolean;
   onClose: () => void;
 }
 
@@ -74,7 +74,7 @@ function Bars({ step }: { step: number }) {
  * it, never a second Modal (test/ui-contracts.test.ts). Nothing here can
  * touch seal, streak, weave, dose or the experiments — it only calls Memory.
  */
-export function MemoryModal({ visible, memory, text, today, reducedMotion, onClose }: MemoryModalProps) {
+export function MemoryModal({ visible, memory, text, today, onClose }: MemoryModalProps) {
   const insets = useSafeAreaInsets();
   const bump = useMemoryEpoch((s) => s.bump);
   const shownToday = useMemoryEpoch((s) => s.shownToday);
@@ -205,7 +205,7 @@ export function MemoryModal({ visible, memory, text, today, reducedMotion, onClo
   );
 
   return (
-    <Modal visible={visible} animationType={reducedMotion ? 'none' : 'slide'} onRequestClose={back}>
+    <Sheet visible={visible} onRequestClose={back}>
       <View style={[styles.wrap, { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 8 }]} accessibilityViewIsModal>
         {screen.kind === 'list' && (
           <ScrollView contentContainerStyle={styles.scroll}>
@@ -439,7 +439,7 @@ export function MemoryModal({ visible, memory, text, today, reducedMotion, onClo
           </ScrollView>
         )}
       </View>
-    </Modal>
+    </Sheet>
   );
 }
 
